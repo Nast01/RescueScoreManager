@@ -6,7 +6,7 @@
 
     <UseWPF>true</UseWPF>
     <StartupObject>RescueScoreManager.App</StartupObject>
-    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Images\logo_ffss_ico.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!--
@@ -30,7 +30,14 @@
 
   <ItemGroup>
     <ApplicationDefinition Remove="App.xaml" />
-    <Content Include="Resources\AppIcon.ico" />
+    <None Remove="Resources\Images\logo_ffss.png" />
+    <None Remove="Resources\Images\logo_ffss_ico.ico" />
+    <Content Include="Resources\Images\logo_ffss.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Images\logo_ffss_ico.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Page Include="App.xaml" />
   </ItemGroup>
 
