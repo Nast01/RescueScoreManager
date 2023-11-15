@@ -1,5 +1,7 @@
 ﻿using System.Windows.Input;
 
+using RescueScoreManager.Home;
+
 namespace RescueScoreManager;
 
 /// <summary>
@@ -7,10 +9,12 @@ namespace RescueScoreManager;
 /// </summary>
 public partial class MainWindow
 {
-    public MainWindow(MainWindowViewModel viewModel)
+    public MainWindow(HomeViewModel homeViewModel)
     {
-        DataContext = viewModel;
         InitializeComponent();
+        
+        //DataContext = viewModel;
+        HomeView.DataContext = homeViewModel;
 
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }

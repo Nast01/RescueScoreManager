@@ -1,8 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using MaterialDesignThemes.Wpf;
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
+using RescueScoreManager.Data;
+using RescueScoreManager.Home;
+
 using System.Windows;
 using System.Windows.Threading;
 
@@ -19,6 +25,11 @@ public partial class App : Application
         using IHost host = CreateHostBuilder(args).Build();
         host.Start();
 
+        //using(RescueScoreManagerContext context = host.Services.GetRequiredService<RescueScoreManagerContext>())
+        //{
+        //    context.Database.Migrate();
+        //}
+
         App app = new();
         app.InitializeComponent();
         app.MainWindow = host.Services.GetRequiredService<MainWindow>();
@@ -34,11 +45,18 @@ public partial class App : Application
         {
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();
+            services.AddSingleton<HomeView>();
+            services.AddSingleton<HomeViewModel>(serviceProvider =>
+            {
+                return new HomeViewModel(serviceProvider.GetRequiredService<RescueScoreManagerContext>());
+            });
 
             services.AddSingleton<WeakReferenceMessenger>();
             services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());
 
             services.AddSingleton(_ => Current.Dispatcher);
+            
+            services.AddDbContext<RescueScoreManagerContext>();
 
             services.AddTransient<ISnackbarMessageQueue>(provider =>
             {

@@ -1,0 +1,114 @@
+﻿<UserControl x:Class="RescueScoreManager.Home.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:RescueScoreManager.Home"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=local:HomeViewModel,
+                                              IsDesignTimeCreatable=False}"
+             Background="{StaticResource PrimaryHueMidForegroundBrush}"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             mc:Ignorable="d">
+  <DockPanel Margin="10" LastChildFill="True">
+    <materialDesign:ColorZone Margin="5"
+                              CornerRadius="10"
+                              DockPanel.Dock="Top"
+                              Mode="PrimaryDark">
+      <StackPanel Orientation="Horizontal">
+        <Image Width="120"
+               Height="120"
+               Margin="10,5,10,5"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               Source="/Assets/Images/logo-ffss_v2.png" />
+        <TextBlock Grid.Row="0"
+                   Grid.Column="1"
+                   Grid.ColumnSpan="2"
+                   Height="Auto"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="55"
+                   FontStyle="Italic"
+                   FontWeight="Bold"
+                   Foreground="{StaticResource White}"
+                   Text="Bienvenue" />
+      </StackPanel>
+    </materialDesign:ColorZone>
+    <GroupBox Margin="10"
+              materialDesign:ColorZoneAssist.Mode="PrimaryDark"
+              Background="{StaticResource SecondaryHueMidBrush}"
+              Header="Accès Rapide"
+              Style="{StaticResource MaterialDesignCardGroupBox}">
+      <GroupBox.HeaderTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal">
+            <materialDesign:PackIcon Width="32"
+                                     Height="32"
+                                     VerticalAlignment="Center"
+                                     Foreground="{StaticResource MaterialDesignLightBackground}"
+                                     Kind="Menu" />
+            <TextBlock Margin="8,0,0,0"
+                       VerticalAlignment="Center"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource MaterialDesignLightBackground}"
+                       Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                       Text="{Binding}" />
+          </StackPanel>
+        </DataTemplate>
+      </GroupBox.HeaderTemplate>
+
+      <StackPanel Orientation="Vertical">
+      <StackPanel Margin="10"
+                  VerticalAlignment="Top"
+                  Orientation="Horizontal">
+        <Button Width="{StaticResource ButtonWidth}"
+                Margin="0,0,5,0"
+                Command="{Binding NewCompetitionCommand}"
+                Style="{StaticResource MaterialDesignRaisedLightButton}"
+                ToolTip="Récupérer une compétition">
+          <StackPanel Orientation="Horizontal">
+            <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
+                                     Height="{StaticResource ButtonIconSize}"
+                                     VerticalAlignment="Center"
+                                     FontWeight="Bold"
+                                     Foreground="{StaticResource White}"
+                                     Kind="DownloadCircle" />
+            <TextBlock Margin="5,0,0,0"
+                       Padding="0"
+                       VerticalAlignment="Center"
+                       FontSize="{StaticResource ButtonFontSize}"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource White}"
+                       Text="Nouveau" />
+          </StackPanel>
+        </Button>
+        <Button Width="{StaticResource ButtonWidth}"
+                Command="{Binding OpenFileCommand}"
+                Margin="0,0,5,0"
+                Style="{StaticResource MaterialDesignRaisedLightButton}"
+                ToolTip="Ouvrir une compétition">
+          <StackPanel Orientation="Horizontal">
+            <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
+                                     Height="{StaticResource ButtonIconSize}"
+                                     VerticalAlignment="Center"
+                                     FontWeight="Bold"
+                                     Foreground="{StaticResource White}"
+                                     Kind="FolderOpen" />
+            <TextBlock Margin="5,0,0,0"
+                       Padding="0"
+                       VerticalAlignment="Center"
+                       FontSize="{StaticResource ButtonFontSize}"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource White}"
+                       Text="Ouvrir" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+        <TextBlock Text="{Binding Competition.Name}" FontSize="28" Foreground="Black"/>
+      </StackPanel>
+    </GroupBox>
+  </DockPanel>
+
+</UserControl>
