@@ -66,6 +66,16 @@ public partial class HomeViewModel : ObservableObject
             competition.Clubs.Add(newClub1);
             competition.Clubs.Add(newClub2);
 
+            Category cat1 = new Category()
+            {
+                Id = 1,
+                Name = "Cat1",
+            };
+            Category cat2 = new Category()
+            {
+                Id = 2,
+                Name = "Cat2",
+            };
             Licensee ath1 = new Athlete()
             {
                 Id = "ath1",
@@ -77,7 +87,8 @@ public partial class HomeViewModel : ObservableObject
                 IsGuest = false,
                 IsLicencee = true,
                 OrderNumber = 1,
-                Club = newClub1
+                Club = newClub1,
+                Category = cat1,
             };
 
             Licensee ref1 = new Referee()
@@ -90,7 +101,8 @@ public partial class HomeViewModel : ObservableObject
                 IsGuest = false,
                 IsLicencee = true,
                 Club = newClub1,
-                RefereeLevel = EnumRSM.RefereeLevel.A
+                RefereeLevel = EnumRSM.RefereeLevel.A,
+                Category = cat2,
             };
 
             RefereeDate refDate1 = new RefereeDate()
@@ -103,14 +115,16 @@ public partial class HomeViewModel : ObservableObject
 
             Context.Competitions.RemoveRange(await Context.Competitions.ToListAsync());
             Context.Clubs.RemoveRange(await Context.Clubs.ToListAsync());
-           // Context.Licensees.RemoveRange(await Context.Licensees.ToListAsync());
+            Context.Licensees.RemoveRange(await Context.Licensees.ToListAsync());
+            Context.RefereeDates.RemoveRange(await Context.RefereeDates.ToListAsync());
 
             await Context.SaveChangesAsync();
 
             Context.Competitions.Add(competition);
-
             Context.Clubs.AddRange(newClub1, newClub2);
             Context.Licensees.AddRange(ath1, ref1);
+            Context.Categories.AddRange(cat1, cat2);
+            Context.RefereeDates.Add(refDate1);
 
             await Context.SaveChangesAsync();
             Competition = await Context.Competitions.FirstOrDefaultAsync();

@@ -11,6 +11,8 @@ public class RescueScoreManagerContext : DbContext
     public DbSet<Competition> Competitions => Set<Competition>();
     public DbSet<Club> Clubs => Set<Club>();
     public DbSet<Licensee> Licensees => Set<Licensee>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<RefereeDate> RefereeDates => Set<RefereeDate>();
 
     public FileInfo DbPath { get; set; }
 
@@ -23,7 +25,6 @@ public class RescueScoreManagerContext : DbContext
             .WithOne(cl => cl.Competition)
             .HasForeignKey(cl => cl.CompetitionId)
             .IsRequired(true);
-
 
         //Configure Referee-RefereeDate One-to-Many relation
         modelBuilder.Entity<RefereeDate>()
@@ -40,6 +41,13 @@ public class RescueScoreManagerContext : DbContext
             .HasDiscriminator<string>("LicenseeType")
             .HasValue<Athlete>("Athlete")
             .HasValue<Referee>("Referee");
+
+        //Configure Category-Athletes One-to-Many relation
+        modelBuilder.Entity<Category>()
+            .HasMany(c => c.Licensees)
+            .WithOne(l => l.Category)
+            .HasForeignKey(l => l.CategoryId)
+            .IsRequired(true);
 
         base.OnModelCreating(modelBuilder);
     }
