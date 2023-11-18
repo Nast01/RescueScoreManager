@@ -10,18 +10,13 @@ public class RescueScoreManagerContext : DbContext
 {
     public DbSet<Competition> Competitions => Set<Competition>();
     public DbSet<Club> Clubs => Set<Club>();
+    public DbSet<Licensee> Licensees => Set<Licensee>();
+
     public FileInfo DbPath { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        //Configure Competition-Organizer One-to-One relation
-        //modelBuilder.Entity<Competition>()
-        //    .HasOne(c => c.Organizer)
-        //    .WithOne(cl => cl.OrganizerCompetition)
-        //    .HasForeignKey<Club>(cl => cl.OrganizerCompetitionId)
-        //    .IsRequired(true);
-
         //Configure Competition-Clubs One-to-Many relation
         modelBuilder.Entity<Competition>()
             .HasMany(c => c.Clubs)
@@ -29,6 +24,22 @@ public class RescueScoreManagerContext : DbContext
             .HasForeignKey(cl => cl.CompetitionId)
             .IsRequired(true);
 
+
+        //Configure Referee-RefereeDate One-to-Many relation
+        modelBuilder.Entity<RefereeDate>()
+            .HasKey(rd => rd.Id);
+
+        modelBuilder.Entity<RefereeDate>()
+            .HasOne(rd => rd.Referee)
+            .WithMany(r => r.RefereeAvailabilities)
+            .HasForeignKey(rd => rd.RefereeId);
+
+
+        //Configure Club-Licensess One-to-Many relation
+        modelBuilder.Entity<Licensee>()
+            .HasDiscriminator<string>("LicenseeType")
+            .HasValue<Athlete>("Athlete")
+            .HasValue<Referee>("Referee");
 
         base.OnModelCreating(modelBuilder);
     }

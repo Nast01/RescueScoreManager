@@ -46,12 +46,15 @@ public partial class HomeViewModel : ObservableObject
                 PriceByAthlete = 0,
                 PriceByClub = 0,
                 PriceByEntry = 0,
+                SwimType = EnumRSM.SwimType.Bassin_25m,
+                Speciality = EnumRSM.Speciality.EauPlate,
+                ChronoType = EnumRSM.ChronoType.Manual
             };
 
             Club newClub1 = new Club()
             {
                 Id = 1,
-                Name  = "premier club",
+                Name = "premier club",
             };
             Club newClub2 = new Club()
             {
@@ -62,14 +65,56 @@ public partial class HomeViewModel : ObservableObject
             competition.Organizer = newClub1.Name;
             competition.Clubs.Add(newClub1);
             competition.Clubs.Add(newClub2);
-            
-            
+
+            Licensee ath1 = new Athlete()
+            {
+                Id = "ath1",
+                BirthYear = 1984,
+                FirstName = "Stanislas",
+                LastName = "Krzywda",
+                Gender = EnumRSM.Gender.Man,
+                IsForfeit = false,
+                IsGuest = false,
+                IsLicencee = true,
+                OrderNumber = 1,
+                Club = newClub1
+            };
+
+            Licensee ref1 = new Referee()
+            {
+                Id = "ref1",
+                BirthYear = 1980,
+                FirstName = "Baron",
+                LastName = "Guillaume",
+                Gender = EnumRSM.Gender.Man,
+                IsGuest = false,
+                IsLicencee = true,
+                Club = newClub1,
+                RefereeLevel = EnumRSM.RefereeLevel.A
+            };
+
+            RefereeDate refDate1 = new RefereeDate()
+            {
+                Id = 1,
+                Availability = DateTime.Now,
+                Referee = (Referee)ref1
+            };
+
+
+            Context.Competitions.RemoveRange(await Context.Competitions.ToListAsync());
+            Context.Clubs.RemoveRange(await Context.Clubs.ToListAsync());
+           // Context.Licensees.RemoveRange(await Context.Licensees.ToListAsync());
+
+            await Context.SaveChangesAsync();
+
             Context.Competitions.Add(competition);
-            Context.Clubs.AddRange(newClub1,newClub2);
-            //Context.Clubs.Add(newClub2);
+
+            Context.Clubs.AddRange(newClub1, newClub2);
+            Context.Licensees.AddRange(ath1, ref1);
 
             await Context.SaveChangesAsync();
             Competition = await Context.Competitions.FirstOrDefaultAsync();
+            List<Licensee> Licensees = await Context.Licensees.ToListAsync();
 
         }
         else

@@ -107,6 +107,7 @@
         </Button>
       </StackPanel>
         <TextBlock Text="{Binding Competition.Name}" FontSize="28" Foreground="Black"/>
+        <TextBlock Text="{Binding Competition.SwimType}" FontSize="28" Foreground="Black"/>
       </StackPanel>
     </GroupBox>
   </DockPanel>
