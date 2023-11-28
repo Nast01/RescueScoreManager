@@ -1,4 +1,4 @@
-﻿namespace RescueScoreManager.Model;
+﻿namespace RescueScoreManager.Data;
 
 public partial class Club
 {

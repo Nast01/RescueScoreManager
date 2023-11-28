@@ -1,4 +1,4 @@
-﻿namespace RescueScoreManager.Model;
+﻿namespace RescueScoreManager.Data;
 
 public class EnumRSM
 {
@@ -43,9 +43,11 @@ public class EnumRSM
         Mixte
     }
 
-    public enum APIType
+    public enum HeatType
     {
-        Competition,
-        Club,
+        Heats,
+        QuarterFinal,
+        SemiFinal,
+        Final,
     }
 }

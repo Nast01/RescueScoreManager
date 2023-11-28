@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-using static RescueScoreManager.Model.EnumRSM;
+using static RescueScoreManager.Data.EnumRSM;
 
-namespace RescueScoreManager.Model;
+namespace RescueScoreManager.Data;
 
 public abstract partial class Licensee
 {

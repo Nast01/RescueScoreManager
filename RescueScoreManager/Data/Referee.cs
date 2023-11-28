@@ -1,8 +1,8 @@
 ﻿using RescueScoreManager.Data;
 
-using static RescueScoreManager.Model.EnumRSM;
+using static RescueScoreManager.Data.EnumRSM;
 
-namespace RescueScoreManager.Model;
+namespace RescueScoreManager.Data;
 
 public partial class Referee : Licensee
 {

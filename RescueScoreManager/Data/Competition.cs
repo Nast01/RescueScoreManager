@@ -1,6 +1,6 @@
-﻿using static RescueScoreManager.Model.EnumRSM;
+﻿using static RescueScoreManager.Data.EnumRSM;
 
-namespace RescueScoreManager.Model;
+namespace RescueScoreManager.Data;
 public partial class Competition
 {
     #region Attributes
@@ -21,7 +21,8 @@ public partial class Competition
     public int PriceByClub { get; set; }
     public string Organizer { get; set; } 
     public ICollection<Club> Clubs { get; } = new List<Club>();//one-to-many relationship
-    //public List<Race> Races { get; set; }
+    public ICollection<Race> Races { get; } = new List<Race>();//one-to-many relationship
+    public ICollection<Meeting> Meetings { get; } = new List<Meeting>();//one-to-many relationship
 
     #endregion Attributes
 }

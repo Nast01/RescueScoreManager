@@ -1,6 +1,4 @@
-﻿using RescueScoreManager.Model;
-
-namespace RescueScoreManager.Data;
+﻿namespace RescueScoreManager.Data;
 
 public partial class RefereeDate
 {
