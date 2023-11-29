@@ -48,6 +48,7 @@ public partial class App : Application
         .ConfigureServices((hostContext, services) =>
         {
             services.AddTransient<IDialogService, DialogService>();
+            services.AddSingleton<IWSIRestService, WSIRestService>();
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();

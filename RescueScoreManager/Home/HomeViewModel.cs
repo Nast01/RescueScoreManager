@@ -22,16 +22,22 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>
     private RescueScoreManagerContext _context { get; }
     private LoginViewModel _loginViewModel { get; }
     private IDialogService _dialogService { get; }
+    private IWSIRestService _wsiService { get; }
 
     [ObservableProperty]
     private Competition _competition;
 
-
-    public HomeViewModel(RescueScoreManagerContext context, LoginViewModel loginViewModel, IDialogService dialogService, IMessenger messenger)
+    public HomeViewModel(RescueScoreManagerContext context,
+                            LoginViewModel loginViewModel,
+                            IDialogService dialogService,
+                            IWSIRestService wsiService,
+                            IMessenger messenger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _loginViewModel = loginViewModel ?? throw new ArgumentNullException(nameof(_loginViewModel));
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(_dialogService));
+        _wsiService = wsiService;
+
         messenger.RegisterAll(this);
     }
 
@@ -298,14 +304,17 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>
     [RelayCommand(CanExecute = nameof(CanNewCompetition))]
     private void NewCompetition()
     {
-        _dialogService.ShowLoginView(_loginViewModel);
+        if(_wsiService.HasToken() == false)
+            _dialogService.ShowLoginView(_loginViewModel);
     }
 
     private bool CanNewCompetition() => _context.IsLoaded == false;
 
     public async void Receive(LoginMessage message)
     {
-        bool value = message.IsConnected;
+        if (message.IsConnected == true)
+        {
+        }
     }
 
 }

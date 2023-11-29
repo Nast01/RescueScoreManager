@@ -10,13 +10,16 @@ namespace RescueScoreManager.Login;
 public partial class LoginViewModel : ObservableObject
 {
     private IMessenger Messenger;
+    public IWSIRestService WSIService { get; }
 
     public string Login { get; set; } = "skr";
     public string Password { get; set; } = "skr123@";
+
     public event EventHandler RequestClose;
 
-    public LoginViewModel(IMessenger messenger)
+    public LoginViewModel(IWSIRestService wsiService, IMessenger messenger)
     {
+        WSIService = wsiService;
         Messenger = messenger;
     }
 
@@ -24,7 +27,8 @@ public partial class LoginViewModel : ObservableObject
     private async Task Validate()
     {
         //bool success = await WSIRestService.Instance.RequestToken(login, password);
-        Messenger.Send(new LoginMessage(true));
+        bool success = await WSIService.RequestToken(Login, Password);
+        Messenger.Send(new LoginMessage(success));
         OnRequestClose();
     }
 
