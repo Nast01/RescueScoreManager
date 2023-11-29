@@ -22,7 +22,7 @@ public class RescueScoreManagerContext : DbContext
 
     public FileInfo DbPath { get; set; }
     public string DbFolderPath { get; set; }
-
+    public bool IsLoaded => DbPath != null;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

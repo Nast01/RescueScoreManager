@@ -30,8 +30,16 @@
 
   <ItemGroup>
     <ApplicationDefinition Remove="App.xaml" />
+    <None Remove="Assets\Images\logo-ffss_v2.png" />
+    <None Remove="Assets\Images\logo_ffss_ico.ico" />
     <None Remove="Resources\Images\logo_ffss.png" />
     <None Remove="Resources\Images\logo_ffss_ico.ico" />
+    <Content Include="Assets\Images\logo-ffss_v2.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Images\logo_ffss_ico.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Images\logo_ffss.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -58,7 +66,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\Images\" />
     <Folder Include="Helpers\" />
   </ItemGroup>
 </Project>

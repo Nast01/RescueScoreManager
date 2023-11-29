@@ -7,9 +7,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DataContext="{d:DesignInstance Type=local:HomeViewModel,
                                               IsDesignTimeCreatable=False}"
-             Background="{StaticResource PrimaryHueMidForegroundBrush}"
              d:DesignHeight="450"
              d:DesignWidth="800"
+             Background="{StaticResource PrimaryHueMidForegroundBrush}"
              mc:Ignorable="d">
   <DockPanel Margin="10" LastChildFill="True">
     <materialDesign:ColorZone Margin="5"
@@ -60,54 +60,60 @@
       </GroupBox.HeaderTemplate>
 
       <StackPanel Orientation="Vertical">
-      <StackPanel Margin="10"
-                  VerticalAlignment="Top"
-                  Orientation="Horizontal">
-        <Button Width="{StaticResource ButtonWidth}"
-                Margin="0,0,5,0"
-                Command="{Binding NewCompetitionCommand}"
-                Style="{StaticResource MaterialDesignRaisedLightButton}"
-                ToolTip="Récupérer une compétition">
-          <StackPanel Orientation="Horizontal">
-            <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
-                                     Height="{StaticResource ButtonIconSize}"
-                                     VerticalAlignment="Center"
-                                     FontWeight="Bold"
-                                     Foreground="{StaticResource White}"
-                                     Kind="DownloadCircle" />
-            <TextBlock Margin="5,0,0,0"
-                       Padding="0"
-                       VerticalAlignment="Center"
-                       FontSize="{StaticResource ButtonFontSize}"
-                       FontWeight="Bold"
-                       Foreground="{StaticResource White}"
-                       Text="Nouveau" />
-          </StackPanel>
-        </Button>
-        <Button Width="{StaticResource ButtonWidth}"
-                Command="{Binding OpenFileCommand}"
-                Margin="0,0,5,0"
-                Style="{StaticResource MaterialDesignRaisedLightButton}"
-                ToolTip="Ouvrir une compétition">
-          <StackPanel Orientation="Horizontal">
-            <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
-                                     Height="{StaticResource ButtonIconSize}"
-                                     VerticalAlignment="Center"
-                                     FontWeight="Bold"
-                                     Foreground="{StaticResource White}"
-                                     Kind="FolderOpen" />
-            <TextBlock Margin="5,0,0,0"
-                       Padding="0"
-                       VerticalAlignment="Center"
-                       FontSize="{StaticResource ButtonFontSize}"
-                       FontWeight="Bold"
-                       Foreground="{StaticResource White}"
-                       Text="Ouvrir" />
-          </StackPanel>
-        </Button>
-      </StackPanel>
-        <TextBlock Text="{Binding Competition.Name}" FontSize="28" Foreground="Black"/>
-        <TextBlock Text="{Binding Competition.SwimType}" FontSize="28" Foreground="Black"/>
+        <StackPanel Margin="10"
+                    VerticalAlignment="Top"
+                    Orientation="Horizontal">
+          <Button Width="{StaticResource ButtonWidth}"
+                  Margin="0,0,5,0"
+                  materialDesign:ButtonAssist.CornerRadius="10"
+                  Command="{Binding NewCompetitionCommand}"
+                  Style="{StaticResource MaterialDesignRaisedLightButton}"
+                  ToolTip="Récupérer une compétition">
+            <StackPanel Orientation="Horizontal">
+              <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
+                                       Height="{StaticResource ButtonIconSize}"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource White}"
+                                       Kind="DownloadCircle" />
+              <TextBlock Margin="5,0,0,0"
+                         Padding="0"
+                         VerticalAlignment="Center"
+                         FontSize="{StaticResource ButtonFontSize}"
+                         FontWeight="Bold"
+                         Foreground="{StaticResource White}"
+                         Text="Nouveau" />
+            </StackPanel>
+          </Button>
+          <Button Width="{StaticResource ButtonWidth}"
+                  Margin="0,0,5,0"
+                  materialDesign:ButtonAssist.CornerRadius="10"
+                  Command="{Binding OpenFileCommand}"
+                  Style="{StaticResource MaterialDesignRaisedLightButton}"
+                  ToolTip="Ouvrir une compétition">
+            <StackPanel Orientation="Horizontal">
+              <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
+                                       Height="{StaticResource ButtonIconSize}"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource White}"
+                                       Kind="FolderOpen" />
+              <TextBlock Margin="5,0,0,0"
+                         Padding="0"
+                         VerticalAlignment="Center"
+                         FontSize="{StaticResource ButtonFontSize}"
+                         FontWeight="Bold"
+                         Foreground="{StaticResource White}"
+                         Text="Ouvrir" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+        <TextBlock FontSize="28"
+                   Foreground="Black"
+                   Text="{Binding Competition.Name}" />
+        <TextBlock FontSize="28"
+                   Foreground="Black"
+                   Text="{Binding Competition.SwimType}" />
       </StackPanel>
     </GroupBox>
   </DockPanel>

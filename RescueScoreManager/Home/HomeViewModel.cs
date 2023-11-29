@@ -1,27 +1,38 @@
-﻿using System.IO;
+﻿using System.Diagnostics.Metrics;
+using System.IO;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
 
 using RescueScoreManager.Data;
+using RescueScoreManager.Login;
+using RescueScoreManager.Messages;
+using RescueScoreManager.Services;
 
 using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Home;
 
-public partial class HomeViewModel : ObservableObject
+public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>
 {
-    private RescueScoreManagerContext Context { get; }
+    private RescueScoreManagerContext _context { get; }
+    private LoginViewModel _loginViewModel { get; }
+    private IDialogService _dialogService { get; }
 
     [ObservableProperty]
     private Competition _competition;
 
-    public HomeViewModel(RescueScoreManagerContext context)
+
+    public HomeViewModel(RescueScoreManagerContext context, LoginViewModel loginViewModel, IDialogService dialogService, IMessenger messenger)
     {
-        Context = context ?? throw new ArgumentNullException(nameof(context));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _loginViewModel = loginViewModel ?? throw new ArgumentNullException(nameof(_loginViewModel));
+        _dialogService = dialogService ?? throw new ArgumentNullException(nameof(_dialogService));
+        messenger.RegisterAll(this);
     }
 
     [RelayCommand]
@@ -29,8 +40,8 @@ public partial class HomeViewModel : ObservableObject
     {
         if (GetFile() is { } file)
         {
-            Context.DbPath = file;
-            Context.Database.Migrate();
+            _context.DbPath = file;
+            _context.Database.Migrate();
 
             Competition competition = new Competition()
             {
@@ -222,48 +233,48 @@ public partial class HomeViewModel : ObservableObject
             meeting.MeetingElements.Add(me1);
             me1.Categories.Add(cat2);
 
-            Context.Competitions.RemoveRange(await Context.Competitions.ToListAsync());
-            Context.Clubs.RemoveRange(await Context.Clubs.ToListAsync());
-            Context.Licensees.RemoveRange(await Context.Licensees.ToListAsync());
-            Context.RefereeDates.RemoveRange(await Context.RefereeDates.ToListAsync());
-            Context.Categories.RemoveRange(await Context.Categories.ToListAsync());
-            Context.Races.RemoveRange(await Context.Races.ToListAsync());
-            Context.Teams.RemoveRange(await Context.Teams.ToListAsync());
-            Context.Meetings.RemoveRange(await Context.Meetings.ToListAsync());
-            Context.MeetingElements.RemoveRange(await Context.MeetingElements.ToListAsync());
-            Context.Rounds.RemoveRange(await Context.Rounds.ToListAsync());
-            Context.Heats.RemoveRange(await Context.Heats.ToListAsync());
-            Context.HeatResults.RemoveRange(await Context.HeatResults.ToListAsync());
+            _context.Competitions.RemoveRange(await _context.Competitions.ToListAsync());
+            _context.Clubs.RemoveRange(await _context.Clubs.ToListAsync());
+            _context.Licensees.RemoveRange(await _context.Licensees.ToListAsync());
+            _context.RefereeDates.RemoveRange(await _context.RefereeDates.ToListAsync());
+            _context.Categories.RemoveRange(await _context.Categories.ToListAsync());
+            _context.Races.RemoveRange(await _context.Races.ToListAsync());
+            _context.Teams.RemoveRange(await _context.Teams.ToListAsync());
+            _context.Meetings.RemoveRange(await _context.Meetings.ToListAsync());
+            _context.MeetingElements.RemoveRange(await _context.MeetingElements.ToListAsync());
+            _context.Rounds.RemoveRange(await _context.Rounds.ToListAsync());
+            _context.Heats.RemoveRange(await _context.Heats.ToListAsync());
+            _context.HeatResults.RemoveRange(await _context.HeatResults.ToListAsync());
 
 
-            await Context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-            Context.Competitions.Add(competition);
-            Context.Clubs.AddRange(newClub1, newClub2);
-            Context.Licensees.AddRange(ath1, ref1);
-            Context.Categories.AddRange(cat1, cat2);
-            Context.RefereeDates.Add(refDate1);
-            Context.Races.Add(race);
-            Context.Teams.Add(team);
-            Context.Teams.Add(relayTeam);
-            Context.Meetings.Add(meeting);
-            Context.MeetingElements.Add(me1);
-            Context.Rounds.Add(round);
-            Context.Heats.Add(heat);
-            Context.HeatResults.Add(heatResult);
+            _context.Competitions.Add(competition);
+            _context.Clubs.AddRange(newClub1, newClub2);
+            _context.Licensees.AddRange(ath1, ref1);
+            _context.Categories.AddRange(cat1, cat2);
+            _context.RefereeDates.Add(refDate1);
+            _context.Races.Add(race);
+            _context.Teams.Add(team);
+            _context.Teams.Add(relayTeam);
+            _context.Meetings.Add(meeting);
+            _context.MeetingElements.Add(me1);
+            _context.Rounds.Add(round);
+            _context.Heats.Add(heat);
+            _context.HeatResults.Add(heatResult);
 
-            await Context.SaveChangesAsync();
-            Competition = await Context.Competitions.FirstOrDefaultAsync();
-            List<Licensee> Licensees = await Context.Licensees.ToListAsync();
-            List<Race> Races = await Context.Races.ToListAsync();
-            List<Team> Teams = await Context.Teams.ToListAsync();
-            List<Meeting> Meetings = await Context.Meetings.ToListAsync();
+            await _context.SaveChangesAsync();
+            Competition = await _context.Competitions.FirstOrDefaultAsync();
+            List<Licensee> Licensees = await _context.Licensees.ToListAsync();
+            List<Race> Races = await _context.Races.ToListAsync();
+            List<Team> Teams = await _context.Teams.ToListAsync();
+            List<Meeting> Meetings = await _context.Meetings.ToListAsync();
         }
         else
         {
             string path = "C:\\Users\\nast0\\Documents\\RescueScore\\RescueScoreManager\\rsm.ffss";
-            Context.DbPath = new FileInfo(path);
-            Context.Database.Migrate();
+            _context.DbPath = new FileInfo(path);
+            _context.Database.Migrate();
         }
     }
 
@@ -283,6 +294,20 @@ public partial class HomeViewModel : ObservableObject
         }
         return null;
     }
+
+    [RelayCommand(CanExecute = nameof(CanNewCompetition))]
+    private void NewCompetition()
+    {
+        _dialogService.ShowLoginView(_loginViewModel);
+    }
+
+    private bool CanNewCompetition() => _context.IsLoaded == false;
+
+    public async void Receive(LoginMessage message)
+    {
+        bool value = message.IsConnected;
+    }
+
 }
 
 
