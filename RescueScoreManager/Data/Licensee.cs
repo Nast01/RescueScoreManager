@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
 
 using static RescueScoreManager.Data.EnumRSM;
 
@@ -14,17 +15,15 @@ public abstract partial class Licensee
     public int BirthYear { get; set; }
     public Gender Gender { get; set; }
     public String? FullName { get { return String.Join(" ", LastName, FirstName); } }
-    public bool IsLicencee { get; set; }
+    public bool IsLicensee { get; set; }
     public bool IsGuest { get; set; }
+    public string Nationality { get; set; }
 
     //one-to-many relationship to Club
     public int ClubId { get; set; } // Required foreign key property
     public Club Club { get; set; } = null!; // Required reference navigation to principal
 
-    //one-to-many relationship to Category
-    public int CategoryId { get; set; } // Required foreign key property
-    public Category Category { get; set; } = null!; // Required reference navigation to principal
     #endregion Attributes
 
-
+    public abstract XElement WriteXml();
 }

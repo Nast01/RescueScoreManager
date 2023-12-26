@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
 
 using RescueScoreManager.Helper;
 
@@ -19,4 +20,6 @@ public abstract partial class Team
     public Race Race { get; set; } = null!; // Required reference navigation to principal
 
     public ICollection<HeatResult> HeatResults { get; set; } = new List<HeatResult>();
+
+    public abstract XElement WriteXml();
 }

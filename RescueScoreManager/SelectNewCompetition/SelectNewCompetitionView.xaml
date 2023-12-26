@@ -1,0 +1,160 @@
+﻿<UserControl x:Class="RescueScoreManager.SelectNewCompetition.SelectNewCompetitionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:RescueScoreManager.SelectNewCompetition"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=local:SelectNewCompetitionViewModel,
+                                              IsDesignTimeCreatable=False}"
+             d:DesignHeight="378"
+             d:DesignWidth="294"
+             mc:Ignorable="d">
+  <UserControl.Resources>
+    <DataTemplate x:Key="CompetitionItemTemplate">
+      <StackPanel Margin="2" Orientation="Vertical">
+        <TextBlock Margin="0,0,-2,0"
+                   HorizontalAlignment="Left"
+                   FontFamily="Calibri"
+                   FontSize="14"
+                   FontWeight="Bold"
+                   Text="{Binding Name}" />
+        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+          <TextBlock FontFamily="Calibri"
+                     FontSize="10"
+                     FontStyle="Italic"
+                     FontWeight="Bold"
+                     Text="{Binding BeginDate, StringFormat=\{0:dd/MM/yyyy\}}" />
+          <TextBlock FontFamily="Calibri"
+                     FontSize="10"
+                     FontStyle="Italic"
+                     FontWeight="Bold"
+                     Text=" - " />
+          <TextBlock FontFamily="Calibri"
+                     FontSize="10"
+                     FontStyle="Italic"
+                     FontWeight="Bold"
+                     Text="{Binding EndDate, StringFormat=\{0:dd/MM/yyyy\}}" />
+          <TextBlock Margin="10,0"
+                     FontFamily="Calibri"
+                     FontSize="10"
+                     FontStyle="Italic"
+                     Text="{Binding Speciality}" />
+          <TextBlock Margin="10,0"
+                     FontFamily="Calibri"
+                     FontSize="10"
+                     FontStyle="Italic"
+                     Text="{Binding Organizer.Name}" />
+        </StackPanel>
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="60" />
+      <RowDefinition Height="60" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="40" />
+    </Grid.RowDefinitions>
+    <StackPanel Grid.Row="0" Orientation="Horizontal">
+      <materialDesign:PackIcon Width="24"
+                               Height="24"
+                               Margin="8,5"
+                               Foreground="{StaticResource BlackColor}"
+                               Kind="SelectAll" />
+      <TextBlock Margin="8,5"
+                 Style="{StaticResource titleText}"
+                 Text="Sélection Compétition" />
+    </StackPanel>
+    <StackPanel Grid.Row="1" Orientation="Horizontal">
+      <DatePicker Name="BeginDatePicker"
+                  Grid.Row="1"
+                  Width="150"
+                  Margin="5"
+                  Padding="5"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Center"
+                  materialDesign:CalendarAssist.HeaderForeground="#012b56"
+                  materialDesign:CalendarAssist.SelectionColor="#012b56"
+                  materialDesign:CalendarAssist.SelectionForegroundColor="#012b56"
+                  materialDesign:HintAssist.Hint="Date de début"
+                  FirstDayOfWeek="Monday"
+                  FontWeight="Bold"
+                  Foreground="#012b56"
+                  SelectedDate="{Binding BeginDate, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                  Style="{StaticResource MaterialDesignOutlinedDatePicker}"
+                  TabIndex="1" />
+      <Button Command="{Binding RefreshCommand}" Style="{StaticResource iconButton}">
+        <materialDesign:PackIcon Margin="5,0,0,0" Kind="Check" />
+      </Button>
+    </StackPanel>
+    <ListView Grid.Row="2"
+              Margin="5"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch"
+              BorderThickness="2,2,2,0"
+              ItemsSource="{Binding Competitions, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+              SelectedItem="{Binding SelectedCompetition,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+              ScrollViewer.CanContentScroll="True"
+              ScrollViewer.VerticalScrollBarVisibility="Visible"
+              TabIndex="2">
+      <ListView.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Margin="2" Orientation="Vertical">
+            <TextBlock Margin="0,0,-2,0"
+                       HorizontalAlignment="Left"
+                       FontFamily="Calibri"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Text="{Binding Name}" />
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+              <TextBlock FontFamily="Calibri"
+                         FontSize="10"
+                         FontStyle="Italic"
+                         FontWeight="Bold"
+                         Text="{Binding BeginDate, StringFormat=\{0:dd/MM/yyyy\}}" />
+              <TextBlock FontFamily="Calibri"
+                         FontSize="10"
+                         FontStyle="Italic"
+                         FontWeight="Bold"
+                         Text=" - " />
+              <TextBlock FontFamily="Calibri"
+                         FontSize="10"
+                         FontStyle="Italic"
+                         FontWeight="Bold"
+                         Text="{Binding EndDate, StringFormat=\{0:dd/MM/yyyy\}}" />
+              <TextBlock Margin="10,0"
+                         FontFamily="Calibri"
+                         FontSize="10"
+                         FontStyle="Italic"
+                         Text="{Binding Speciality}" />
+              <TextBlock Margin="10,0"
+                         FontFamily="Calibri"
+                         FontSize="10"
+                         FontStyle="Italic"
+                         Text="{Binding Organizer}" />
+            </StackPanel>
+          </StackPanel>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+    <StackPanel Grid.Row="3"
+                Margin="0,5,0,5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+      <Button Command="{Binding ValidateCommand}" Style="{StaticResource blueButton}">
+        <TextBlock Margin="5,0,0,0"
+                   FontWeight="Bold"
+                   Text="Valider" />
+      </Button>
+      <Button Command="{Binding CancelCommand}" Style="{StaticResource blueButton}">
+        <TextBlock Margin="5,0,0,0"
+                   FontWeight="Bold"
+                   Text="Annuler" />
+      </Button>
+    </StackPanel>
+
+
+  </Grid>
+</UserControl>

@@ -9,36 +9,120 @@
                                               IsDesignTimeCreatable=False}"
              d:DesignHeight="450"
              d:DesignWidth="800"
-             Background="{StaticResource PrimaryHueMidForegroundBrush}"
+             Background="Transparent"
              mc:Ignorable="d">
-  <DockPanel Margin="10" LastChildFill="True">
-    <materialDesign:ColorZone Margin="5"
-                              CornerRadius="10"
-                              DockPanel.Dock="Top"
-                              Mode="PrimaryDark">
-      <StackPanel Orientation="Horizontal">
-        <Image Width="120"
-               Height="120"
-               Margin="10,5,10,5"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               Source="/Assets/Images/logo-ffss_v2.png" />
-        <TextBlock Grid.Row="0"
-                   Grid.Column="1"
-                   Grid.ColumnSpan="2"
-                   Height="Auto"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="55"
-                   FontStyle="Italic"
-                   FontWeight="Bold"
-                   Foreground="{StaticResource White}"
-                   Text="Bienvenue" />
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="120" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="200" />
+    </Grid.ColumnDefinitions>
+
+    <!-- Quick Access Menu -->
+    <Border Grid.Row="0"
+            Grid.Column="0"
+            Margin="10,8"
+            Style="{StaticResource whiteBorder}">
+      <StackPanel Orientation="Vertical">
+        <!-- Title -->
+        <StackPanel Orientation="Horizontal">
+          <materialDesign:PackIcon Width="24"
+                                   Height="24"
+                                   Margin="8,5"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource BlackColor}"
+                                   Kind="Menu" />
+          <TextBlock Margin="8,5"
+                     Style="{StaticResource titleText}"
+                     Text="Accès Rapide" />
+        </StackPanel>
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal">
+          <!-- New Button -->
+          <Button Margin="10,0,11,0"
+                  Command="{Binding NewCompetitionCommand}"
+                  Style="{StaticResource blueButton}">
+            <StackPanel Orientation="Horizontal">
+              <materialDesign:PackIcon Width="16"
+                                       Height="16"
+                                       Margin="8,0"
+                                       VerticalAlignment="Center"
+                                       Kind="DownloadCircle" />
+              <TextBlock Text="Nouveau" />
+            </StackPanel>
+          </Button>
+          <!-- Open Button -->
+          <Button Margin="10,0"
+                  Command="{Binding OpenFileCommand}"
+                  Style="{StaticResource blueButton}">
+            <StackPanel Orientation="Horizontal">
+              <materialDesign:PackIcon Width="16"
+                                       Height="16"
+                                       Margin="8,0"
+                                       VerticalAlignment="Center"
+                                       Kind="FolderOpen" />
+              <TextBlock Text="Ouvrir" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
       </StackPanel>
-    </materialDesign:ColorZone>
+    </Border>
+    <!-- Content -->
+    <Border Grid.Row="1"
+            Grid.Column="0"
+            Margin="10,8"
+            Style="{StaticResource whiteBorder}">
+      <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" />
+    </Border>
+    <!-- Documents -->
+    <Border Grid.Row="0"
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Margin="10,8"
+            Style="{StaticResource whiteBorder}">
+      <StackPanel Orientation="Vertical">
+        <!-- Title -->
+        <StackPanel Orientation="Horizontal">
+          <materialDesign:PackIcon Width="24"
+                                   Height="24"
+                                   Margin="8,5"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource BlackColor}"
+                                   Kind="Menu" />
+          <TextBlock Margin="8,5"
+                     Style="{StaticResource titleText}"
+                     Text="Documents" />
+        </StackPanel>
+        <!-- List -->
+        <Button Margin="10,0,11,0" Style="{StaticResource largeBlueButton}">
+          <StackPanel Orientation="Horizontal">
+            <materialDesign:PackIcon Width="16"
+                                     Height="16"
+                                     Margin="8,0"
+                                     VerticalAlignment="Center"
+                                     Kind="DownloadCircle" />
+            <TextBlock Text="Disqualification" />
+          </StackPanel>
+        </Button>
+        <Button Margin="10,10,11,0" Style="{StaticResource largeBlueButton}">
+          <StackPanel Orientation="Horizontal">
+            <materialDesign:PackIcon Width="16"
+                                     Height="16"
+                                     Margin="8,0"
+                                     VerticalAlignment="Center"
+                                     Kind="DownloadCircle" />
+            <TextBlock Text="Procès Verbal" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+    </Border>
+  </Grid>
+  <!--<DockPanel Margin="10" LastChildFill="True">
     <GroupBox Margin="10"
               materialDesign:ColorZoneAssist.Mode="PrimaryDark"
-              Background="{StaticResource SecondaryHueMidBrush}"
               Header="Accès Rapide"
               Style="{StaticResource MaterialDesignCardGroupBox}">
       <GroupBox.HeaderTemplate>
@@ -74,14 +158,12 @@
                                        Height="{StaticResource ButtonIconSize}"
                                        VerticalAlignment="Center"
                                        FontWeight="Bold"
-                                       Foreground="{StaticResource White}"
                                        Kind="DownloadCircle" />
               <TextBlock Margin="5,0,0,0"
                          Padding="0"
                          VerticalAlignment="Center"
                          FontSize="{StaticResource ButtonFontSize}"
                          FontWeight="Bold"
-                         Foreground="{StaticResource White}"
                          Text="Nouveau" />
             </StackPanel>
           </Button>
@@ -96,14 +178,12 @@
                                        Height="{StaticResource ButtonIconSize}"
                                        VerticalAlignment="Center"
                                        FontWeight="Bold"
-                                       Foreground="{StaticResource White}"
                                        Kind="FolderOpen" />
               <TextBlock Margin="5,0,0,0"
                          Padding="0"
                          VerticalAlignment="Center"
                          FontSize="{StaticResource ButtonFontSize}"
                          FontWeight="Bold"
-                         Foreground="{StaticResource White}"
                          Text="Ouvrir" />
             </StackPanel>
           </Button>
@@ -116,6 +196,6 @@
                    Text="{Binding Competition.SwimType}" />
       </StackPanel>
     </GroupBox>
-  </DockPanel>
+  </DockPanel>-->
 
 </UserControl>

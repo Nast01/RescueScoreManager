@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using System.Reflection.Metadata;
 
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ public class RescueScoreManagerContext : DbContext
     public DbSet<HeatResult> HeatResults => Set<HeatResult>();
 
     public FileInfo DbPath { get; set; }
+    public string FileName { get; set; }
     public string DbFolderPath { get; set; }
     public bool IsLoaded => DbPath != null;
 
@@ -57,7 +59,7 @@ public class RescueScoreManagerContext : DbContext
 
         //Configure Category-Athletes One-to-Many relation
         modelBuilder.Entity<Category>()
-            .HasMany(c => c.Licensees)
+            .HasMany(c => c.Athletes)
             .WithOne(l => l.Category)
             .HasForeignKey(l => l.CategoryId)
             .IsRequired(true);
@@ -168,6 +170,8 @@ public class RescueScoreManagerContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         //optionsBuilder.UseSqlite($"Data Source=C:\\Users\\nast0\\Documents\\RescueScore\\RescueScoreManager\\rsm.ffss");
+        FileInfo fi = new FileInfo(Assembly.GetEntryAssembly().Location);
+        DbPath = new FileInfo(Path.Join(fi.DirectoryName, "rescuescore.ffss"));
         optionsBuilder.UseSqlite($"Data Source={DbPath}");
         base.OnConfiguring(optionsBuilder);
     }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using RescueScoreManager.Data;
 using RescueScoreManager.Home;
 using RescueScoreManager.Login;
+using RescueScoreManager.SelectNewCompetition;
 using RescueScoreManager.Services;
 
 using System;
@@ -37,6 +38,7 @@ public partial class App : Application
         App app = new();
         app.InitializeComponent();
         app.MainWindow = host.Services.GetRequiredService<MainWindow>();
+        app.MainWindow.DataContext = host.Services.GetRequiredService<MainWindowViewModel>();
         app.MainWindow.Visibility = Visibility.Visible;
         app.Run();
     }
@@ -47,36 +49,31 @@ public partial class App : Application
             => configurationBuilder.AddUserSecrets(typeof(App).Assembly))
         .ConfigureServices((hostContext, services) =>
         {
+            //Services
             services.AddTransient<IDialogService, DialogService>();
             services.AddSingleton<IWSIRestService, WSIRestService>();
+            services.AddSingleton<IXMLService, XMLService>();
 
+            //Pages
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();
-
-            services.AddSingleton<LoginView>();
-            services.AddSingleton<LoginViewModel>();
-            //provider =>
-            //{
-            //    return new LoginViewModel(provider.GetRequiredService<IMessenger>());
-            //}
-
             services.AddSingleton<HomeView>();
             services.AddSingleton<HomeViewModel>();
-            //provider =>
-            //{
-            //    return new HomeViewModel(provider.GetRequiredService<RescueScoreManagerContext>(),
-            //                             provider.GetRequiredService<LoginViewModel>(),
-            //                             provider.GetRequiredService<IDialogService>(),
-            //                             provider.GetRequiredService<IMessenger>()
-            //        );
-            //}
+
+
+            //Dialogs
+            services.AddSingleton<LoginView>();
+            services.AddSingleton<LoginViewModel>();
+            services.AddSingleton<SelectNewCompetitionView>();
+            services.AddSingleton<SelectNewCompetitionViewModel>();
+
 
             services.AddSingleton<WeakReferenceMessenger>();
             services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());
 
             services.AddSingleton(_ => Current.Dispatcher);
 
-            services.AddDbContext<RescueScoreManagerContext>();
+            //services.AddDbContext<RescueScoreManagerContext>();
 
             services.AddTransient<ISnackbarMessageQueue>(provider =>
             {

@@ -28,8 +28,8 @@ public partial class LoginViewModel : ObservableObject
     {
         //bool success = await WSIRestService.Instance.RequestToken(login, password);
         bool success = await WSIService.RequestToken(Login, Password);
-        Messenger.Send(new LoginMessage(success));
         OnRequestClose();
+        Messenger.Send(new LoginMessage(success));
     }
 
     private bool CanValidate() => String.IsNullOrEmpty(Login) == false && String.IsNullOrEmpty(Password) == false;

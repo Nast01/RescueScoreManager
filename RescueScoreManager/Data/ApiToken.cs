@@ -8,6 +8,6 @@ public class ApiToken
 
     public bool IsValid()
     {
-        return Expiration <= DateTime.Now && String.IsNullOrEmpty(Token) == false;
+        return Expiration >= DateTime.Now && String.IsNullOrEmpty(Token) == false;
     }
 }

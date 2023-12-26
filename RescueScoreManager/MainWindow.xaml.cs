@@ -14,7 +14,7 @@ public partial class MainWindow
         InitializeComponent();
         
         //DataContext = viewModel;
-        HomeView.DataContext = homeViewModel;
+        //HomeView.DataContext = homeViewModel;
 
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }
