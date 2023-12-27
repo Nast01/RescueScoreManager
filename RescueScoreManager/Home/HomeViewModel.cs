@@ -18,7 +18,7 @@ using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Home;
 
-public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>
+public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>, IRecipient<SelectNewCompetitionMessage>
 {
     //private RescueScoreManagerContext _context { get; }
     private LoginViewModel _loginViewModel { get; }
@@ -338,7 +338,13 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>
             CurrentViewModel = null;
         }
     }
-
+    public async void Receive(SelectNewCompetitionMessage message)
+    {
+        if (message.NewCompetition != null)
+        {
+            CurrentViewModel = null;
+        }
+    }
 }
 
 

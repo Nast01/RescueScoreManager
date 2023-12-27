@@ -28,8 +28,13 @@ public partial class IndividualTeam : Team
         Number = race.NumberByTeam;
         
         Athlete = lics.Find(l => l.Id == jData["athletes"][0]["NumeroLicence"].Value<string>()) as Athlete;
-        Athlete.Category = categories.Find(cat => cat.Id == jData["categorie"]["Id"].Value<int>());
-        Athlete.Category.Athletes.Add(Athlete);
+        Category category = categories.Find(cat => cat.Id == jData["categorie"]["Id"].Value<int>());
+        Athlete.Category = category; 
+        Athlete.CategoryId = category.Id;
+        if (category.Athletes.Contains(Athlete) == false)
+            category.Athletes.Add(Athlete);
+
+        Athlete.IndividualTeams.Add(this);
     }
 
     public IndividualTeam(XElement xElement,List<Athlete> lics)
@@ -53,8 +58,8 @@ public partial class IndividualTeam : Team
                                 new XAttribute(Properties.ResourceFR.IsForfeit_XMI, IsForfeit),
                                 new XAttribute(Properties.ResourceFR.IsForfeitFinal_XMI, IsForfeitFinal),
                                 new XAttribute(Properties.ResourceFR.EntryTime_XMI, EntryTime),
-                                //new XAttribute(Properties.ResourceFR.IdApi_XMI, IdApi),
-                                new XAttribute(Properties.ResourceFR.Athlete_XMI, Athlete.Id)
+                                new XAttribute(Properties.ResourceFR.Athlete_XMI, Athlete.Id),
+                                new XAttribute(Properties.ResourceFR.Race_XMI, Race.Id)
                             );
     }
     #endregion

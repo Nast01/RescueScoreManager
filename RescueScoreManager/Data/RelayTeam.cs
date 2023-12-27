@@ -40,7 +40,10 @@ public partial class RelayTeam: Team
         {
             Athlete athlete = lics.Find(l => l.Id == id);
             if (athlete != null)
+            {
                 Athletes.Add(athlete);
+                athlete.RelayTeams.Add(this);
+            }
         }
     }
     #endregion Constructor
@@ -69,7 +72,8 @@ public partial class RelayTeam: Team
                                 new XAttribute(Properties.ResourceFR.EntryTime_XMI, EntryTime),
                                 new XAttribute(Properties.ResourceFR.Number_XMI, Number),
                                 //new XAttribute(Properties.ResourceFR.IdApi_XMI, IdApi),
-                                new XAttribute(Properties.ResourceFR.Athletes_XMI, athIds)
+                                new XAttribute(Properties.ResourceFR.Athletes_XMI, athIds),
+                                new XAttribute(Properties.ResourceFR.Race_XMI, Race.Id)
                             );
     }
     #region Athlete Methods

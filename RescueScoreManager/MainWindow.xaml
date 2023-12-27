@@ -22,16 +22,8 @@
     <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     <converter:ReverseBooleanToVisibilityConverter x:Key="ReverseBoolToVisConverter" />
   </Window.Resources>
-  <xctk:BusyIndicator IsBusy="{Binding IsBusy}">
-    <xctk:BusyIndicator.BusyContentTemplate>
-      <DataTemplate>
-        <StackPanel Margin="4">
-          <TextBlock HorizontalAlignment="Center"
-                     FontWeight="Bold"
-                     Text="{Binding BusyMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" />
-        </StackPanel>
-      </DataTemplate>
-    </xctk:BusyIndicator.BusyContentTemplate>
+  <xctk:BusyIndicator IsBusy="{Binding IsBusy}" BusyContent="{Binding BusyMessage,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+
     <Border Padding="20" Background="#F7F6F4">
       <Grid>
         <Grid.ColumnDefinitions>

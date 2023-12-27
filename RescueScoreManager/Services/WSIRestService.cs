@@ -343,6 +343,7 @@ public class WSIRestService : IWSIRestService
                                 if (referee != null)
                                 {
                                     referee.Club = club;
+                                    referee.ClubId = club.Id;
                                     club.Licensees.Add(referee);// AddLicensee(referee);
                                 }
                             }
@@ -355,6 +356,7 @@ public class WSIRestService : IWSIRestService
                                 if (athlete != null)
                                 {
                                     athlete.Club = club;
+                                    athlete.ClubId = club.Id;
                                     club.Licensees.Add(athlete); //club.AddLicensee(athlete);
                                 }
                             }
