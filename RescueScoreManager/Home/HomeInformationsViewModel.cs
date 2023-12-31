@@ -7,12 +7,14 @@ using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Home;
 
-public partial class HomeGraphsViewModel : ObservableObject
+public partial class HomeInformationsViewModel : ObservableObject
 {
     private readonly IXMLService _xmlService;
 
     [ObservableProperty]
     private int _athletesCount = 0;
+    [ObservableProperty]
+    private string _title = "";
     [ObservableProperty]
     private List<RefereeLevelCountStruct> _refereeLevels;
     [ObservableProperty]
@@ -20,7 +22,7 @@ public partial class HomeGraphsViewModel : ObservableObject
     [ObservableProperty]
     private List<Referee> _referees;
 
-    public HomeGraphsViewModel(IXMLService xmlService)
+    public HomeInformationsViewModel(IXMLService xmlService)
     {
         _xmlService = xmlService;
         Categories = new List<Category>();
@@ -45,6 +47,8 @@ public partial class HomeGraphsViewModel : ObservableObject
         RefereeLevels.Add(rlsB);
         RefereeLevels.Add(rlsC);
         RefereeLevels.Add(rlsND);
+
+        Title = " - " + _xmlService.GetCompetition().Name;
     }
 }
 

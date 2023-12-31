@@ -182,8 +182,8 @@
       <DataTemplate DataType="{x:Type home:HomeViewModel}">
         <home:HomeView />
       </DataTemplate>
-      <DataTemplate DataType="{x:Type home:HomeGraphsViewModel}">
-        <home:HomeGraphsView />
+      <DataTemplate DataType="{x:Type home:HomeInformationsViewModel}">
+        <home:HomeInformationsView />
       </DataTemplate>
       <DataTemplate DataType="{x:Type login:LoginViewModel}">
         <login:LoginView />

@@ -14,6 +14,7 @@ public interface IXMLService
     public string GetDirPath();
     public bool IsLoaded();
     public void Initialize(Competition competition, List<Category> categories, List<Club> Clubs, List<Licensee> licensees, List<Race> races, List<Team> teams);
+    public void Reset();
     public Competition GetCompetition();
     public List<Category> GetCategories();
     public List<Club> GetClubs();

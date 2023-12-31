@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Security.Claims;
 using System.Xml.Linq;
 
@@ -11,12 +12,14 @@ using RescueScoreManager.Data;
 using RescueScoreManager.Helpers;
 using RescueScoreManager.Properties;
 
+using static System.Reflection.Metadata.BlobBuilder;
+
 namespace RescueScoreManager.Services;
 
 public class XMLService : IXMLService
 {
     public bool Loaded { get; set; }
-    public Competition Competition { get; set; }
+    public Competition? Competition { get; set; }
     public List<Category> Categories { get; set; } = new List<Category>();
     public List<Club> Clubs { get; set; } = new List<Club>();
     public List<Licensee> Licensees { get; set; } = new List<Licensee>();
@@ -118,6 +121,19 @@ public class XMLService : IXMLService
 
         //initialize order number
     }
+
+    public void Reset()
+    {
+        Competition = null;
+        Categories.Clear();
+        Clubs.Clear();
+        Licensees.Clear();
+        Athletes.Clear();
+        Referees.Clear();
+        Races.Clear();
+        Teams.Clear();
+    }
+
     public void Load()
     {
         XDocument xDoc = XDocument.Load(Properties.Settings.Default.FilePath);

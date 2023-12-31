@@ -150,6 +150,7 @@
                                  Grid.RowSpan="2"
                                  Grid.Column="1"
                                  Background="#faf8ec"
+                                 Foreground="{StaticResource BlackColor}"
                                  MessageQueue="{Binding SnackbarMessageQueue,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
 
       </Grid>
