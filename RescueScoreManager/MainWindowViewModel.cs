@@ -1,7 +1,10 @@
 ﻿using System.IO;
+using System.Windows;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+
+using MaterialDesignThemes.Wpf;
 
 using RescueScoreManager.Data;
 using RescueScoreManager.Home;
@@ -10,7 +13,10 @@ using RescueScoreManager.Services;
 
 namespace RescueScoreManager;
 
-public partial class MainWindowViewModel : ObservableObject, IRecipient<LoginMessage>, IRecipient<SelectNewCompetitionMessage>
+public partial class MainWindowViewModel : ObservableObject,
+                                            IRecipient<LoginMessage>,
+                                            IRecipient<SelectNewCompetitionMessage>,
+                                            IRecipient<OpenCompetitionMessage>
 {
     //private readonly RescueScoreManagerContext _context;
 
@@ -38,6 +44,10 @@ public partial class MainWindowViewModel : ObservableObject, IRecipient<LoginMes
     private bool _isBusy = false;
     [ObservableProperty]
     private string _busyMessage = "";
+    [ObservableProperty]
+    private SnackbarMessageQueue _snackbarMessageQueue;
+    [ObservableProperty]
+    private string _title = "Rescue Score Manager";
 
     public MainWindowViewModel(HomeViewModel homeViewModel,
                                 IWSIRestService wsiService,
@@ -51,6 +61,7 @@ public partial class MainWindowViewModel : ObservableObject, IRecipient<LoginMes
         _wsiService = wsiService;
         _xmlService = xmlService;
         _messenger = messenger;
+        _snackbarMessageQueue = new SnackbarMessageQueue();
 
         messenger.RegisterAll(this);
 
@@ -73,7 +84,7 @@ public partial class MainWindowViewModel : ObservableObject, IRecipient<LoginMes
             ConnexionText = "Non Connecté";
             IsConnected = false;
         }
-    } 
+    }
 
     /// <summary>
     /// Message received when a Competition has been selected
@@ -93,7 +104,7 @@ public partial class MainWindowViewModel : ObservableObject, IRecipient<LoginMes
             _xmlService.SetPath(message.NewCompetition.Name);
 
             // create the xml file and load it
-            _xmlService.Initialize(message.NewCompetition, _wsiService.GetCategories(), _wsiService.GetClubs(), 
+            _xmlService.Initialize(message.NewCompetition, _wsiService.GetCategories(), _wsiService.GetClubs(),
                                     _wsiService.GetLicensees(), _wsiService.GetRaces(), _wsiService.GetTeams());
             _xmlService.Save();
             //_xmlService.Load();
@@ -101,6 +112,9 @@ public partial class MainWindowViewModel : ObservableObject, IRecipient<LoginMes
 
             IsBusy = false;
             BusyMessage = "";
+
+            _title = _title + " " + message.NewCompetition.Name;
+            SetSnackBarMessage( "Compétition récupérée!");
             #region entityframework
             //_context.FileName = message.NewCompetition.Name + ".ffss";
             //_context.DbPath = new FileInfo(Path.Join(dirPath, "RescueScore", dirName, message.NewCompetition.Name + ".ffss")); ;
@@ -139,21 +153,20 @@ public partial class MainWindowViewModel : ObservableObject, IRecipient<LoginMes
             #endregion entityframework
         }
     }
+    public async void Receive(OpenCompetitionMessage message)
+    {
+        _title = _title + " " + _xmlService.GetCompetition().Name;
+        SetSnackBarMessage("Compétition chargée!");
+    }
 
-    //This is using the source generators from CommunityToolkit.Mvvm to generate a RelayCommand
-    //See: https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/generators/relaycommand
-    //and: https://learn.microsoft.com/windows/communitytoolkit/mvvm/relaycommand
-    //[RelayCommand(CanExecute = nameof(CanIncrementCount))]
-    //private void IncrementCount()
-    //{
-    //    Count++;
-    //}
-
-    //private bool CanIncrementCount() => Count < 5;
-
-    //[RelayCommand]
-    //private void ClearCount()
-    //{
-    //    Count = 0;
-    //}
+    private void SetSnackBarMessage(string message,int duration = 3)
+    {
+        _snackbarMessageQueue.Enqueue(content: message,
+                                            actionContent: null,
+                                            actionHandler: null,
+                                            actionArgument: null,
+                                            promote: false,
+                                            neverConsiderToBeDuplicate: true,
+                                            durationOverride: TimeSpan.FromSeconds(3));
+    }
 }

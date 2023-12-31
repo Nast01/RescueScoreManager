@@ -68,6 +68,12 @@ public class XMLService : IXMLService
         Properties.Settings.Default.DirPath = fi.DirectoryName;
         Properties.Settings.Default.Save();
     }
+    public void SetPath(FileInfo file)
+    {
+        Properties.Settings.Default.FilePath = file.FullName;
+        Properties.Settings.Default.DirPath = file.DirectoryName;
+        Properties.Settings.Default.Save();
+    }
 
     public string GetFilePath()
     {
@@ -150,6 +156,8 @@ public class XMLService : IXMLService
         {
             Club club = new Club(clubElement);
             club.Competition = Competition;
+            club.CompetitionId = Competition.Id;
+            Competition.Clubs.Add(club);
 
             IEnumerable<XElement> athletesElement = clubElement.Descendants(Properties.ResourceFR.Athlete_XMI);
             IEnumerable<XElement> refereesElement = clubElement.Descendants(Properties.ResourceFR.Referee_XMI);
@@ -157,6 +165,7 @@ public class XMLService : IXMLService
             {
                 Athlete licensee = new Athlete(athElement,Categories);
                 licensee.Club = club;
+                licensee.ClubId = club.Id;
                 Category category = Categories.Find(cat => cat.Id == licensee.CategoryId);
                 category.Athletes.Add(licensee);
                 licensee.Category = category;
@@ -169,6 +178,7 @@ public class XMLService : IXMLService
             {
                 Licensee licensee = new Referee(refElement);
                 licensee.Club = club;
+                licensee.ClubId = club.Id;
                 
                 club.AddLicensee(licensee);
                 Licensees.Add(licensee);
@@ -185,20 +195,26 @@ public class XMLService : IXMLService
         foreach (XElement raceElement in racesElement)
         {
             Race race = new Race(raceElement, Categories);
-            IEnumerable<XElement> teamsElement = raceElement.Descendants(Properties.ResourceFR.Team_XMI);
-            foreach (XElement teamElement in teamsElement)
-            {
-                Team team = null;
-                if (race.NumberByTeam == 1)
-                {
-                    team = new IndividualTeam(teamElement, Athletes);
-                }
-                else
-                {
-                    team = new RelayTeam(teamElement, Athletes);
-                }
+            race.Competition = Competition;
+            race.CompetitionId = Competition.Id;
 
+            IEnumerable<XElement> indivTeamElement = raceElement.Descendants(Properties.ResourceFR.IndividualTeam_XMI);
+            IEnumerable<XElement> relayTeamElement = raceElement.Descendants(Properties.ResourceFR.RelayTeam_XMI);
+            IEnumerable<XElement> teamsElement = raceElement.Descendants(Properties.ResourceFR.Team_XMI);
+            Team team = null;
+            foreach (XElement teamElement in indivTeamElement)
+            {
+                team = new IndividualTeam(teamElement, Athletes); 
                 team.Race = race;
+                team.RaceId = race.Id;
+                race.AddTeam(team);
+                Teams.Add(team);
+            }
+            foreach (XElement teamElement in relayTeamElement)
+            {
+                team = new RelayTeam(teamElement, Athletes);
+                team.Race = race;
+                team.RaceId = race.Id;
                 race.AddTeam(team);
                 Teams.Add(team);
             }

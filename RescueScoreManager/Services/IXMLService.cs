@@ -1,4 +1,6 @@
-﻿using RescueScoreManager.Data;
+﻿using System.IO;
+
+using RescueScoreManager.Data;
 
 namespace RescueScoreManager.Services;
 
@@ -7,6 +9,7 @@ public interface IXMLService
     public bool Save();
     public void Load();
     public void SetPath(string name);
+    public void SetPath(FileInfo file);
     public string GetFilePath();
     public string GetDirPath();
     public bool IsLoaded();

@@ -8,7 +8,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-        Title="{Binding}"
+        Title="{Binding Title}"
         Width="1280"
         Height="780"
         d:DataContext="{d:DesignInstance Type=local:MainWindowViewModel,
@@ -22,7 +22,7 @@
     <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     <converter:ReverseBooleanToVisibilityConverter x:Key="ReverseBoolToVisConverter" />
   </Window.Resources>
-  <xctk:BusyIndicator IsBusy="{Binding IsBusy}" BusyContent="{Binding BusyMessage,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+  <xctk:BusyIndicator BusyContent="{Binding BusyMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsBusy="{Binding IsBusy}">
 
     <Border Padding="20" Background="#F7F6F4">
       <Grid>
@@ -147,55 +147,13 @@
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Content="{Binding CurrentViewModel, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+        <materialDesign:Snackbar x:Name="SnackbarSeven"
+                                 Grid.RowSpan="2"
+                                 Grid.Column="1"
+                                 Background="#faf8ec"
+                                 MessageQueue="{Binding SnackbarMessageQueue,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
 
       </Grid>
     </Border>
   </xctk:BusyIndicator>
-  <!--<Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition />
-      <RowDefinition Height="Auto" />
-    </Grid.RowDefinitions>
-    <TabControl Grid.Row="0"
-                materialDesign:ColorZoneAssist.Mode="PrimaryDark"
-                Style="{StaticResource MaterialDesignNavigationRailTabControl}">
-      <TabItem>
-        <TabItem.Header>
-          <StackPanel>
-            <materialDesign:PackIcon Width="24"
-                                     Height="24"
-                                     HorizontalAlignment="Center"
-                                     Foreground="White"
-                                     Kind="Home" />
-            <TextBlock HorizontalAlignment="Center"
-                       Foreground="White"
-                       Text="Accueil"
-                       TextAlignment="Center"
-                       TextWrapping="Wrap" />
-          </StackPanel>
-        </TabItem.Header>
-        <home:HomeView x:Name="HomeView" />
-      </TabItem>
-      <TabItem>
-        <TabItem.Header>
-          <StackPanel>
-            <materialDesign:PackIcon Width="24"
-                                     Height="24"
-                                     HorizontalAlignment="Center"
-                                     Foreground="White"
-                                     Kind="Swim" />
-            <TextBlock HorizontalAlignment="Center"
-                       Foreground="White"
-                       Text="Eau Plate"
-                       TextAlignment="Center"
-                       TextWrapping="Wrap" />
-          </StackPanel>
-        </TabItem.Header>
-  -->
-  <!--<games:CatalogView x:Name="GameCatalogView" />-->
-  <!--
-      </TabItem>
-    </TabControl>
-
-  </Grid>-->
 </Window>

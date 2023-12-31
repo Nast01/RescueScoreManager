@@ -3,6 +3,8 @@ using System.Xml.Linq;
 
 using Newtonsoft.Json.Linq;
 
+using RescueScoreManager.Helper;
+
 using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Data;
@@ -33,9 +35,10 @@ public partial class Athlete : Licensee
         Id = data["NumeroLicence"].Value<String>();
         FirstName = data["Prenom"].Value<String>();
         LastName = data["Nom"].Value<String>();
+        BirthYear = data["Annee"].Value<int>();
+        Gender = JsonHelper.GetGenderFromJsonValue(data["Sexe"].Value<String>());
         IsLicensee = data["isLicencie"].Value<bool>();
         IsGuest = data["isInvite"].Value<bool>();
-        BirthYear = data["Annee"].Value<int>();
         IsForfeit = false;
         OrderNumber = 0;
     }

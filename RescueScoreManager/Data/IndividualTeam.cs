@@ -45,15 +45,16 @@ public partial class IndividualTeam : Team
         EntryTime = int.Parse(xElement.Attribute(Properties.ResourceFR.EntryTime_XMI).Value);
         Number = 1;
 
-        string athId = xElement.Attribute(Properties.ResourceFR.Athletes_XMI).Value;
-        Athlete = lics.Find(l => l.Id == athId);
+        AthleteId = xElement.Attribute(Properties.ResourceFR.Athlete_XMI).Value;
+        Athlete = lics.Find(l => l.Id == AthleteId);
+        Athlete.IndividualTeams.Add(this);   
     }
 
     #endregion Constructor
     #region Method
     public override XElement WriteXml()
     {
-        return new XElement(Properties.ResourceFR.Team_XMI,
+        return new XElement(Properties.ResourceFR.IndividualTeam_XMI,
                                 new XAttribute(Properties.ResourceFR.Id_XMI, Id),
                                 new XAttribute(Properties.ResourceFR.IsForfeit_XMI, IsForfeit),
                                 new XAttribute(Properties.ResourceFR.IsForfeitFinal_XMI, IsForfeitFinal),

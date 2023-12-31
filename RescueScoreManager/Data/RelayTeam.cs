@@ -65,7 +65,7 @@ public partial class RelayTeam: Team
 
         athIds = athIds.Trim();
 
-        return new XElement(Properties.ResourceFR.Team_XMI,
+        return new XElement(Properties.ResourceFR.RelayTeam_XMI,
                                 new XAttribute(Properties.ResourceFR.Id_XMI, Id),
                                 new XAttribute(Properties.ResourceFR.IsForfeit_XMI, IsForfeit),
                                 new XAttribute(Properties.ResourceFR.IsForfeitFinal_XMI, IsForfeitFinal),

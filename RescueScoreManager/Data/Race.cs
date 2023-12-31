@@ -119,6 +119,7 @@ public class Race
                             new XAttribute(Properties.ResourceFR.NumberByTeam_XMI, NumberByTeam),
                             new XAttribute(Properties.ResourceFR.Distance_XMI, Distance),
                             new XAttribute(Properties.ResourceFR.Interval_XMI, Interval),
+                            new XAttribute(Properties.ResourceFR.IsRelay_XMI, IsRelay),
                             new XAttribute(Properties.ResourceFR.Categories_XMI, catIds)
                             //new XAttribute(Properties.ResourceFR.MeetingElements_XMI, MeetingElements.GetXmiIds()),
                             //new XAttribute(Properties.ResourceFR.AresStyleId_XMI, AresStyleId)

@@ -43,7 +43,7 @@
         <StackPanel Orientation="Horizontal">
           <!-- New Button -->
           <Button Margin="10,0,11,0"
-                  Command="{Binding NewCompetitionCommand}"
+                  Command="{Binding NewCompetitionCommand,UpdateSourceTrigger=PropertyChanged}"
                   Style="{StaticResource blueButton}">
             <StackPanel Orientation="Horizontal">
               <materialDesign:PackIcon Width="16"
@@ -56,7 +56,7 @@
           </Button>
           <!-- Open Button -->
           <Button Margin="10,0"
-                  Command="{Binding OpenFileCommand}"
+                  Command="{Binding OpenFileCommand,UpdateSourceTrigger=PropertyChanged}"
                   Style="{StaticResource blueButton}">
             <StackPanel Orientation="Horizontal">
               <materialDesign:PackIcon Width="16"

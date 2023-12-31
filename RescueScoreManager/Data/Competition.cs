@@ -22,7 +22,7 @@ public partial class Competition
     public DateTime EntryLimitDate { get; set; }
     public BeachType? BeachType { get; set; }
     public SwimType? SwimType { get; set; }
-    public Speciality Speciality { get; set; }
+    public Speciality? Speciality { get; set; }
     public ChronoType? ChronoType { get; set; }
     public bool IsEligibleToNationalRecord { get; set; }
     public int PriceByAthlete { get; set; }
@@ -56,16 +56,46 @@ public partial class Competition
         BeginDate = DateTime.ParseExact(xElement.Attribute(Properties.ResourceFR.BeginDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
         EndDate = DateTime.ParseExact(xElement.Attribute(Properties.ResourceFR.EndDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
         EntryLimitDate = DateTime.ParseExact(xElement.Attribute(Properties.ResourceFR.EntryLimitDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
-        BeachType = (BeachType)Enum.Parse(typeof(BeachType), xElement.Attribute(Properties.ResourceFR.BeachType_XMI).Value);
-        SwimType = (SwimType)Enum.Parse(typeof(SwimType), xElement.Attribute(Properties.ResourceFR.SwimType_XMI).Value);
-        Speciality = (Speciality)Enum.Parse(typeof(Speciality), xElement.Attribute(Properties.ResourceFR.Speciality_XMI).Value);
-        ChronoType = (ChronoType)Enum.Parse(typeof(ChronoType), xElement.Attribute(Properties.ResourceFR.ChronoType_XMI).Value);   
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.BeachType_XMI).Value))
+        {
+            BeachType = null;
+        }
+        else
+        {
+            BeachType = (BeachType)Enum.Parse(typeof(BeachType), xElement.Attribute(Properties.ResourceFR.BeachType_XMI).Value);
+        }
+
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.SwimType_XMI).Value))
+        {
+            SwimType = null;
+        }
+        else
+        {
+            SwimType = (SwimType)Enum.Parse(typeof(SwimType), xElement.Attribute(Properties.ResourceFR.SwimType_XMI).Value);
+        }
+
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.Speciality_XMI).Value))
+        {
+            Speciality = null;
+        }
+        else
+        {
+            Speciality = (Speciality)Enum.Parse(typeof(Speciality), xElement.Attribute(Properties.ResourceFR.Speciality_XMI).Value);
+        }
+
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.ChronoType_XMI).Value))
+        {
+            ChronoType = null;
+        }
+        else
+        {
+            ChronoType = (ChronoType)Enum.Parse(typeof(ChronoType), xElement.Attribute(Properties.ResourceFR.ChronoType_XMI).Value);
+        }
         IsEligibleToNationalRecord = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsEligibleToNationalRecord_XMI).Value);
         PriceByAthlete = int.Parse(xElement.Attribute(Properties.ResourceFR.PriceByAthlete_XMI).Value);
         PriceByEntry = int.Parse(xElement.Attribute(Properties.ResourceFR.PriceByEntry_XMI).Value);
         PriceByClub = int.Parse(xElement.Attribute(Properties.ResourceFR.PriceByClub_XMI).Value);
         Organizer = xElement.Attribute(Properties.ResourceFR.Organizer_XMI).Value;
-
     }
 
     public Competition(JToken data)
@@ -86,6 +116,7 @@ public partial class Competition
         this.EndDate = endDate;
         DateTime entryLimitDate;
         DateTime.TryParse(data["DebutEngagement"].Value<String>(), out entryLimitDate);
+        this.EntryLimitDate = entryLimitDate;
 
         this.Speciality = JsonHelper.GetSpecialityFromJsonValue(data["specialiteLabel"].Value<string>());
         this.BeachType = JsonHelper.GetBeachTypeFromJsonValue(data["specialiteLabel"].Value<string>(), data["water"].Value<string>());

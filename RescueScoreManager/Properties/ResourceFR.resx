@@ -189,6 +189,9 @@
   <data name="Id_XMI" xml:space="preserve">
     <value>Id</value>
   </data>
+  <data name="IndividualTeam_XMI" xml:space="preserve">
+    <value>IndividualTeam</value>
+  </data>
   <data name="Interval_XMI" xml:space="preserve">
     <value>Interval</value>
   </data>
@@ -257,6 +260,9 @@
   </data>
   <data name="Referee_XMI" xml:space="preserve">
     <value>Referee</value>
+  </data>
+  <data name="RelayTeam_XMI" xml:space="preserve">
+    <value>RelayTeam</value>
   </data>
   <data name="Root_XMI" xml:space="preserve">
     <value>Root</value>

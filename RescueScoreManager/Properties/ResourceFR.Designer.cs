@@ -277,6 +277,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à IndividualTeam.
+        /// </summary>
+        internal static string IndividualTeam_XMI {
+            get {
+                return ResourceManager.GetString("IndividualTeam_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Interval.
         /// </summary>
         internal static string Interval_XMI {
@@ -480,6 +489,15 @@ namespace RescueScoreManager.Properties {
         internal static string Referee_XMI {
             get {
                 return ResourceManager.GetString("Referee_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à RelayTeam.
+        /// </summary>
+        internal static string RelayTeam_XMI {
+            get {
+                return ResourceManager.GetString("RelayTeam_XMI", resourceCulture);
             }
         }
         

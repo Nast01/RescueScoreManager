@@ -85,7 +85,7 @@
                   Style="{StaticResource MaterialDesignOutlinedDatePicker}"
                   TabIndex="1" />
       <Button Command="{Binding RefreshCommand}" Style="{StaticResource iconButton}">
-        <materialDesign:PackIcon Margin="5,0,0,0" Kind="Check" />
+        <materialDesign:PackIcon Margin="5,0,0,0" Kind="ArrowRight" />
       </Button>
     </StackPanel>
     <ListView Grid.Row="2"

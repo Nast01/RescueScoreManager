@@ -34,6 +34,11 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
     [ObservableProperty]
     private ObservableObject _currentViewModel;
 
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(OpenFileCommand))]
+    [NotifyCanExecuteChangedFor(nameof(NewCompetitionCommand))]
+    private bool _isLoaded = false;
+
     public HomeViewModel(LoginViewModel loginViewModel,
                             SelectNewCompetitionViewModel selectNewCompetitionViewModel,
                             IDialogService dialogService,
@@ -47,14 +52,24 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(_dialogService));
         _wsiService = wsiService;
         _xmlService = xmlService;
+
+        _messenger = messenger;
         messenger.RegisterAll(this);
     }
 
-    [RelayCommand]
+
+    [RelayCommand(CanExecute = nameof(CanOpenFile))]
     public async Task OpenFile()
     {
         if (GetFile() is { } file)
         {
+
+            _xmlService.SetPath(file);
+            _xmlService.Load();
+            _isLoaded = true;
+
+            _messenger.Send(new OpenCompetitionMessage());
+            #region entity framework
             //    _context.DbPath = file;
             //    _context.Database.Migrate();
 
@@ -290,9 +305,13 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
             //    string path = "C:\\Users\\nast0\\Documents\\RescueScore\\RescueScoreManager\\rsm.ffss";
             //    _context.DbPath = new FileInfo(path);
             //    _context.Database.Migrate();
-            //}
+            //} 
+            #endregion entity framework
         }
     }
+    
+    private bool CanOpenFile() => _isLoaded == false;
+
 
     private static FileInfo? GetFile()
     {
@@ -322,7 +341,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         //_dialogService.ShowSelectNewCompetition(_selectNewCompetitionViewModel);
     }
 
-    private bool CanNewCompetition() => _xmlService.IsLoaded() == false;
+    private bool CanNewCompetition() => _isLoaded == false;
 
     public async void Receive(LoginMessage message)
     {
@@ -336,6 +355,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         else
         {
             CurrentViewModel = null;
+            _isLoaded = true;
         }
     }
     public async void Receive(SelectNewCompetitionMessage message)
@@ -343,6 +363,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         if (message.NewCompetition != null)
         {
             CurrentViewModel = null;
+            _isLoaded = true;
         }
     }
 }
