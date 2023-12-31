@@ -17,6 +17,10 @@
   This would typically list all NuGet packages used within this solution.
   -->
   <ItemGroup>
+    <PackageVersion Include="C1.Xaml.WPF" Version="4.6.20233.801" />
+    <PackageVersion Include="C1.Xaml.WPF.DX" Version="4.6.20233.801" />
+    <PackageVersion Include="C1.Xaml.WPF.FlexChart" Version="4.6.20233.801" />
+    <PackageVersion Include="C1.Xaml.WPF.FlexGrid" Version="4.6.20233.801" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -32,6 +36,9 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Moq" Version="4.20.69" />
     <PackageVersion Include="Moq.AutoMock" Version="3.5.0" />
+    <PackageVersion Include="Nevron.Nov.Chart" Version="23.10.13.12" />
+    <PackageVersion Include="Nevron.Nov.Schedule" Version="23.10.13.12" />
+    <PackageVersion Include="NevronOpenVision" Version="23.12.1.12" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="xunit" Version="2.6.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3">

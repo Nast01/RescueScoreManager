@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Security.Claims;
 using System.Xml.Linq;
 
 using CommunityToolkit.Mvvm.Messaging;
@@ -32,6 +33,7 @@ public class XMLService : IXMLService
     }
     public List<Category> GetCategories()
     {
+        Categories.Sort(new CategoryComparer());
         return Categories;
     }
     public List<Club> GetClubs()
@@ -163,7 +165,7 @@ public class XMLService : IXMLService
             IEnumerable<XElement> refereesElement = clubElement.Descendants(Properties.ResourceFR.Referee_XMI);
             foreach (XElement athElement in athletesElement)
             {
-                Athlete licensee = new Athlete(athElement,Categories);
+                Athlete licensee = new Athlete(athElement, Categories);
                 licensee.Club = club;
                 licensee.ClubId = club.Id;
                 Category category = Categories.Find(cat => cat.Id == licensee.CategoryId);
@@ -172,17 +174,17 @@ public class XMLService : IXMLService
 
                 club.AddLicensee(licensee);
                 Licensees.Add(licensee);
-                Athletes.Add((Athlete)licensee);
+                Athletes.Add(licensee);
             }
             foreach (XElement refElement in refereesElement)
             {
-                Licensee licensee = new Referee(refElement);
+                Referee licensee = new Referee(refElement);
                 licensee.Club = club;
                 licensee.ClubId = club.Id;
-                
+
                 club.AddLicensee(licensee);
                 Licensees.Add(licensee);
-                Referees.Add((Referee)licensee);
+                Referees.Add(licensee);
             }
             Clubs.Add(club);
         }
@@ -204,7 +206,7 @@ public class XMLService : IXMLService
             Team team = null;
             foreach (XElement teamElement in indivTeamElement)
             {
-                team = new IndividualTeam(teamElement, Athletes); 
+                team = new IndividualTeam(teamElement, Athletes);
                 team.Race = race;
                 team.RaceId = race.Id;
                 race.AddTeam(team);

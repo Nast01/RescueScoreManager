@@ -1,0 +1,147 @@
+﻿<UserControl x:Class="RescueScoreManager.Home.HomeGraphsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:RescueScoreManager.Home"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             d:DataContext="{d:DesignInstance Type=local:HomeGraphsViewModel,
+                                              IsDesignTimeCreatable=False}"
+             d:DesignHeight="314"
+             d:DesignWidth="580"
+             Background="Transparent"
+             mc:Ignorable="d">
+
+  <Border Style="{StaticResource whiteBorder}">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <!-- Title -->
+      <StackPanel Grid.Row="0"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="2"
+                  Orientation="Horizontal">
+        <md:PackIcon Width="24"
+                     Height="24"
+                     VerticalAlignment="Center"
+                     Foreground="{StaticResource BlackColor}"
+                     Kind="Information" />
+        <TextBlock Margin="8,5"
+                   Style="{StaticResource titleText}"
+                   Text="Informations" />
+      </StackPanel>
+      <!-- GroupBox Athletes -->
+      <GroupBox Grid.Row="1"
+                Grid.Column="0"
+                Margin="8"
+                md:ElevationAssist.Elevation="Dp6"
+                BorderThickness="0"
+                Header="{Binding}"
+                Style="{StaticResource MaterialDesignCardGroupBox}">
+        <GroupBox.HeaderTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <md:PackIcon Width="24"
+                           Height="24"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource BlackColor}"
+                           Kind="Users" />
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Margin="8,5"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource BlackColor}"
+                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                           Text="Athletes" />
+                <TextBlock Margin="6,6,6,6"
+                           Style="{StaticResource titleText3}"
+                           Text="{Binding DataContext.AthletesCount, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </DataTemplate>
+        </GroupBox.HeaderTemplate>
+        <ListView ItemsSource="{Binding Categories, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+          <ListView.View>
+            <GridView>
+              <GridViewColumn>
+                <GridViewColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Foreground="{StaticResource BlackColor}" Text="{Binding Name}" />
+                  </DataTemplate>
+                </GridViewColumn.CellTemplate>
+              </GridViewColumn>
+              <GridViewColumn>
+                <GridViewColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock FontWeight="Bold"
+                               Foreground="{StaticResource BlackColor}"
+                               Text="{Binding Athletes.Count}" />
+                  </DataTemplate>
+                </GridViewColumn.CellTemplate>
+              </GridViewColumn>
+            </GridView>
+          </ListView.View>
+        </ListView>
+      </GroupBox>
+
+      <!-- GroupBox Referee -->
+      <GroupBox Grid.Row="1"
+                Grid.Column="1"
+                Margin="8"
+                md:ElevationAssist.Elevation="Dp6"
+                BorderThickness="0"
+                Style="{StaticResource MaterialDesignCardGroupBox}">
+        <GroupBox.HeaderTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <md:PackIcon Width="24"
+                           Height="24"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource BlackColor}"
+                           Kind="Users" />
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Margin="8,5"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource BlackColor}"
+                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                           Text="Arbitres" />
+                <TextBlock Margin="6,6,6,6"
+                           Style="{StaticResource titleText3}"
+                           Text="{Binding DataContext.Referees.Count, UpdateSourceTrigger=PropertyChanged, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </DataTemplate>
+        </GroupBox.HeaderTemplate>
+        <ListView ItemsSource="{Binding RefereeLevels, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+          <ListView.View>
+            <GridView>
+              <GridViewColumn>
+                <GridViewColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Foreground="{StaticResource BlackColor}" Text="{Binding Level}" />
+                  </DataTemplate>
+                </GridViewColumn.CellTemplate>
+              </GridViewColumn>
+              <GridViewColumn>
+                <GridViewColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock FontWeight="Bold"
+                               Foreground="{StaticResource BlackColor}"
+                               Text="{Binding Count}" />
+                  </DataTemplate>
+                </GridViewColumn.CellTemplate>
+              </GridViewColumn>
+            </GridView>
+          </ListView.View>
+        </ListView>
+      </GroupBox>
+    </Grid>
+  </Border>
+</UserControl>

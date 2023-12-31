@@ -59,6 +59,8 @@ public partial class App : Application
             services.AddSingleton<MainWindowViewModel>();
             services.AddSingleton<HomeView>();
             services.AddSingleton<HomeViewModel>();
+            services.AddSingleton<HomeGraphsView>();
+            services.AddSingleton<HomeGraphsViewModel>();
 
 
             //Dialogs

@@ -11,6 +11,7 @@
       <ResourceDictionary.MergedDictionaries>
 
         <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
 
       </ResourceDictionary.MergedDictionaries>
 
@@ -72,6 +73,15 @@
 
       <Style x:Key="titleText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource BlackColor}" />
+      </Style>
+      <Style x:Key="titleText2" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="Foreground" Value="{StaticResource BlackColor}" />
+      </Style>
+      <Style x:Key="titleText3" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{StaticResource BlackColor}" />
       </Style>
@@ -171,6 +181,9 @@
       <!-- Data Template -->
       <DataTemplate DataType="{x:Type home:HomeViewModel}">
         <home:HomeView />
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type home:HomeGraphsViewModel}">
+        <home:HomeGraphsView />
       </DataTemplate>
       <DataTemplate DataType="{x:Type login:LoginViewModel}">
         <login:LoginView />

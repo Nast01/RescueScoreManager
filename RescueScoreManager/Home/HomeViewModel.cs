@@ -1,11 +1,9 @@
-﻿using System.Diagnostics.Metrics;
-using System.IO;
+﻿using System.IO;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
 
 using RescueScoreManager.Data;
@@ -14,8 +12,6 @@ using RescueScoreManager.Messages;
 using RescueScoreManager.SelectNewCompetition;
 using RescueScoreManager.Services;
 
-using static RescueScoreManager.Data.EnumRSM;
-
 namespace RescueScoreManager.Home;
 
 public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>, IRecipient<SelectNewCompetitionMessage>
@@ -23,6 +19,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
     //private RescueScoreManagerContext _context { get; }
     private LoginViewModel _loginViewModel { get; }
     private SelectNewCompetitionViewModel _selectNewCompetitionViewModel { get; }
+    private HomeGraphsViewModel _homeGraphsViewModel { get; }
     private IDialogService _dialogService { get; }
     private IWSIRestService _wsiService { get; }
     private IXMLService _xmlService { get; }
@@ -41,6 +38,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
 
     public HomeViewModel(LoginViewModel loginViewModel,
                             SelectNewCompetitionViewModel selectNewCompetitionViewModel,
+                            HomeGraphsViewModel homeGraphsViewModel,
                             IDialogService dialogService,
                             IWSIRestService wsiService,
                             IXMLService xmlService,
@@ -49,6 +47,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         //_context = context ?? throw new ArgumentNullException(nameof(context));
         _loginViewModel = loginViewModel ?? throw new ArgumentNullException(nameof(_loginViewModel));
         _selectNewCompetitionViewModel = selectNewCompetitionViewModel;
+        _homeGraphsViewModel = homeGraphsViewModel;
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(_dialogService));
         _wsiService = wsiService;
         _xmlService = xmlService;
@@ -66,9 +65,11 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
 
             _xmlService.SetPath(file);
             _xmlService.Load();
-            _isLoaded = true;
+            IsLoaded = true;
 
             _messenger.Send(new OpenCompetitionMessage());
+            CurrentViewModel = _homeGraphsViewModel;
+            _homeGraphsViewModel.Update();
             #region entity framework
             //    _context.DbPath = file;
             //    _context.Database.Migrate();
@@ -341,7 +342,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         //_dialogService.ShowSelectNewCompetition(_selectNewCompetitionViewModel);
     }
 
-    private bool CanNewCompetition() => _isLoaded == false;
+    private bool CanNewCompetition() => IsLoaded == false;
 
     public async void Receive(LoginMessage message)
     {
@@ -355,15 +356,16 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         else
         {
             CurrentViewModel = null;
-            _isLoaded = true;
+            IsLoaded = true;
         }
     }
     public async void Receive(SelectNewCompetitionMessage message)
     {
         if (message.NewCompetition != null)
         {
-            CurrentViewModel = null;
-            _isLoaded = true;
+            CurrentViewModel = _homeGraphsViewModel; 
+            _homeGraphsViewModel.Update();
+            IsLoaded = true;
         }
     }
 }
