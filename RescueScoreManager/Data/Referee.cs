@@ -14,6 +14,20 @@ public partial class Referee : Licensee
     public RefereeLevel RefereeLevel { get; set; }
     public List<RefereeDate> RefereeAvailabilities { get; set; } = new List<RefereeDate>();
 
+    public String RefereeAvailabilitiesLabel
+    {
+        get
+        {
+            return string.Join(" ", RefereeAvailabilities.Select(ra => ra.Availability.ToShortDateString()));
+            //string label = "";
+            //foreach (RefereeDate refereeDate in RefereeAvailabilities)
+            //{
+            //    label += refereeDate.Availability.ToShortDateString() + " ";
+            //}
+
+            //return label;
+        }
+    }
     //public Category Category { get; set; }
     #endregion Attributes
 

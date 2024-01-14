@@ -126,5 +126,10 @@ public partial class RelayTeam: Team
         return success;
     }
     #endregion Athlete Methods
+
+    public Club GetClub()
+    {
+        return Athletes.First().Club;
+    }
     #endregion Methods
 }

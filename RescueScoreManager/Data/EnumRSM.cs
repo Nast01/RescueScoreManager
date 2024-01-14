@@ -1,7 +1,18 @@
-﻿namespace RescueScoreManager.Data;
+﻿using System.ComponentModel;
+
+namespace RescueScoreManager.Data;
 
 public class EnumRSM
 {
+    public static  string GetEnumDescription(Enum value)
+    {
+        // Get the Description attribute value for the enum value
+        var fieldInfo = value.GetType().GetField(value.ToString());
+        var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(fieldInfo, typeof(DescriptionAttribute));
+
+        return attribute != null ? attribute.Description : value.ToString();
+    }
+
     public enum BeachType
     {
         Mer,
@@ -38,8 +49,11 @@ public class EnumRSM
 
     public enum Gender
     {
+        [Description("Messieurs")]
         Man,
+        [Description("Dames")]
         Woman,
+        [Description("Mixte")]
         Mixte
     }
 
@@ -49,5 +63,10 @@ public class EnumRSM
         QuarterFinal,
         SemiFinal,
         Final,
+    }
+
+    public enum ExcelType
+    {
+        STARTLIST
     }
 }

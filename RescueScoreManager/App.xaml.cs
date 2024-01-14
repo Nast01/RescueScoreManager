@@ -53,6 +53,7 @@ public partial class App : Application
             services.AddTransient<IDialogService, DialogService>();
             services.AddSingleton<IWSIRestService, WSIRestService>();
             services.AddSingleton<IXMLService, XMLService>();
+            services.AddSingleton<IExcelService, ExcelService>();
 
             //Pages
             services.AddSingleton<MainWindow>();

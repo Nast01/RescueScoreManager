@@ -43,7 +43,7 @@
         <StackPanel Orientation="Horizontal">
           <!-- New Button -->
           <Button Margin="10,0,11,0"
-                  Command="{Binding NewCompetitionCommand,UpdateSourceTrigger=PropertyChanged}"
+                  Command="{Binding NewCompetitionCommand, UpdateSourceTrigger=PropertyChanged}"
                   Style="{StaticResource blueButton}">
             <StackPanel Orientation="Horizontal">
               <materialDesign:PackIcon Width="16"
@@ -56,7 +56,7 @@
           </Button>
           <!-- Open Button -->
           <Button Margin="10,0"
-                  Command="{Binding OpenFileCommand,UpdateSourceTrigger=PropertyChanged}"
+                  Command="{Binding OpenFileCommand, UpdateSourceTrigger=PropertyChanged}"
                   Style="{StaticResource blueButton}">
             <StackPanel Orientation="Horizontal">
               <materialDesign:PackIcon Width="16"
@@ -97,7 +97,23 @@
                      Text="Documents" />
         </StackPanel>
         <!-- List -->
-        <Button Margin="10,0,11,0" Style="{StaticResource largeBlueButton}">
+        <Button Margin="10,0,11,0"
+                Padding="0"
+                Command="{Binding OpenStartListFileCommand}"
+                Style="{StaticResource largeBlueButton}">
+          <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+            <materialDesign:PackIcon Width="16"
+                                     Height="16"
+                                     Margin="8,0"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Left"
+                                     Kind="DownloadCircle" />
+            <TextBlock Text="StartList" />
+          </StackPanel>
+        </Button>
+        <Button Margin="10,10,11,0"
+                Command="{Binding OpenDisqualicationFileCommand}"
+                Style="{StaticResource largeBlueButton}">
           <StackPanel Orientation="Horizontal">
             <materialDesign:PackIcon Width="16"
                                      Height="16"
@@ -120,82 +136,4 @@
       </StackPanel>
     </Border>
   </Grid>
-  <!--<DockPanel Margin="10" LastChildFill="True">
-    <GroupBox Margin="10"
-              materialDesign:ColorZoneAssist.Mode="PrimaryDark"
-              Header="Accès Rapide"
-              Style="{StaticResource MaterialDesignCardGroupBox}">
-      <GroupBox.HeaderTemplate>
-        <DataTemplate>
-          <StackPanel Orientation="Horizontal">
-            <materialDesign:PackIcon Width="32"
-                                     Height="32"
-                                     VerticalAlignment="Center"
-                                     Foreground="{StaticResource MaterialDesignLightBackground}"
-                                     Kind="Menu" />
-            <TextBlock Margin="8,0,0,0"
-                       VerticalAlignment="Center"
-                       FontWeight="Bold"
-                       Foreground="{StaticResource MaterialDesignLightBackground}"
-                       Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                       Text="{Binding}" />
-          </StackPanel>
-        </DataTemplate>
-      </GroupBox.HeaderTemplate>
-
-      <StackPanel Orientation="Vertical">
-        <StackPanel Margin="10"
-                    VerticalAlignment="Top"
-                    Orientation="Horizontal">
-          <Button Width="{StaticResource ButtonWidth}"
-                  Margin="0,0,5,0"
-                  materialDesign:ButtonAssist.CornerRadius="10"
-                  Command="{Binding NewCompetitionCommand}"
-                  Style="{StaticResource MaterialDesignRaisedLightButton}"
-                  ToolTip="Récupérer une compétition">
-            <StackPanel Orientation="Horizontal">
-              <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
-                                       Height="{StaticResource ButtonIconSize}"
-                                       VerticalAlignment="Center"
-                                       FontWeight="Bold"
-                                       Kind="DownloadCircle" />
-              <TextBlock Margin="5,0,0,0"
-                         Padding="0"
-                         VerticalAlignment="Center"
-                         FontSize="{StaticResource ButtonFontSize}"
-                         FontWeight="Bold"
-                         Text="Nouveau" />
-            </StackPanel>
-          </Button>
-          <Button Width="{StaticResource ButtonWidth}"
-                  Margin="0,0,5,0"
-                  materialDesign:ButtonAssist.CornerRadius="10"
-                  Command="{Binding OpenFileCommand}"
-                  Style="{StaticResource MaterialDesignRaisedLightButton}"
-                  ToolTip="Ouvrir une compétition">
-            <StackPanel Orientation="Horizontal">
-              <materialDesign:PackIcon Width="{StaticResource ButtonIconSize}"
-                                       Height="{StaticResource ButtonIconSize}"
-                                       VerticalAlignment="Center"
-                                       FontWeight="Bold"
-                                       Kind="FolderOpen" />
-              <TextBlock Margin="5,0,0,0"
-                         Padding="0"
-                         VerticalAlignment="Center"
-                         FontSize="{StaticResource ButtonFontSize}"
-                         FontWeight="Bold"
-                         Text="Ouvrir" />
-            </StackPanel>
-          </Button>
-        </StackPanel>
-        <TextBlock FontSize="28"
-                   Foreground="Black"
-                   Text="{Binding Competition.Name}" />
-        <TextBlock FontSize="28"
-                   Foreground="Black"
-                   Text="{Binding Competition.SwimType}" />
-      </StackPanel>
-    </GroupBox>
-  </DockPanel>-->
-
 </UserControl>

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 
 using RescueScoreManager.Helper;
+using RescueScoreManager.Helpers;
 
 using System.Diagnostics;
 using System.Globalization;
@@ -101,7 +102,7 @@ public partial class Competition
     public Competition(JToken data)
     {
         this.Id = data["Id"].Value<int>();
-        this.Name = data["Nom"].Value<string>();
+        this.Name = TextHelper.CleanedText(TextHelper.RemoveDiacritics(data["Nom"].Value<string>())).Trim();
         this.Description = data["Description"].Value<string>();
         this.Location = data["Lieu"].Value<string>();
         this.PriceByAthlete = data["TarifParAthlete"].Value<int>();

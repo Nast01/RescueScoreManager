@@ -19,7 +19,7 @@ public class Race
     [Key]
     public int Id { get; set; }
     public string Name { get; set; }
-    public string Label => Categories.Count == 1 ? $"{Name} {Categories.FirstOrDefault().Name}" : $"{Name}";
+    public string Label => Categories.Count == 1 ? $"{Name} {Categories.FirstOrDefault().Name} {EnumRSM.GetEnumDescription(Gender)}" : $"{Name} {EnumRSM.GetEnumDescription(Gender)}";
     public Gender Gender { get; set; }
     public Speciality Speciality { get; set; }
     public int Discipline { get; set; }
@@ -187,6 +187,11 @@ public class Race
     }
     #endregion Categories Methods
     #region Teams Methods
+
+    public List<Team> GetAvailableTeams()
+    {
+        return Teams.ToList().FindAll(team => !team.IsForfeit);
+    }
     public bool AddTeam(Team team)
     {
         bool success = false;

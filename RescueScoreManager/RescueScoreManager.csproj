@@ -7,6 +7,8 @@
     <UseWPF>true</UseWPF>
     <StartupObject>RescueScoreManager.App</StartupObject>
     <ApplicationIcon>Resources\Images\logo_ffss_ico.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <!--
@@ -50,6 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Extended.Wpf.Toolkit" />
     <PackageReference Include="MaterialDesignThemes" />
@@ -64,6 +67,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Office.Interop.Word" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
@@ -88,6 +92,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Assets\Documents\Disqualification.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Documents\fiche de disqualification.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
