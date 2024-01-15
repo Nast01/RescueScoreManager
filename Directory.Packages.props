@@ -42,7 +42,7 @@
     <PackageVersion Include="Nevron.Nov.Schedule" Version="23.10.13.12" />
     <PackageVersion Include="NevronOpenVision" Version="23.12.1.12" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="xunit" Version="2.6.1" />
+    <PackageVersion Include="xunit" Version="2.6.6" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
