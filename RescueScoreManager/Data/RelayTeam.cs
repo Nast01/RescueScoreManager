@@ -29,13 +29,13 @@ public partial class RelayTeam: Team
 
     public RelayTeam(XElement xElement,List<Athlete> lics)
     {
-        Id = int.Parse(xElement.Attribute(Properties.ResourceFR.Id_XMI).Value);
-        IsForfeit = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsForfeit_XMI).Value);
-        IsForfeitFinal = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsForfeitFinal_XMI).Value);
-        EntryTime = int.Parse(xElement.Attribute(Properties.ResourceFR.EntryTime_XMI).Value);
-        Number = int.Parse(xElement.Attribute(Properties.ResourceFR.EntryTime_XMI).Value);
+        Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
+        IsForfeit = bool.Parse(xElement.Attribute(Properties.Resources.IsForfeit_XMI).Value);
+        IsForfeitFinal = bool.Parse(xElement.Attribute(Properties.Resources.IsForfeitFinal_XMI).Value);
+        EntryTime = int.Parse(xElement.Attribute(Properties.Resources.EntryTime_XMI).Value);
+        Number = int.Parse(xElement.Attribute(Properties.Resources.EntryTime_XMI).Value);
 
-        string[] athIds = xElement.Attribute(Properties.ResourceFR.Athletes_XMI).Value.Split(" ");
+        string[] athIds = xElement.Attribute(Properties.Resources.Athletes_XMI).Value.Split(" ");
         foreach (string id in athIds)
         {
             Athlete athlete = lics.Find(l => l.Id == id);
@@ -65,15 +65,15 @@ public partial class RelayTeam: Team
 
         athIds = athIds.Trim();
 
-        return new XElement(Properties.ResourceFR.RelayTeam_XMI,
-                                new XAttribute(Properties.ResourceFR.Id_XMI, Id),
-                                new XAttribute(Properties.ResourceFR.IsForfeit_XMI, IsForfeit),
-                                new XAttribute(Properties.ResourceFR.IsForfeitFinal_XMI, IsForfeitFinal),
-                                new XAttribute(Properties.ResourceFR.EntryTime_XMI, EntryTime),
-                                new XAttribute(Properties.ResourceFR.Number_XMI, Number),
-                                //new XAttribute(Properties.ResourceFR.IdApi_XMI, IdApi),
-                                new XAttribute(Properties.ResourceFR.Athletes_XMI, athIds),
-                                new XAttribute(Properties.ResourceFR.Race_XMI, Race.Id)
+        return new XElement(Properties.Resources.RelayTeam_XMI,
+                                new XAttribute(Properties.Resources.Id_XMI, Id),
+                                new XAttribute(Properties.Resources.IsForfeit_XMI, IsForfeit),
+                                new XAttribute(Properties.Resources.IsForfeitFinal_XMI, IsForfeitFinal),
+                                new XAttribute(Properties.Resources.EntryTime_XMI, EntryTime),
+                                new XAttribute(Properties.Resources.Number_XMI, Number),
+                                //new XAttribute(Properties.Resources.IdApi_XMI, IdApi),
+                                new XAttribute(Properties.Resources.Athletes_XMI, athIds),
+                                new XAttribute(Properties.Resources.Race_XMI, Race.Id)
                             );
     }
     #region Athlete Methods

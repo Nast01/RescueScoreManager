@@ -64,17 +64,17 @@ public partial class Referee : Licensee
 
     public Referee(XElement xElement)
     {
-        Id = xElement.Attribute(Properties.ResourceFR.Id_XMI).Value;
-        LastName = xElement.Attribute(Properties.ResourceFR.LastName_XMI).Value;
-        FirstName = xElement.Attribute(Properties.ResourceFR.FirstName_XMI).Value;
-        BirthYear = int.Parse(xElement.Attribute(Properties.ResourceFR.BirthYear_XMI).Value);
-        Gender = (Gender)Enum.Parse(typeof(Gender), xElement.Attribute(Properties.ResourceFR.Gender_XMI).Value);
-        IsLicensee = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsLicensee_XMI).Value);
-        IsGuest = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsGuest_XMI).Value);
-        Nationality = xElement.Attribute(Properties.ResourceFR.Nationality_XMI).Value;
-        RefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), xElement.Attribute(Properties.ResourceFR.Level_XMI).Value);
+        Id = xElement.Attribute(Properties.Resources.Id_XMI).Value;
+        LastName = xElement.Attribute(Properties.Resources.LastName_XMI).Value;
+        FirstName = xElement.Attribute(Properties.Resources.FirstName_XMI).Value;
+        BirthYear = int.Parse(xElement.Attribute(Properties.Resources.BirthYear_XMI).Value);
+        Gender = (Gender)Enum.Parse(typeof(Gender), xElement.Attribute(Properties.Resources.Gender_XMI).Value);
+        IsLicensee = bool.Parse(xElement.Attribute(Properties.Resources.IsLicensee_XMI).Value);
+        IsGuest = bool.Parse(xElement.Attribute(Properties.Resources.IsGuest_XMI).Value);
+        Nationality = xElement.Attribute(Properties.Resources.Nationality_XMI).Value;
+        RefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), xElement.Attribute(Properties.Resources.Level_XMI).Value);
 
-        string[] availabilities = xElement.Attribute(Properties.ResourceFR.Availabilities_XMI).Value.Split(" ");
+        string[] availabilities = xElement.Attribute(Properties.Resources.Availabilities_XMI).Value.Split(" ");
         foreach (string date in availabilities)
         {
             RefereeDate refereeDate = new RefereeDate();
@@ -96,17 +96,17 @@ public partial class Referee : Licensee
         }
         availabilities = availabilities.Trim();
 
-        XElement xElement = new XElement(Properties.ResourceFR.Referee_XMI,
-                                new XAttribute(Properties.ResourceFR.Id_XMI, Id),
-                                new XAttribute(Properties.ResourceFR.LastName_XMI, LastName),
-                                new XAttribute(Properties.ResourceFR.FirstName_XMI, FirstName),
-                                new XAttribute(Properties.ResourceFR.BirthYear_XMI, BirthYear),
-                                new XAttribute(Properties.ResourceFR.Gender_XMI, Gender.ToString()),
-                                new XAttribute(Properties.ResourceFR.IsLicensee_XMI, IsLicensee),
-                                new XAttribute(Properties.ResourceFR.IsGuest_XMI, IsGuest),
-                                new XAttribute(Properties.ResourceFR.Nationality_XMI, Nationality),
-                                new XAttribute(Properties.ResourceFR.Level_XMI, RefereeLevel),
-                                new XAttribute(Properties.ResourceFR.Availabilities_XMI, availabilities)
+        XElement xElement = new XElement(Properties.Resources.Referee_XMI,
+                                new XAttribute(Properties.Resources.Id_XMI, Id),
+                                new XAttribute(Properties.Resources.LastName_XMI, LastName),
+                                new XAttribute(Properties.Resources.FirstName_XMI, FirstName),
+                                new XAttribute(Properties.Resources.BirthYear_XMI, BirthYear),
+                                new XAttribute(Properties.Resources.Gender_XMI, Gender.ToString()),
+                                new XAttribute(Properties.Resources.IsLicensee_XMI, IsLicensee),
+                                new XAttribute(Properties.Resources.IsGuest_XMI, IsGuest),
+                                new XAttribute(Properties.Resources.Nationality_XMI, Nationality),
+                                new XAttribute(Properties.Resources.Level_XMI, RefereeLevel),
+                                new XAttribute(Properties.Resources.Availabilities_XMI, availabilities)
                             );
         return xElement;
     }

@@ -411,4 +411,59 @@ public class ExcelService : IExcelService
             throw new Exception(e.Message);
         }
     }
+
+    public string GenerateClubList(Competition competition, List<Club> clubs)
+    {
+        var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add(STARTLIST);
+
+        //Print setup
+        worksheet.PageSetup.PageOrientation = XLPageOrientation.Portrait;
+        //worksheet.PageSetup.PagesWide = 1;
+        worksheet.PageSetup.PaperSize = XLPaperSize.A4Paper;
+        worksheet.PageSetup.Margins.Top = 1.2;
+        worksheet.PageSetup.Margins.Bottom = 0.50;
+        worksheet.PageSetup.Margins.Left = 0.25;
+        worksheet.PageSetup.Margins.Right = 0.25;
+        worksheet.PageSetup.Margins.Header = 0.35;
+        worksheet.PageSetup.Margins.Footer = 0.35;
+        worksheet.PageSetup.AdjustTo(60);
+
+
+        //Header Footer
+        worksheet.PageSetup.Header.Center.AddText(CLUBS).SetBold(true).SetFontSize(BIGSIZE);
+        worksheet.PageSetup.Header.Center.AddText("\n");
+        worksheet.PageSetup.Header.Center.AddText(competition.Name);
+        worksheet.PageSetup.Header.Center.AddText("\n");
+        worksheet.PageSetup.Header.Center.AddText(competition.Location);
+        worksheet.PageSetup.Header.Center.AddText("\n");
+        string date = competition.BeginDate.ToShortDateString() + " - " + competition.EndDate.ToShortDateString();
+        worksheet.PageSetup.Header.Center.AddText(date);
+
+        worksheet.PageSetup.Footer.Right.AddText(XLHFPredefinedText.PageNumber, XLHFOccurrence.AllPages);
+        worksheet.PageSetup.Footer.Right.AddText(" / ", XLHFOccurrence.AllPages);
+        worksheet.PageSetup.Footer.Right.AddText(XLHFPredefinedText.NumberOfPages, XLHFOccurrence.AllPages);
+        worksheet.PageSetup.Footer.Left.AddText(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"), XLHFOccurrence.AllPages);
+
+        int row = 2;
+        int column = 1;
+
+
+
+
+        //Adjust column to content
+        worksheet.Columns().AdjustToContents();
+
+        try
+        {
+            FileInfo fi = GetFileName(EnumRSM.ExcelType.STARTLIST, competition.Name);
+            workbook.SaveAs(fi.FullName);
+
+            return fi.FullName;
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+    }
 }

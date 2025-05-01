@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace RescueScoreManager.Home;
+namespace RescueScoreManager.Modules.Home;
 
 /// <summary>
 /// Logique d'interaction pour HomeInformationsView.xaml

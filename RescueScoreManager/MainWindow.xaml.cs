@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-using RescueScoreManager.Home;
+using RescueScoreManager.Modules.Home;
 
 namespace RescueScoreManager;
 

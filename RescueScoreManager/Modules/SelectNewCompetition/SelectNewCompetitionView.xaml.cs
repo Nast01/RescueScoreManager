@@ -3,7 +3,7 @@ using System.Windows.Controls;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace RescueScoreManager.SelectNewCompetition;
+namespace RescueScoreManager.Modules.SelectNewCompetition;
 
 /// <summary>
 /// Logique d'interaction pour SelectNewCompetitionView.xaml

@@ -5,7 +5,7 @@ using RescueScoreManager.Services;
 
 using static RescueScoreManager.Data.EnumRSM;
 
-namespace RescueScoreManager.Home;
+namespace RescueScoreManager.Modules.Home;
 
 public partial class HomeInformationsViewModel : ObservableObject
 {

@@ -38,9 +38,9 @@ public static class JsonHelper
         return speciality;
     }
     
-    public static BeachType? GetBeachTypeFromJsonValue(string specialityValue,string beachTypeValue)
+    public static BeachType GetBeachTypeFromJsonValue(string specialityValue,string beachTypeValue)
     {
-        BeachType? beachType = null;
+        BeachType beachType = BeachType.Lac;
         if (String.Compare(specialityValue, "Côtier") == 0
             || String.Compare(specialityValue, "Mixte") == 0)
         {
@@ -61,9 +61,9 @@ public static class JsonHelper
         return beachType;
     }
 
-    public static SwimType? GetSwimTypeFromJsonValue( string specialityValue, string swimTypeValue)
+    public static SwimType GetSwimTypeFromJsonValue( string specialityValue, string swimTypeValue)
     {
-        SwimType? swimType = null;
+        SwimType swimType = SwimType.Bassin_25m;
         if (String.Compare(specialityValue, "Eau-plate") == 0
             || String.Compare(specialityValue, "Mixte") == 0)
         {
@@ -80,9 +80,9 @@ public static class JsonHelper
         return swimType;
     }
 
-    public static ChronoType? GetChronoTypeFromJsonValue(string chronoValue)
+    public static ChronoType GetChronoTypeFromJsonValue(string chronoValue)
     {
-        ChronoType? chronoType = null;
+        ChronoType chronoType = ChronoType.Manual;
         if (String.Compare(chronoValue, "Manuel") == 0)
         {
             chronoType = ChronoType.Manual;

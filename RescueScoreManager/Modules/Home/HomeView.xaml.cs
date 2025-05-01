@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace RescueScoreManager.Home
+namespace RescueScoreManager.Modules.Home
 {
     /// <summary>
     /// Logique d'interaction pour HomeView.xaml

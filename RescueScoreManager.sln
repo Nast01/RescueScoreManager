@@ -61,6 +61,7 @@ Global
 		{AC2A502B-963E-4FD6-ACCA-8F96EDD4190F} = {EF62C430-6899-4C85-BFFC-D71632937A3B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		RESX_NeutralResourcesLanguage = fr-FR
 		SolutionGuid = {490F259C-CD1B-446C-A893-CD94D4954AE9}
 	EndGlobalSection
 EndGlobal

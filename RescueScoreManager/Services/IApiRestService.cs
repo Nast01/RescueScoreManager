@@ -1,17 +1,14 @@
-﻿using System.ComponentModel;
-using System.Net.Http;
-
-using RescueScoreManager.Data;
-
-using static System.Reflection.Metadata.BlobBuilder;
+﻿using RescueScoreManager.Data;
 
 namespace RescueScoreManager.Services;
 
-public interface IWSIRestService
+public interface IApiService
 {
-    public Task<bool> RequestToken(string login, string password);
-    public ApiToken? GetToken();
-    public bool HasToken();
+    public Task<TokenResponse> RequestTokenAsync(string login, string password);
+    public Task<UserInfo> GetUserInfoAsync(string token);
+    //public Task<bool> RequestToken(string login, string password);
+    //public ApiToken? GetToken();
+    //public bool HasToken();
     public bool GetIsLoaded();
     public List<Category> GetCategories();
     public List<Licensee> GetLicensees();

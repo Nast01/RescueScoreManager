@@ -13,6 +13,12 @@ public class EnumRSM
         return attribute != null ? attribute.Description : value.ToString();
     }
 
+    public enum Status
+    {
+        Valide,
+        NonValide
+    }
+
     public enum BeachType
     {
         Mer,

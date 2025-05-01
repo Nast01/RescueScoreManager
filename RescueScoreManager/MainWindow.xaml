@@ -7,19 +7,26 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:RescueScoreManager"
         xmlns:converter="clr-namespace:RescueScoreManager.Converter"
+        xmlns:loc="clr-namespace:RescueScoreManager.Localization"
         Title="{Binding Title}"
         Width="1280"
         Height="780"
         d:DataContext="{d:DesignInstance Type=local:MainWindowViewModel,
                                          IsDesignTimeCreatable=False}"
-        Background="Transparent"
         Style="{StaticResource MaterialDesignWindow}"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        TextElement.FontWeight="Medium"
+        TextElement.FontSize="14"
+        FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Montserrat/#Montserrat"
         Topmost="False"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
   <Window.Resources>
     <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     <converter:ReverseBooleanToVisibilityConverter x:Key="ReverseBoolToVisConverter" />
+    <converter:LocalizedFormatConverter x:Key="LocalizedFormat"/>
+
   </Window.Resources>
   <xctk:BusyIndicator BusyContent="{Binding BusyMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsBusy="{Binding IsBusy}">
 
@@ -46,11 +53,11 @@
               <GradientStop Offset="0.8" Color="#024488" />
             </LinearGradientBrush>
           </Border.Background>
-          <Grid>
+          <Grid >
             <Grid.RowDefinitions>
               <RowDefinition Height="120" />
               <RowDefinition Height="*" />
-              <RowDefinition Height="60" />
+              <RowDefinition Height="80" />
             </Grid.RowDefinitions>
             <!-- Logo -->
             <StackPanel Grid.Row="0"
@@ -79,7 +86,8 @@
                   <materialDesign:PackIcon HorizontalAlignment="Center"
                                            Kind="Home"
                                            Style="{DynamicResource menuButtonIcon}" />
-                  <TextBlock Style="{DynamicResource menuButtonText}" Text="Accueil" />
+                  <TextBlock Style="{DynamicResource menuButtonText}"
+                             Text="{loc:Translate Home}"/>
                 </StackPanel>
               </Button>
               <Button HorizontalContentAlignment="Center"
@@ -87,56 +95,73 @@
                       Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="Swim" Style="{StaticResource menuButtonIcon}" />
-                  <TextBlock Style="{StaticResource menuButtonText}" Text="Eau plate" />
+                  <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Pool}" />
                 </StackPanel>
               </Button>
               <Button Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="Kayaking" Style="{StaticResource menuButtonIcon}" />
-                  <TextBlock Style="{StaticResource menuButtonText}" Text="Côtier" />
+                  <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Beach}" />
                 </StackPanel>
               </Button>
               <Button Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="CheckboxesMarked" Style="{StaticResource menuButtonIcon}" />
-                  <TextBlock Style="{StaticResource menuButtonText}" Text="Forfaits" />
+                  <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Forfeits}" />
                 </StackPanel>
               </Button>
               <Button Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="Podium" Style="{StaticResource menuButtonIcon}" />
-                  <TextBlock Style="{StaticResource menuButtonText}" Text="Classements" />
+                  <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Rankings}" />
                 </StackPanel>
               </Button>
               <Button Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="Settings" Style="{StaticResource menuButtonIcon}" />
-                  <TextBlock Style="{StaticResource menuButtonText}" Text="Propriétés" />
+                  <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Settings}" />
                 </StackPanel>
               </Button>
               <Button Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="Help" Style="{StaticResource menuButtonIcon}" />
-                  <TextBlock Style="{StaticResource menuButtonText}" Text="Aides" />
+                  <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Help}" />
                 </StackPanel>
               </Button>
             </StackPanel>
             <!-- Connexion Info -->
             <StackPanel Grid.Row="2"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"
                         Orientation="Horizontal">
+              <Button Margin="0" Padding="0"
+                Command="{Binding LogoutCommand}"
+                Style="{StaticResource MaterialDesignIconButton}"
+                 Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisConverter}}"
+                ToolTip="{loc:Translate Logout}">
+                <materialDesign:PackIcon Kind="Logout" Width="14" Height="14" Foreground="White" FontWeight="Bold"/>
+              </Button>
+              <Button Margin="0" Padding="0"
+                Command="{Binding LoginCommand}"
+                Style="{StaticResource MaterialDesignIconButton}"
+                 Visibility="{Binding IsLoggedIn, Converter={StaticResource ReverseBoolToVisConverter}}"
+                ToolTip="{loc:Translate Connnection}">
+                <materialDesign:PackIcon Kind="Login" Width="14" Height="14" Foreground="White" FontWeight="Bold"/>
+              </Button>
               <Ellipse Width="12"
                        Height="12"
                        Margin="0,0,15,0"
                        Fill="Red"
-                       Visibility="{Binding IsConnected, Converter={StaticResource ReverseBoolToVisConverter}}" />
+                       Visibility="{Binding IsLoggedIn, Converter={StaticResource ReverseBoolToVisConverter}}" />
               <Ellipse Width="12"
                        Height="12"
                        Margin="0,0,15,0"
                        Fill="Green"
-                       Visibility="{Binding IsConnected, Converter={StaticResource BoolToVisConverter}}" />
-              <TextBlock Style="{StaticResource secondaryText}" Text="{Binding ConnexionText, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" />
+                       Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisConverter}}" />
+              <StackPanel Orientation="Vertical">
+                <TextBlock Style="{StaticResource secondaryText}" Text="{Binding UserLabel, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextWrapping="Wrap" Width="120" FontSize="10" Foreground="White"/>
+                <TextBlock Style="{StaticResource secondaryText}" Text="{Binding UserRole, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextWrapping="Wrap" Width="120" FontSize="8" Foreground="White"/>
+              </StackPanel>
             </StackPanel>
           </Grid>
         </Border>

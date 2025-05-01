@@ -51,7 +51,7 @@ public class Race
         Speciality = JsonHelper.GetSpecialityFromJsonValue(jData["discipline"]["specialiteLabel"].Value<string>());
         NumberByTeam = jData["discipline"]["NbAthleteParEquipe"].Value<int>();
         IsRelay = NumberByTeam > 1;
-        Distance = jData["discipline"]["Distance"].Value<int>();
+        Distance = Speciality == Speciality.EauPlate ? jData["discipline"]["Distance"].Value<int>() : 0;
 
         JArray JCategories = jData["categories"] as JArray;
         foreach (var jCat in JCategories.Children())
@@ -63,17 +63,17 @@ public class Race
     }
     public Race(XElement xElement, List<Category> categories)
     {
-        Id = int.Parse(xElement.Attribute(Properties.ResourceFR.Id_XMI).Value);
-        Name = xElement.Attribute(Properties.ResourceFR.Name_XMI).Value;
-        Gender = (Gender)Enum.Parse(typeof(Gender), xElement.Attribute(Properties.ResourceFR.Gender_XMI).Value);
-        Speciality = (Speciality)Enum.Parse(typeof(Speciality), xElement.Attribute(Properties.ResourceFR.Speciality_XMI).Value);
-        Discipline = int.Parse(xElement.Attribute(Properties.ResourceFR.Discipline_XMI).Value);
-        NumberByTeam = int.Parse(xElement.Attribute(Properties.ResourceFR.NumberByTeam_XMI).Value);
-        Distance = int.Parse(xElement.Attribute(Properties.ResourceFR.Distance_XMI).Value);
-        Interval = int.Parse(xElement.Attribute(Properties.ResourceFR.Interval_XMI).Value);
-        IsRelay = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsRelay_XMI).Value);
+        Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
+        Name = xElement.Attribute(Properties.Resources.Name_XMI).Value;
+        Gender = (Gender)Enum.Parse(typeof(Gender), xElement.Attribute(Properties.Resources.Gender_XMI).Value);
+        Speciality = (Speciality)Enum.Parse(typeof(Speciality), xElement.Attribute(Properties.Resources.Speciality_XMI).Value);
+        Discipline = int.Parse(xElement.Attribute(Properties.Resources.Discipline_XMI).Value);
+        NumberByTeam = int.Parse(xElement.Attribute(Properties.Resources.NumberByTeam_XMI).Value);
+        Distance = int.Parse(xElement.Attribute(Properties.Resources.Distance_XMI).Value);
+        Interval = int.Parse(xElement.Attribute(Properties.Resources.Interval_XMI).Value);
+        IsRelay = bool.Parse(xElement.Attribute(Properties.Resources.IsRelay_XMI).Value);
 
-        string[] catIds = xElement.Attribute(Properties.ResourceFR.Categories_XMI).Value.Split(" ");
+        string[] catIds = xElement.Attribute(Properties.Resources.Categories_XMI).Value.Split(" ");
         foreach (string catId in catIds)
         {
             Category cat = categories.Find(c => c.Id == int.Parse(catId));
@@ -84,10 +84,10 @@ public class Race
         }
 
 
-        //ShortName = xElement.Attribute(Properties.ResourceFR.ShortName_XMI).Value;
-        //if (xElement.Attribute(Properties.ResourceFR.AresStyleId_XMI) != null)
+        //ShortName = xElement.Attribute(Properties.Resources.ShortName_XMI).Value;
+        //if (xElement.Attribute(Properties.Resources.AresStyleId_XMI) != null)
         //{
-        //    AresStyleId = int.Parse(xElement.Attribute(Properties.ResourceFR.AresStyleId_XMI).Value);
+        //    AresStyleId = int.Parse(xElement.Attribute(Properties.Resources.AresStyleId_XMI).Value);
         //}
         //else
         //{
@@ -110,19 +110,19 @@ public class Race
         }
         catIds = catIds.Trim();
 
-        XElement xElement = new XElement(Properties.ResourceFR.Race_XMI,
-                            new XAttribute(Properties.ResourceFR.Id_XMI, Id),
-                            new XAttribute(Properties.ResourceFR.Name_XMI, Name),
-                            new XAttribute(Properties.ResourceFR.Gender_XMI, Gender.ToString()),
-                            new XAttribute(Properties.ResourceFR.Speciality_XMI, Speciality.ToString()),
-                            new XAttribute(Properties.ResourceFR.Discipline_XMI, Discipline),
-                            new XAttribute(Properties.ResourceFR.NumberByTeam_XMI, NumberByTeam),
-                            new XAttribute(Properties.ResourceFR.Distance_XMI, Distance),
-                            new XAttribute(Properties.ResourceFR.Interval_XMI, Interval),
-                            new XAttribute(Properties.ResourceFR.IsRelay_XMI, IsRelay),
-                            new XAttribute(Properties.ResourceFR.Categories_XMI, catIds)
-                            //new XAttribute(Properties.ResourceFR.MeetingElements_XMI, MeetingElements.GetXmiIds()),
-                            //new XAttribute(Properties.ResourceFR.AresStyleId_XMI, AresStyleId)
+        XElement xElement = new XElement(Properties.Resources.Race_XMI,
+                            new XAttribute(Properties.Resources.Id_XMI, Id),
+                            new XAttribute(Properties.Resources.Name_XMI, Name),
+                            new XAttribute(Properties.Resources.Gender_XMI, Gender.ToString()),
+                            new XAttribute(Properties.Resources.Speciality_XMI, Speciality.ToString()),
+                            new XAttribute(Properties.Resources.Discipline_XMI, Discipline),
+                            new XAttribute(Properties.Resources.NumberByTeam_XMI, NumberByTeam),
+                            new XAttribute(Properties.Resources.Distance_XMI, Distance),
+                            new XAttribute(Properties.Resources.Interval_XMI, Interval),
+                            new XAttribute(Properties.Resources.IsRelay_XMI, IsRelay),
+                            new XAttribute(Properties.Resources.Categories_XMI, catIds)
+                            //new XAttribute(Properties.Resources.MeetingElements_XMI, MeetingElements.GetXmiIds()),
+                            //new XAttribute(Properties.Resources.AresStyleId_XMI, AresStyleId)
                             );
 
         foreach (Team team in Teams)

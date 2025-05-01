@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows;
 
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,9 +8,12 @@ using CommunityToolkit.Mvvm.Messaging;
 using MaterialDesignThemes.Wpf;
 
 using RescueScoreManager.Data;
-using RescueScoreManager.Home;
+using RescueScoreManager.Modules.Home;
 using RescueScoreManager.Messages;
 using RescueScoreManager.Services;
+using RescueScoreManager.Modules.Login;
+using CommunityToolkit.Mvvm.Input;
+using RescueScoreManager.Modules.SelectNewCompetition;
 
 namespace RescueScoreManager;
 
@@ -28,18 +32,16 @@ public partial class MainWindowViewModel : ObservableObject,
     //private int _count;
 
     private readonly HomeViewModel _homeViewModel;
-    private readonly IWSIRestService _wsiService;
-    private readonly IXMLService _xmlService;
+    private readonly IApiService _apiService; 
+    private readonly IAuthenticationService _authService;
+    private readonly IXMLService _xmlService; 
+    private readonly ILocalizationService _localizationService;
+    private readonly IDialogService _dialogService;
 
     private IMessenger _messenger { get; }
 
     [ObservableProperty]
     private ObservableObject _currentViewModel;
-
-    [ObservableProperty]
-    private string _connexionText = "Non Connecté";
-    [ObservableProperty]
-    private bool _isConnected = false;
     [ObservableProperty]
     private bool _isBusy = false;
     [ObservableProperty]
@@ -48,55 +50,128 @@ public partial class MainWindowViewModel : ObservableObject,
     private SnackbarMessageQueue _snackbarMessageQueue;
     [ObservableProperty]
     private string _title = "Rescue Score Manager";
+    [ObservableProperty]
+    private LanguageModel _currentLanguage;
+    [ObservableProperty]
+    private bool _isLoggedIn;
+    [ObservableProperty] 
+    private string _userLabel;
+    [ObservableProperty]
+    private string _userRole;
+
+    public ObservableCollection<LanguageModel> AvailableLanguages => _localizationService.AvailableLanguages;
 
     public MainWindowViewModel(HomeViewModel homeViewModel,
-                                IWSIRestService wsiService,
+                                IApiService apiService,
+                                IAuthenticationService authService,
                                 IXMLService xmlService,
+                                ILocalizationService localizationService,
+                                IDialogService dialogService,
                                 IMessenger messenger)//RescueScoreManagerContext context,
     {
         //_context = context;
         _homeViewModel = homeViewModel;
         _currentViewModel = homeViewModel;
 
-        _wsiService = wsiService;
+        _apiService = apiService;
+        _authService = authService;
         _xmlService = xmlService;
+        _localizationService = localizationService;
+        _dialogService = dialogService;
+
+
         _messenger = messenger;
         _snackbarMessageQueue = new SnackbarMessageQueue();
 
+        _currentLanguage = AvailableLanguages[0];
+
+        UpdateLogInfo();
+
         messenger.RegisterAll(this);
+
+        // Check user connected
+        CheckExistingAuthAsync();
+    }
+
+    #region Commands
+
+    #region Logout Command
+    [RelayCommand]
+    private void Logout()
+    {
+        _authService.Logout();
+        UpdateLogInfo();
+    }
+
+    #endregion Logout Command
+    #region Login Command
+    [RelayCommand]
+    private void Login()
+    {
+        var loginViewModel = new LoginViewModel(_authService,_messenger);
+        bool? result = _dialogService.ShowDialog(loginViewModel);
+
+        if (result == true)
+        {
+            UpdateLogInfo();
+        }
+        loginViewModel.OnRequestClose();
 
     }
 
+    #endregion Login Command
+    #endregion Commands
 
+    #region Private functions
+    private async void CheckExistingAuthAsync()
+    {
+        bool isValid = await _authService.ValidateAndRefreshTokenAsync();
+
+        if (isValid)
+        {
+            OnLoginSucceeded();
+        }
+    }
+    private void OnLoginSucceeded()
+    {
+        // Mettre à jour l'interface après connexion
+        UpdateLogInfo();
+
+        // Ici, vous pourriez charger un autre ViewModel pour afficher le contenu après connexion
+        // Par exemple : CurrentViewModel = new DashboardViewModel();
+    }
+
+    private void UpdateLogInfo()
+    {
+        IsLoggedIn = _authService.IsAuthenticated;
+        UserLabel = _authService.CurrentUser?.Label ?? $"{ResourceManagerLocalizationService.Instance.GetString("UnknownUser")}";
+        UserRole = _authService.CurrentUser?.Role ?? "";
+    }
+    #endregion Private functions
+
+    #region Message
     /// <summary>
     /// Message received when the a login has been validated
     /// </summary>
     /// <param name="message"></param>
-    public async void Receive(LoginMessage message)
+    public void Receive(LoginMessage message)
     {
-        if (message.IsConnected == true)
-        {
-            ConnexionText = "Connecté";
-            IsConnected = true;
-        }
-        else
-        {
-            ConnexionText = "Non Connecté";
-            IsConnected = false;
-        }
+        UserLabel = _authService.IsAuthenticated ? _authService.CurrentUser.Label : $"{ResourceManagerLocalizationService.Instance.GetString("NotConnected")}";
+        UserRole = _authService.IsAuthenticated ? _authService.CurrentUser.Role : "";
+        IsLoggedIn = _authService.IsAuthenticated;
     }
 
-    public async void Receive(IsBusyMessage message)
+    public void Receive(IsBusyMessage message)
     {
         IsBusy = message.IsBusy;
         BusyMessage = message.Text;
     }
-    public async void Receive(SnackMessage message)
+    public void Receive(SnackMessage message)
     {
         SetSnackBarMessage(message.Text);
     }
 
-    public async void Receive(OpenCompetitionMessage message)
+    public void Receive(OpenCompetitionMessage message)
     {
         Title = Title + " " + _xmlService.GetCompetition().Name;
         SetSnackBarMessage("Compétition chargée!");
@@ -111,5 +186,6 @@ public partial class MainWindowViewModel : ObservableObject,
                                             promote: false,
                                             neverConsiderToBeDuplicate: true,
                                             durationOverride: TimeSpan.FromSeconds(3));
-    }
+    } 
+    #endregion Message
 }

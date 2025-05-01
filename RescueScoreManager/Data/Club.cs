@@ -35,17 +35,17 @@ public partial class Club
 
     public Club(XElement clubElement)
     {
-        Id = int.Parse(clubElement.Attribute(Properties.ResourceFR.Id_XMI).Value);
-        Name = clubElement.Attribute(Properties.ResourceFR.Name_XMI).Value;
+        Id = int.Parse(clubElement.Attribute(Properties.Resources.Id_XMI).Value);
+        Name = clubElement.Attribute(Properties.Resources.Name_XMI).Value;
     }
 
     #region Methods
 
     public XElement WriteXml()
     {
-        XElement xElement = new XElement(Properties.ResourceFR.Club_XMI,
-                            new XAttribute(Properties.ResourceFR.Id_XMI, Id),
-                            new XAttribute(Properties.ResourceFR.Name_XMI, Name)
+        XElement xElement = new XElement(Properties.Resources.Club_XMI,
+                            new XAttribute(Properties.Resources.Id_XMI, Id),
+                            new XAttribute(Properties.Resources.Name_XMI, Name)
                             );
         foreach (Licensee licensee in Licensees)
         {

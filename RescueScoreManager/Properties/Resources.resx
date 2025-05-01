@@ -276,4 +276,106 @@
   <data name="Team_XMI" xml:space="preserve">
     <value>Team</value>
   </data>
+  <data name="Status_XMI" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Acceuil</value>
+  </data>
+  <data name="Pool" xml:space="preserve">
+    <value>Eau Plate</value>
+  </data>
+  <data name="Beach" xml:space="preserve">
+    <value>Côtier</value>
+  </data>
+  <data name="Forfeits" xml:space="preserve">
+    <value>Forfaits</value>
+  </data>
+  <data name="Rankings" xml:space="preserve">
+    <value>Classements</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Propriétés</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Aide</value>
+  </data>
+  <data name="QuickAccess" xml:space="preserve">
+    <value>Accès Rapide</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Nouveau</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="Documents" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="StartList" xml:space="preserve">
+    <value>StartList</value>
+  </data>
+  <data name="ClubsList" xml:space="preserve">
+    <value>Liste Clubs</value>
+  </data>
+  <data name="Disqualification" xml:space="preserve">
+    <value>Disqualification</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>Procès Verbal</value>
+  </data>
+  <data name="LoginUpper" xml:space="preserve">
+    <value>CONNEXION</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Identifiant</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="Validate" xml:space="preserve">
+    <value>Valider</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="SelectCompetition" xml:space="preserve">
+    <value>Sélection Compétition</value>
+  </data>
+  <data name="BeginDate" xml:space="preserve">
+    <value>Date de début</value>
+  </data>
+  <data name="HttpError" xml:space="preserve">
+    <value>Erreur HTTP</value>
+  </data>
+  <data name="TokenError" xml:space="preserve">
+    <value>Impossible de récupérer le jeton.</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Erreur Inattendue</value>
+  </data>
+  <data name="SaveTokenError" xml:space="preserve">
+    <value>Erreur lors de la sauvegarde des données d'authentification</value>
+  </data>
+  <data name="LoginError" xml:space="preserve">
+    <value>La connexion a échoué. Vérifiez vos identifiants</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Non Connecté</value>
+  </data>
+  <data name="UnknownUser" xml:space="preserve">
+    <value>Utilisateur Inconnu</value>
+  </data>
+  <data name="Connected" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Déconnexion</value>
+  </data>
+  <data name="Connection" xml:space="preserve">
+    <value>Connexion</value>
+  </data>
 </root>

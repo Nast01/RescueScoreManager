@@ -8,5 +8,8 @@
     <Setting Name="FilePath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="PreferredLanguage" Type="System.String" Scope="User">
+      <Value Profile="(Default)">fr-FR</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

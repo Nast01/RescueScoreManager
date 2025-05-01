@@ -8,12 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using RescueScoreManager.Data;
-using RescueScoreManager.Home;
-using RescueScoreManager.Login;
-using RescueScoreManager.SelectNewCompetition;
+using RescueScoreManager.Modules.Home;
+using RescueScoreManager.Modules.Login;
+using RescueScoreManager.Properties;
+using RescueScoreManager.Modules.SelectNewCompetition;
 using RescueScoreManager.Services;
 
 using System;
+using System.Globalization;
+using System.Transactions;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -51,9 +54,12 @@ public partial class App : Application
         {
             //Services
             services.AddTransient<IDialogService, DialogService>();
-            services.AddSingleton<IWSIRestService, WSIRestService>();
+            services.AddSingleton<IApiService, ApiService>();
             services.AddSingleton<IXMLService, XMLService>();
             services.AddSingleton<IExcelService, ExcelService>();
+            services.AddSingleton<ILocalizationService, ResourceManagerLocalizationService>();
+            services.AddSingleton<IStorageService, LocalStorageService>();
+            services.AddSingleton<IAuthenticationService, AuthenticationService>();
 
             //Pages
             services.AddSingleton<MainWindow>();

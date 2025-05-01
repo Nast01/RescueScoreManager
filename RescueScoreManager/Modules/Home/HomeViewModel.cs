@@ -1,31 +1,31 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Net.NetworkInformation;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-using Microsoft.Office.Interop.Word;
-using Microsoft.Win32;
-
 using RescueScoreManager.Data;
-using RescueScoreManager.Login;
+using RescueScoreManager.Modules.Login;
 using RescueScoreManager.Messages;
-using RescueScoreManager.SelectNewCompetition;
+using RescueScoreManager.Modules.SelectNewCompetition;
 using RescueScoreManager.Services;
 
-using Application = Microsoft.Office.Interop.Word.Application;
+using System.Threading.Tasks;
+using Microsoft.Win32;
 
-namespace RescueScoreManager.Home;
+namespace RescueScoreManager.Modules.Home;
 
-public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>, IRecipient<SelectNewCompetitionMessage>
+public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompetitionMessage>
 {
     //private RescueScoreManagerContext _context { get; }
     private LoginViewModel _loginViewModel { get; }
     private SelectNewCompetitionViewModel _selectNewCompetitionViewModel { get; }
     private HomeInformationsViewModel _homeGraphsViewModel { get; }
     private IDialogService _dialogService { get; }
-    private IWSIRestService _wsiService { get; }
+    private IApiService _wsiService { get; }
+    private IAuthenticationService _authService { get; }
     private IXMLService _xmlService { get; }
     private IExcelService _excelService { get; }
     private IMessenger _messenger { get; }
@@ -46,7 +46,8 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
                             SelectNewCompetitionViewModel selectNewCompetitionViewModel,
                             HomeInformationsViewModel homeGraphsViewModel,
                             IDialogService dialogService,
-                            IWSIRestService wsiService,
+                            IApiService wsiService,
+                            IAuthenticationService authService,
                             IXMLService xmlService,
                             IExcelService excelService,
                             IMessenger messenger)//RescueScoreManagerContext context,
@@ -57,6 +58,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
         _homeGraphsViewModel = homeGraphsViewModel;
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(_dialogService));
         _wsiService = wsiService;
+        _authService = authService;
         _xmlService = xmlService;
         _excelService = excelService;
         _messenger = messenger;
@@ -87,14 +89,24 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
     #endregion OpenFile Command
     #region NewCompetition Command
     [RelayCommand(CanExecute = nameof(CanNewCompetition))]
-    private void NewCompetition()
+    private async Task NewCompetition()
     {
-        if (_wsiService.HasToken() == false)
-            CurrentViewModel = _loginViewModel;
-        //_dialogService.ShowLoginView(_loginViewModel);
-        else
-            CurrentViewModel = _selectNewCompetitionViewModel;
-        //_dialogService.ShowSelectNewCompetition(_selectNewCompetitionViewModel);
+
+        if (CheckInternetConnection())
+        {
+            bool hasToken = await _authService.ValidateAndRefreshTokenAsync();
+            bool result = true;
+            if (hasToken == false)
+            {
+                var loginViewModel = new LoginViewModel(_authService, _messenger);
+                result = _dialogService.ShowDialog(loginViewModel).Value;
+            }
+
+            if ((hasToken || result) == true)
+            {
+                CurrentViewModel = _selectNewCompetitionViewModel;
+            }
+        }
     }
 
     private bool CanNewCompetition() => IsLoaded == false;
@@ -105,7 +117,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
     private void OpenDisqualicationFile()
     {
         string path = Path.Combine(Environment.CurrentDirectory, "Assets\\Documents\\Disqualification.docx");
-        FileInfo fileInfo = new FileInfo(path);
+        FileInfo fileInfo = new(path);
         if (fileInfo.Exists == false)
         {
             _messenger.Send(new SnackMessage("Aucun fichier de disqualification existant!"));
@@ -118,7 +130,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
 
                 _messenger.Send(new SnackMessage("Fichier ouvert!"));
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 _messenger.Send(new SnackMessage("Problème lors de l'ouverture du fichier!"));
             }
@@ -132,10 +144,10 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
     {
         try
         {
-            string path = _excelService.GenerateStartList(_xmlService.GetCompetition(), _xmlService.GetRaces(),_xmlService.GetReferees());
+            string path = _excelService.GenerateStartList(_xmlService.GetCompetition(), _xmlService.GetRaces(), _xmlService.GetReferees());
             Process.Start("explorer.exe", path);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             _messenger.Send(new SnackMessage("Problème lors de l'ouverture du fichier!"));
         }
@@ -143,6 +155,39 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
 
     private bool CanOpenStartListFile() => IsLoaded == true;
     #endregion OpenStartListFile Command
+
+    #region OpenClubListFile Command
+    [RelayCommand(CanExecute = nameof(CanOpenClubListFile))]
+    private void OpenClubListFile()
+    {
+        try
+        {
+            string path = _excelService.GenerateStartList(_xmlService.GetCompetition(), _xmlService.GetRaces(), _xmlService.GetReferees());
+            Process.Start("explorer.exe", path);
+        }
+        catch (Exception)
+        {
+            _messenger.Send(new SnackMessage("Problème lors de l'ouverture du fichier!"));
+        }
+    }
+
+    private bool CanOpenClubListFile() => IsLoaded == true;
+    #endregion OpenStartListFile Command
+
+
+    private bool CheckInternetConnection()
+    {
+        if (NetworkInterface.GetIsNetworkAvailable())
+        {
+            return true;
+        }
+        else
+        {
+            // No internet connection
+            _messenger.Send(new SnackMessage("Pas de connexion internet"));
+            return false;
+        }
+    }
 
     private static FileInfo? GetFile()
     {
@@ -154,31 +199,28 @@ public partial class HomeViewModel : ObservableObject, IRecipient<LoginMessage>,
             CheckPathExists = true,
             RestoreDirectory = true,
         };
-        if (openFileDialog.ShowDialog() == true)
-        {
-            return new FileInfo(openFileDialog.FileName);
-        }
-        return null;
+
+        return openFileDialog.ShowDialog() == true ? new FileInfo(openFileDialog.FileName) : null;
     }
 
 
 
 
-    public async void Receive(LoginMessage message)
-    {
-        if (message.IsConnected == true)
-        {
-            CurrentViewModel = _selectNewCompetitionViewModel;
-            //_dialogService.ShowSelectNewCompetition(_selectNewCompetitionViewModel);
-            //List<Competition> comps = await _wsiService.GetCompetitions(DateTime.Now);
-            //comps = comps.OrderBy(c => c.BeginDate).ToList();
-        }
-        else
-        {
-            CurrentViewModel = null;
-            IsLoaded = false;
-        }
-    }
+    //public async void Receive(LoginMessage message)
+    //{
+    //    if (message.IsConnected == true)
+    //    {
+    //        CurrentViewModel = _selectNewCompetitionViewModel;
+    //        //_dialogService.ShowSelectNewCompetition(_selectNewCompetitionViewModel);
+    //        //List<Competition> comps = await _wsiService.GetCompetitions(DateTime.Now);
+    //        //comps = comps.OrderBy(c => c.BeginDate).ToList();
+    //    }
+    //    else
+    //    {
+    //        CurrentViewModel = null;
+    //        IsLoaded = false;
+    //    }
+    //}
     public async void Receive(SelectNewCompetitionMessage message)
     {
         if (message.NewCompetition != null)

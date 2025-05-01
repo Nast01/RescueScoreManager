@@ -19,7 +19,7 @@ namespace RescueScoreManager.Services;
 public class XMLService : IXMLService
 {
     public bool Loaded { get; set; }
-    public Competition? Competition { get; set; }
+    public required Competition Competition { get; set; }
     public List<Category> Categories { get; set; } = new List<Category>();
     public List<Club> Clubs { get; set; } = new List<Club>();
     public List<Licensee> Licensees { get; set; } = new List<Licensee>();
@@ -30,10 +30,7 @@ public class XMLService : IXMLService
 
 
 
-    public Competition GetCompetition()
-    {
-        return Competition;
-    }
+    public Competition GetCompetition() => Competition;
     public List<Category> GetCategories()
     {
         Categories.Sort(new CategoryComparer());
@@ -124,7 +121,6 @@ public class XMLService : IXMLService
 
     public void Reset()
     {
-        Competition = null;
         Categories.Clear();
         Clubs.Clear();
         Licensees.Clear();
@@ -138,12 +134,12 @@ public class XMLService : IXMLService
     {
         XDocument xDoc = XDocument.Load(Properties.Settings.Default.FilePath);
 
-        XElement rootElement = xDoc.Element(Properties.ResourceFR.Root_XMI);
+        XElement rootElement = xDoc.Element(Properties.Resources.Root_XMI);
 
         //get event
         #region Event
-        XElement eventElement = rootElement.Element(Properties.ResourceFR.Competition_XMI);
-        Competition = new Competition(eventElement);
+        XElement eventElement = rootElement.Element(Properties.Resources.Competition_XMI);
+        Competition = new Competition(xElement: eventElement);
         #endregion
 
         //get setting 
@@ -155,7 +151,7 @@ public class XMLService : IXMLService
 
         //get all the categories
         #region Categories
-        IEnumerable<XElement> catElements = rootElement.Descendants(Properties.ResourceFR.Category_XMI);
+        IEnumerable<XElement> catElements = rootElement.Descendants(Properties.Resources.Category_XMI);
         foreach (XElement catElement in catElements)
         {
             Category category = new Category(catElement);
@@ -169,7 +165,7 @@ public class XMLService : IXMLService
 
         //get all the clubs and licensee
         #region Club and Licensee
-        IEnumerable<XElement> clubsElement = rootElement.Descendants(Properties.ResourceFR.Club_XMI);
+        IEnumerable<XElement> clubsElement = rootElement.Descendants(Properties.Resources.Club_XMI);
         foreach (XElement clubElement in clubsElement)
         {
             Club club = new Club(clubElement);
@@ -177,8 +173,8 @@ public class XMLService : IXMLService
             club.CompetitionId = Competition.Id;
             Competition.Clubs.Add(club);
 
-            IEnumerable<XElement> athletesElement = clubElement.Descendants(Properties.ResourceFR.Athlete_XMI);
-            IEnumerable<XElement> refereesElement = clubElement.Descendants(Properties.ResourceFR.Referee_XMI);
+            IEnumerable<XElement> athletesElement = clubElement.Descendants(Properties.Resources.Athlete_XMI);
+            IEnumerable<XElement> refereesElement = clubElement.Descendants(Properties.Resources.Referee_XMI);
             foreach (XElement athElement in athletesElement)
             {
                 Athlete licensee = new Athlete(athElement, Categories);
@@ -208,7 +204,7 @@ public class XMLService : IXMLService
 
         //get all the races and teams
         #region Races and Teams
-        IEnumerable<XElement> racesElement = rootElement.Descendants(Properties.ResourceFR.Race_XMI);
+        IEnumerable<XElement> racesElement = rootElement.Descendants(Properties.Resources.Race_XMI);
 
         foreach (XElement raceElement in racesElement)
         {
@@ -216,9 +212,9 @@ public class XMLService : IXMLService
             race.Competition = Competition;
             race.CompetitionId = Competition.Id;
 
-            IEnumerable<XElement> indivTeamElement = raceElement.Descendants(Properties.ResourceFR.IndividualTeam_XMI);
-            IEnumerable<XElement> relayTeamElement = raceElement.Descendants(Properties.ResourceFR.RelayTeam_XMI);
-            IEnumerable<XElement> teamsElement = raceElement.Descendants(Properties.ResourceFR.Team_XMI);
+            IEnumerable<XElement> indivTeamElement = raceElement.Descendants(Properties.Resources.IndividualTeam_XMI);
+            IEnumerable<XElement> relayTeamElement = raceElement.Descendants(Properties.Resources.RelayTeam_XMI);
+            IEnumerable<XElement> teamsElement = raceElement.Descendants(Properties.Resources.Team_XMI);
             Team team = null;
             foreach (XElement teamElement in indivTeamElement)
             {
@@ -251,14 +247,14 @@ public class XMLService : IXMLService
         //Get all the SERCDefinition
         #region SERCDefinitions
 
-        //IEnumerable<XElement> sercDefinitionsXElement = rootElement.Descendants(Properties.ResourceFR.SERCDefinition_XMI);
+        //IEnumerable<XElement> sercDefinitionsXElement = rootElement.Descendants(Properties.Resources.SERCDefinition_XMI);
         //List<SERCDefinition> sercDefinitions = new List<SERCDefinition>();
 
         //foreach (XElement sercElement in sercDefinitionsXElement)
         //{
         //    SERCDefinition sercDefinition = new SERCDefinition(sercElement);
 
-        //    IEnumerable<XElement> sercCriteriasXElement = sercElement.Descendants(Properties.ResourceFR.SERCCriteria_XMI);
+        //    IEnumerable<XElement> sercCriteriasXElement = sercElement.Descendants(Properties.Resources.SERCCriteria_XMI);
         //    foreach (XElement sercCriteriaElement in sercCriteriasXElement)
         //    {
         //        SERCCriteria sercCriteria = new SERCCriteria(sercCriteriaElement, sercDefinition);
@@ -274,33 +270,33 @@ public class XMLService : IXMLService
         //Get all the BeachProgram
         #region BeachProgram
 
-        //IEnumerable<XElement> sercDefinitionsXElement = rootElement.Descendants(Properties.ResourceFR.SERCDefinition_XMI);
+        //IEnumerable<XElement> sercDefinitionsXElement = rootElement.Descendants(Properties.Resources.SERCDefinition_XMI);
         //List<SERCDefinition> sercDefinitions = new List<SERCDefinition>();
-        //XElement beachProgramElement = rootElement.Element(Properties.ResourceFR.BeachProgram_XMI);
+        //XElement beachProgramElement = rootElement.Element(Properties.Resources.BeachProgram_XMI);
         //BeachProgram beachProgram = null;
 
         //if (beachProgramElement != null)
         //{
         //    beachProgram = new BeachProgram();
 
-        //    IEnumerable<XElement> beachProgramItemsXElement = rootElement.Descendants(Properties.ResourceFR.BeachProgramItem_XMI);
+        //    IEnumerable<XElement> beachProgramItemsXElement = rootElement.Descendants(Properties.Resources.BeachProgramItem_XMI);
 
         //    foreach (XElement beachProgramItemElement in beachProgramItemsXElement)
         //    {
-        //        int raceId = int.Parse(beachProgramItemElement.Attribute(Properties.ResourceFR.Race_XMI).Value);
+        //        int raceId = int.Parse(beachProgramItemElement.Attribute(Properties.Resources.Race_XMI).Value);
 
         //        int catId = 0;
-        //        int.TryParse(beachProgramItemElement.Attribute(Properties.ResourceFR.Category_XMI).Value, out catId);
+        //        int.TryParse(beachProgramItemElement.Attribute(Properties.Resources.Category_XMI).Value, out catId);
 
         //        BeachProgramItem beachProgramItem = new BeachProgramItem(beachProgramItemElement, dataService.GetRaceById(raceId), dataService.GetCategoryById(catId));
 
-        //        IEnumerable<XElement> beachProgramDatasXElement = beachProgramItemElement.Descendants(Properties.ResourceFR.BeachProgramData_XMI);
+        //        IEnumerable<XElement> beachProgramDatasXElement = beachProgramItemElement.Descendants(Properties.Resources.BeachProgramData_XMI);
 
         //        foreach (XElement beachProgramDataXElement in beachProgramDatasXElement)
         //        {
         //            BeachProgramData pData = new BeachProgramData(beachProgramDataXElement);
 
-        //            IEnumerable<XElement> beachProgramDetailsXElement = beachProgramDataXElement.Descendants(Properties.ResourceFR.BeachProgramDetail_XMI);
+        //            IEnumerable<XElement> beachProgramDetailsXElement = beachProgramDataXElement.Descendants(Properties.Resources.BeachProgramDetail_XMI);
         //            foreach (XElement beachProgramDetailXElement in beachProgramDetailsXElement)
         //            {
         //                BeachProgramDetail pDetail = new BeachProgramDetail(beachProgramDetailXElement);
@@ -321,7 +317,7 @@ public class XMLService : IXMLService
         #endregion
 
         #region Schedule
-        //XElement scheduleElement = rootElement.Element(Properties.ResourceFR.Schedule_XMI);
+        //XElement scheduleElement = rootElement.Element(Properties.Resources.Schedule_XMI);
         //Schedule schedule = null;
         //if (scheduleElement != null)
         //{
@@ -330,41 +326,41 @@ public class XMLService : IXMLService
         //    ScheduleDay scheduleDay = null;
         //    ScheduleDetail scheduleDetail = null;
 
-        //    IEnumerable<XElement> scheduleDaysXElement = rootElement.Descendants(Properties.ResourceFR.ScheduleDay_XMI);
+        //    IEnumerable<XElement> scheduleDaysXElement = rootElement.Descendants(Properties.Resources.ScheduleDay_XMI);
         //    foreach (XElement scheduleDayXElement in scheduleDaysXElement)
         //    {
         //        scheduleDay = new ScheduleDay(scheduleDayXElement, schedule);
 
-        //        IEnumerable<XElement> scheduleItemsXElement = scheduleDayXElement.Descendants(Properties.ResourceFR.ScheduleItems_XMI);
+        //        IEnumerable<XElement> scheduleItemsXElement = scheduleDayXElement.Descendants(Properties.Resources.ScheduleItems_XMI);
         //        foreach (XElement scheduleItemXElement in scheduleItemsXElement)
         //        {
         //            foreach (XElement sItemXElement in scheduleItemXElement.Descendants())
         //            {
-        //                if (sItemXElement.Name == Properties.ResourceFR.SwimScheduleItem_XMI)
+        //                if (sItemXElement.Name == Properties.Resources.SwimScheduleItem_XMI)
         //                {
-        //                    //IEnumerable<XElement> swimScheduleItemsXElement = sItemXElement.Descendants(Properties.ResourceFR.SwimScheduleItem_XMI);
+        //                    //IEnumerable<XElement> swimScheduleItemsXElement = sItemXElement.Descendants(Properties.Resources.SwimScheduleItem_XMI);
         //                    //foreach (XElement swimScheduleItemXElement in swimScheduleItemsXElement)
         //                    //{
         //                    SwimScheduleItem scheduleItem = new SwimScheduleItem(sItemXElement, scheduleDay);
 
-        //                    IEnumerable<XElement> scheduleDetailsXElement = sItemXElement.Descendants(Properties.ResourceFR.ScheduleDetails_XMI);
+        //                    IEnumerable<XElement> scheduleDetailsXElement = sItemXElement.Descendants(Properties.Resources.ScheduleDetails_XMI);
         //                    foreach (XElement scheduleDetailXElement in scheduleDetailsXElement)
         //                    {
         //                        IEnumerable<XElement> xElements = scheduleDetailXElement.Elements();
         //                        foreach (XElement xElement in xElements)
         //                        {
-        //                            if (xElement.Name == ResourceFR.SwimRaceScheduleDetail_XMI)
+        //                            if (xElement.Name == Properties.Resources.SwimRaceScheduleDetail_XMI)
         //                            {
-        //                                int raceId = int.Parse(xElement.Attribute(Properties.ResourceFR.Race_XMI).Value);
+        //                                int raceId = int.Parse(xElement.Attribute(Properties.Resources.Race_XMI).Value);
         //                                Race race = dataService.GetRaceById(raceId);
 
         //                                int catId = 0;
-        //                                int.TryParse(xElement.Attribute(Properties.ResourceFR.Category_XMI).Value, out catId);
+        //                                int.TryParse(xElement.Attribute(Properties.Resources.Category_XMI).Value, out catId);
         //                                Category cat = dataService.GetCategoryById(catId);
 
         //                                scheduleDetail = new SwimRaceScheduleDetail(xElement, scheduleItem, race, cat);
         //                            }
-        //                            else if (xElement.Name == ResourceFR.BreakScheduleDetail_XMI)
+        //                            else if (xElement.Name == Properties.Resources.BreakScheduleDetail_XMI)
         //                            {
         //                                scheduleDetail = new BreakScheduleDetail(xElement, scheduleItem);
         //                            }
@@ -374,32 +370,32 @@ public class XMLService : IXMLService
         //                    scheduleDay.ScheduleItems.Add(scheduleItem);
         //                    //}
         //                }
-        //                else if (sItemXElement.Name == Properties.ResourceFR.BeachScheduleItem_XMI)
+        //                else if (sItemXElement.Name == Properties.Resources.BeachScheduleItem_XMI)
         //                {
-        //                    //IEnumerable<XElement> beachScheduleItemsXElement = sItemXElement.Descendants(Properties.ResourceFR.BeachScheduleItem_XMI);
+        //                    //IEnumerable<XElement> beachScheduleItemsXElement = sItemXElement.Descendants(Properties.Resources.BeachScheduleItem_XMI);
 
         //                    //foreach (XElement beachScheduleItemXElement in beachScheduleItemsXElement)
         //                    //{
         //                    BeachScheduleItem beachScheduleItem = new BeachScheduleItem(sItemXElement, scheduleDay);
 
-        //                    IEnumerable<XElement> scheduleLocationsXElement = sItemXElement.Descendants(Properties.ResourceFR.ScheduleLocation_XMI);
+        //                    IEnumerable<XElement> scheduleLocationsXElement = sItemXElement.Descendants(Properties.Resources.ScheduleLocation_XMI);
         //                    foreach (XElement scheduleLocationXElement in scheduleLocationsXElement)
         //                    {
         //                        ScheduleLocation scheduleLocation = new ScheduleLocation(schLocationXElement: scheduleLocationXElement, beachItem: beachScheduleItem);
 
-        //                        IEnumerable<XElement> scheduleDetailsXElement = scheduleLocationXElement.Descendants(Properties.ResourceFR.ScheduleDetails_XMI);
+        //                        IEnumerable<XElement> scheduleDetailsXElement = scheduleLocationXElement.Descendants(Properties.Resources.ScheduleDetails_XMI);
         //                        foreach (XElement scheduleDetailXElement in scheduleDetailsXElement)
         //                        {
         //                            IEnumerable<XElement> xElements = scheduleDetailXElement.Elements();
         //                            foreach (XElement xElement in xElements)
         //                            {
-        //                                if (xElement.Name == ResourceFR.BeachRaceScheduleDetail_XMI)
+        //                                if (xElement.Name == Properties.Resources.BeachRaceScheduleDetail_XMI)
         //                                {
-        //                                    int raceId = int.Parse(xElement.Attribute(Properties.ResourceFR.Race_XMI).Value);
+        //                                    int raceId = int.Parse(xElement.Attribute(Properties.Resources.Race_XMI).Value);
         //                                    Race race = dataService.GetRaceById(raceId);
 
         //                                    int catId = 0;
-        //                                    int.TryParse(xElement.Attribute(Properties.ResourceFR.Category_XMI).Value, out catId);
+        //                                    int.TryParse(xElement.Attribute(Properties.Resources.Category_XMI).Value, out catId);
         //                                    Category cat = dataService.GetCategoryById(catId);
 
         //                                    scheduleDetail = new BeachRaceScheduleDetail(beachRaceSchDetailXElement: xElement,
@@ -408,7 +404,7 @@ public class XMLService : IXMLService
         //                                                                                 race: race,
         //                                                                                 category: cat);
         //                                }
-        //                                else if (xElement.Name == ResourceFR.BreakScheduleDetail_XMI)
+        //                                else if (xElement.Name == Properties.Resources.BreakScheduleDetail_XMI)
         //                                {
         //                                    scheduleDetail = new BreakScheduleDetail(xElement, beachScheduleItem);
         //                                }
@@ -435,13 +431,13 @@ public class XMLService : IXMLService
 
         //Get all the Meetings
         #region Meetings
-        //IEnumerable<XElement> meetingsXElement = rootElement.Descendants(Properties.ResourceFR.Meeting_XMI);
+        //IEnumerable<XElement> meetingsXElement = rootElement.Descendants(Properties.Resources.Meeting_XMI);
         //Meetings meetings = new Meetings();
         //foreach (XElement meetingElement in meetingsXElement)
         //{
         //    Meeting meeting = new Meeting(meetingElement);
 
-        //    IEnumerable<XElement> meetingElementsElement = meetingElement.Descendants(Properties.ResourceFR.MeetingElement_XMI);
+        //    IEnumerable<XElement> meetingElementsElement = meetingElement.Descendants(Properties.Resources.MeetingElement_XMI);
         //    foreach (XElement mElementXElement in meetingElementsElement)
         //    {
         //        MeetingElement mElement = null;
@@ -451,36 +447,36 @@ public class XMLService : IXMLService
         //        else
         //            mElement = new BeachMeetingElement(mElementXElement, meeting);
 
-        //        IEnumerable<XElement> roundsElement = mElementXElement.Descendants(Properties.ResourceFR.Round_XMI);
+        //        IEnumerable<XElement> roundsElement = mElementXElement.Descendants(Properties.Resources.Round_XMI);
         //        foreach (XElement roundXElement in roundsElement)
         //        {
         //            Category cat = null;
-        //            string catId = roundXElement.Attribute(Properties.ResourceFR.Category_XMI).Value;
+        //            string catId = roundXElement.Attribute(Properties.Resources.Category_XMI).Value;
         //            if (!String.IsNullOrEmpty(catId))
         //                cat = dataService.GetCategoryById(int.Parse(catId));
 
-        //            Race race = dataService.GetRaceById(int.Parse(roundXElement.Attribute(Properties.ResourceFR.Race_XMI).Value));
+        //            Race race = dataService.GetRaceById(int.Parse(roundXElement.Attribute(Properties.Resources.Race_XMI).Value));
         //            Round round = new Round(roundXElement, cat, mElement, race);
         //            bool isSERC = race.Name.Contains("SERC");
 
         //            mElement.AddRound(round);
 
-        //            IEnumerable<XElement> heatsElement = roundXElement.Descendants(Properties.ResourceFR.Heat_XMI);
+        //            IEnumerable<XElement> heatsElement = roundXElement.Descendants(Properties.Resources.Heat_XMI);
         //            foreach (XElement heatXElement in heatsElement)
         //            {
         //                Heat heat = new Heat(heatXElement);
 
         //                heat.Round = round;
-        //                IEnumerable<XElement> heatResultsElement = heatXElement.Descendants(Properties.ResourceFR.HeatResult_XMI);
+        //                IEnumerable<XElement> heatResultsElement = heatXElement.Descendants(Properties.Resources.HeatResult_XMI);
         //                foreach (XElement heatResultXElement in heatResultsElement)
         //                {
-        //                    int id = int.Parse(heatResultXElement.Attribute(Properties.ResourceFR.Team_XMI).Value);
+        //                    int id = int.Parse(heatResultXElement.Attribute(Properties.Resources.Team_XMI).Value);
         //                    Team team = (heat.IsFinalA || heat.IsFinalB) ? dataService.GetTeamById(id) : dataService.GetTeamByIdAndRace(id, mElement.Race);
         //                    HeatResult heatResult = null;
-        //                    //Disqualification disq = dataService.GetDisqualificationByCode(heatResultXElement.Attribute(Properties.ResourceFR.Disqualification_XMI).Value);
+        //                    //Disqualification disq = dataService.GetDisqualificationByCode(heatResultXElement.Attribute(Properties.Resources.Disqualification_XMI).Value);
         //                    if (isSERC)
         //                    {
-        //                        Guid criteriaId = Guid.Parse(heatResultXElement.Attribute(Properties.ResourceFR.SERCCriteria_XMI).Value);
+        //                        Guid criteriaId = Guid.Parse(heatResultXElement.Attribute(Properties.Resources.SERCCriteria_XMI).Value);
         //                        SERCCriteria criteria = dataService.GetSERCCriteriaById(criteriaId);
 
         //                        heatResult = new SERCHeatResult(heatResultXElement, heat, team, criteria);
@@ -508,13 +504,13 @@ public class XMLService : IXMLService
         ////Create link with related meeting
         //foreach (XElement meetingXElement in meetingsXElement)
         //{
-        //    Guid meetingId = Guid.Parse(meetingXElement.Attribute(Properties.ResourceFR.Id_XMI).Value);
+        //    Guid meetingId = Guid.Parse(meetingXElement.Attribute(Properties.Resources.Id_XMI).Value);
         //    Meeting meeting = meetings.ToList().Find(m => m.Id.Equals(meetingId));
 
         //    Meeting relatedMeeting = null;
-        //    if (meetingXElement.Attribute(Properties.ResourceFR.RelatedMeeting_XMI).Value != string.Empty)
+        //    if (meetingXElement.Attribute(Properties.Resources.RelatedMeeting_XMI).Value != string.Empty)
         //    {
-        //        Guid relatedMeetingId = Guid.Parse(meetingXElement.Attribute(Properties.ResourceFR.RelatedMeeting_XMI).Value);
+        //        Guid relatedMeetingId = Guid.Parse(meetingXElement.Attribute(Properties.Resources.RelatedMeeting_XMI).Value);
         //        relatedMeeting = meetings.ToList().Find(m => m.Id.Equals(relatedMeetingId));
         //    }
 
@@ -541,7 +537,7 @@ public class XMLService : IXMLService
                     new XDeclaration("1.0", "utf-8", "true")
                     );
 
-                XElement rootXElem = new XElement(Properties.ResourceFR.Root_XMI);
+                XElement rootXElem = new XElement(Properties.Resources.Root_XMI);
 
                 XElement eventXElem = Competition.WriteXml();
                 if (eventXElem != null)
@@ -556,7 +552,7 @@ public class XMLService : IXMLService
                 //    if (scheduleXElem != null)
                 //        rootXElem.Add(scheduleXElem);
                 //}
-                XElement catsXElem = new XElement(Properties.ResourceFR.Categories_XMI);
+                XElement catsXElem = new XElement(Properties.Resources.Categories_XMI);
                 foreach (Category category in Categories)
                 {
                     XElement catXElem = category.WriteXml();
@@ -566,7 +562,7 @@ public class XMLService : IXMLService
                 rootXElem.Add(catsXElem);
 
 
-                XElement clubsXElem = new XElement(Properties.ResourceFR.Clubs_XMI);
+                XElement clubsXElem = new XElement(Properties.Resources.Clubs_XMI);
                 foreach (Club club in Clubs)
                 {
                     XElement clubXElem = club.WriteXml();
@@ -575,7 +571,7 @@ public class XMLService : IXMLService
                 }
                 rootXElem.Add(clubsXElem);
 
-                XElement racesXElem = new XElement(Properties.ResourceFR.Races_XMI);
+                XElement racesXElem = new XElement(Properties.Resources.Races_XMI);
                 foreach (Race race in Races)
                 {
                     XElement raceXElem = race.WriteXml();
@@ -589,7 +585,7 @@ public class XMLService : IXMLService
 
                 //if (dataService.SERCDefinitions.Count > 0)
                 //{
-                //    XElement sercElement = new XElement(Properties.ResourceFR.SERCDefinitions_XMI);
+                //    XElement sercElement = new XElement(Properties.Resources.SERCDefinitions_XMI);
                 //    foreach (SERCDefinition definition in dataService.SERCDefinitions)
                 //    {
                 //        sercElement.Add(definition.WriteXml());
@@ -629,7 +625,7 @@ public class XMLService : IXMLService
             else
             {
                 return false;
-                throw new Exception("Error in Save()");// CustomException(Properties.ResourceFR.CE08);
+                throw new Exception("Error in Save()");// CustomException(Properties.Resources.CE08);
             }
         }
         return false;

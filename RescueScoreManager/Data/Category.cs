@@ -38,20 +38,20 @@ public class Category
 
     public Category(XElement xElement)
     {
-        Id = int.Parse(xElement.Attribute(Properties.ResourceFR.Id_XMI).Value);
-        Name = xElement.Attribute(Properties.ResourceFR.Name_XMI).Value;
-        AgeMin = int.Parse(xElement.Attribute(Properties.ResourceFR.AgeMin_XMI).Value);
-        AgeMax = int.Parse(xElement.Attribute(Properties.ResourceFR.AgeMax_XMI).Value);
+        Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
+        Name = xElement.Attribute(Properties.Resources.Name_XMI).Value;
+        AgeMin = int.Parse(xElement.Attribute(Properties.Resources.AgeMin_XMI).Value);
+        AgeMax = int.Parse(xElement.Attribute(Properties.Resources.AgeMax_XMI).Value);
 
     }
 
     public XElement WriteXml()
     {
-        return new XElement(Properties.ResourceFR.Category_XMI,
-                            new XAttribute(Properties.ResourceFR.Id_XMI, Id),
-                            new XAttribute(Properties.ResourceFR.Name_XMI, Name),
-                            new XAttribute(Properties.ResourceFR.AgeMin_XMI, AgeMin),
-                            new XAttribute(Properties.ResourceFR.AgeMax_XMI, AgeMax)
+        return new XElement(Properties.Resources.Category_XMI,
+                            new XAttribute(Properties.Resources.Id_XMI, Id),
+                            new XAttribute(Properties.Resources.Name_XMI, Name),
+                            new XAttribute(Properties.Resources.AgeMin_XMI, AgeMin),
+                            new XAttribute(Properties.Resources.AgeMax_XMI, AgeMax)
                             );
     }
 }

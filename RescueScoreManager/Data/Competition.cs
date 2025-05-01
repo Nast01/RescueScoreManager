@@ -16,15 +16,16 @@ public partial class Competition
     #region Attributes
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public Status Status { get; set; } = Status.Valide;
     public string Description { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public DateTime BeginDate { get; set; }
     public DateTime EndDate { get; set; }
     public DateTime EntryLimitDate { get; set; }
-    public BeachType? BeachType { get; set; }
-    public SwimType? SwimType { get; set; }
-    public Speciality? Speciality { get; set; }
-    public ChronoType? ChronoType { get; set; }
+    public BeachType BeachType { get; set; }
+    public SwimType SwimType { get; set; }
+    public Speciality Speciality { get; set; }
+    public ChronoType ChronoType { get; set; }
     public bool IsEligibleToNationalRecord { get; set; }
     public int PriceByAthlete { get; set; }
     public int PriceByEntry { get; set; }
@@ -42,61 +43,54 @@ public partial class Competition
 
     public Competition(XElement xElement)
     {
-        Id = int.Parse(xElement.Attribute(Properties.ResourceFR.Id_XMI).Value);
-        //if (xElement.Attribute(Properties.ResourceFR.IdApi_XMI) != null)
-        //{
-        //    IdApi = int.Parse(xElement.Attribute(Properties.ResourceFR.IdApi_XMI).Value);
-        //}
-        //else
-        //{
-        //    IdApi = 0;
-        //}
-        Name = xElement.Attribute(Properties.ResourceFR.Name_XMI).Value;
-        Description = xElement.Attribute(Properties.ResourceFR.Description_XMI).Value;
-        Location = xElement.Attribute(Properties.ResourceFR.Location_XMI).Value;
-        BeginDate = DateTime.ParseExact(xElement.Attribute(Properties.ResourceFR.BeginDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
-        EndDate = DateTime.ParseExact(xElement.Attribute(Properties.ResourceFR.EndDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
-        EntryLimitDate = DateTime.ParseExact(xElement.Attribute(Properties.ResourceFR.EntryLimitDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
-        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.BeachType_XMI).Value))
+        Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
+        Status = (Status)Enum.Parse(typeof(Status), xElement.Attribute(Properties.Resources.Status_XMI).Value);
+        Name = xElement.Attribute(Properties.Resources.Name_XMI).Value;
+        Description = xElement.Attribute(Properties.Resources.Description_XMI).Value;
+        Location = xElement.Attribute(Properties.Resources.Location_XMI).Value;
+        BeginDate = DateTime.ParseExact(xElement.Attribute(Properties.Resources.BeginDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        EndDate = DateTime.ParseExact(xElement.Attribute(Properties.Resources.EndDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        EntryLimitDate = DateTime.ParseExact(xElement.Attribute(Properties.Resources.EntryLimitDate_XMI).Value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.Resources.BeachType_XMI).Value))
         {
-            BeachType = null;
+            BeachType = BeachType.Lac;
         }
         else
         {
-            BeachType = (BeachType)Enum.Parse(typeof(BeachType), xElement.Attribute(Properties.ResourceFR.BeachType_XMI).Value);
+            BeachType = (BeachType)Enum.Parse(typeof(BeachType), xElement.Attribute(Properties.Resources.BeachType_XMI).Value);
         }
 
-        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.SwimType_XMI).Value))
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.Resources.SwimType_XMI).Value))
         {
-            SwimType = null;
+            SwimType = SwimType.Bassin_25m;
         }
         else
         {
-            SwimType = (SwimType)Enum.Parse(typeof(SwimType), xElement.Attribute(Properties.ResourceFR.SwimType_XMI).Value);
+            SwimType = (SwimType)Enum.Parse(typeof(SwimType), xElement.Attribute(Properties.Resources.SwimType_XMI).Value);
         }
 
-        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.Speciality_XMI).Value))
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.Resources.Speciality_XMI).Value))
         {
-            Speciality = null;
+            Speciality = Speciality.EauPlate;
         }
         else
         {
-            Speciality = (Speciality)Enum.Parse(typeof(Speciality), xElement.Attribute(Properties.ResourceFR.Speciality_XMI).Value);
+            Speciality = (Speciality)Enum.Parse(typeof(Speciality), xElement.Attribute(Properties.Resources.Speciality_XMI).Value);
         }
 
-        if (string.IsNullOrEmpty(xElement.Attribute(Properties.ResourceFR.ChronoType_XMI).Value))
+        if (string.IsNullOrEmpty(xElement.Attribute(Properties.Resources.ChronoType_XMI).Value))
         {
-            ChronoType = null;
+            ChronoType = ChronoType.Manual;
         }
         else
         {
-            ChronoType = (ChronoType)Enum.Parse(typeof(ChronoType), xElement.Attribute(Properties.ResourceFR.ChronoType_XMI).Value);
+            ChronoType = (ChronoType)Enum.Parse(typeof(ChronoType), xElement.Attribute(Properties.Resources.ChronoType_XMI).Value);
         }
-        IsEligibleToNationalRecord = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsEligibleToNationalRecord_XMI).Value);
-        PriceByAthlete = int.Parse(xElement.Attribute(Properties.ResourceFR.PriceByAthlete_XMI).Value);
-        PriceByEntry = int.Parse(xElement.Attribute(Properties.ResourceFR.PriceByEntry_XMI).Value);
-        PriceByClub = int.Parse(xElement.Attribute(Properties.ResourceFR.PriceByClub_XMI).Value);
-        Organizer = xElement.Attribute(Properties.ResourceFR.Organizer_XMI).Value;
+        IsEligibleToNationalRecord = bool.Parse(xElement.Attribute(Properties.Resources.IsEligibleToNationalRecord_XMI).Value);
+        PriceByAthlete = int.Parse(xElement.Attribute(Properties.Resources.PriceByAthlete_XMI).Value);
+        PriceByEntry = int.Parse(xElement.Attribute(Properties.Resources.PriceByEntry_XMI).Value);
+        PriceByClub = int.Parse(xElement.Attribute(Properties.Resources.PriceByClub_XMI).Value);
+        Organizer = xElement.Attribute(Properties.Resources.Organizer_XMI).Value;
     }
 
     public Competition(JToken data)
@@ -132,24 +126,24 @@ public partial class Competition
 
     public XElement WriteXml()
     {
-        XElement xElement = new XElement(Properties.ResourceFR.Competition_XMI,
-                                new XAttribute(Properties.ResourceFR.Id_XMI, Id),
-                                //new XAttribute(Properties.ResourceFR.IdApi_XMI, IdApi),
-                                new XAttribute(Properties.ResourceFR.Name_XMI, Name),
-                                new XAttribute(Properties.ResourceFR.Description_XMI, Description.Replace("\\r\\n", Environment.NewLine)),
-                                new XAttribute(Properties.ResourceFR.Location_XMI, Location),
-                                new XAttribute(Properties.ResourceFR.BeginDate_XMI, BeginDate.ToShortDateString()),
-                                new XAttribute(Properties.ResourceFR.EndDate_XMI, EndDate.ToShortDateString()),
-                                new XAttribute(Properties.ResourceFR.EntryLimitDate_XMI, EntryLimitDate.ToShortDateString()),
-                                new XAttribute(Properties.ResourceFR.BeachType_XMI, BeachType.ToString()),
-                                new XAttribute(Properties.ResourceFR.SwimType_XMI, SwimType.ToString()),
-                                new XAttribute(Properties.ResourceFR.Speciality_XMI, Speciality.ToString()),
-                                new XAttribute(Properties.ResourceFR.ChronoType_XMI, ChronoType.ToString()),
-                                new XAttribute(Properties.ResourceFR.IsEligibleToNationalRecord_XMI, IsEligibleToNationalRecord),
-                                new XAttribute(Properties.ResourceFR.PriceByAthlete_XMI, PriceByAthlete),
-                                new XAttribute(Properties.ResourceFR.PriceByEntry_XMI, PriceByEntry),
-                                new XAttribute(Properties.ResourceFR.PriceByClub_XMI, PriceByClub),
-                                new XAttribute(Properties.ResourceFR.Organizer_XMI, Organizer)
+        XElement xElement = new XElement(Properties.Resources.Competition_XMI,
+                                new XAttribute(Properties.Resources.Id_XMI, Id),
+                                //new XAttribute(Properties.Resources.IdApi_XMI, IdApi),
+                                new XAttribute(Properties.Resources.Name_XMI, Name),
+                                new XAttribute(Properties.Resources.Description_XMI, Description.Replace("\\r\\n", Environment.NewLine)),
+                                new XAttribute(Properties.Resources.Location_XMI, Location),
+                                new XAttribute(Properties.Resources.BeginDate_XMI, BeginDate.ToShortDateString()),
+                                new XAttribute(Properties.Resources.EndDate_XMI, EndDate.ToShortDateString()),
+                                new XAttribute(Properties.Resources.EntryLimitDate_XMI, EntryLimitDate.ToShortDateString()),
+                                new XAttribute(Properties.Resources.BeachType_XMI, BeachType.ToString()),
+                                new XAttribute(Properties.Resources.SwimType_XMI, SwimType.ToString()),
+                                new XAttribute(Properties.Resources.Speciality_XMI, Speciality.ToString()),
+                                new XAttribute(Properties.Resources.ChronoType_XMI, ChronoType.ToString()),
+                                new XAttribute(Properties.Resources.IsEligibleToNationalRecord_XMI, IsEligibleToNationalRecord),
+                                new XAttribute(Properties.Resources.PriceByAthlete_XMI, PriceByAthlete),
+                                new XAttribute(Properties.Resources.PriceByEntry_XMI, PriceByEntry),
+                                new XAttribute(Properties.Resources.PriceByClub_XMI, PriceByClub),
+                                new XAttribute(Properties.Resources.Organizer_XMI, Organizer)
                             );
         return xElement;
     }

@@ -26,8 +26,9 @@ public partial class IndividualTeam : Team
         IsForfeitFinal = false;
         Race = race;
         Number = race.NumberByTeam;
-        
-        Athlete = lics.Find(l => l.Id == jData["athletes"][0]["NumeroLicence"].Value<string>()) as Athlete;
+
+        string licNumber = jData["athletes"][0]["NumeroLicence"].Value<string>() == "INV" ? jData["athletes"][0]["idInvite"].Value<string>() : jData["athletes"][0]["NumeroLicence"].Value<string>();
+        Athlete = lics.Find(l => l.Id == licNumber) as Athlete;
         Category category = categories.Find(cat => cat.Id == jData["categorie"]["Id"].Value<int>());
         Athlete.Category = category; 
         Athlete.CategoryId = category.Id;
@@ -39,13 +40,13 @@ public partial class IndividualTeam : Team
 
     public IndividualTeam(XElement xElement,List<Athlete> lics)
     {
-        Id = int.Parse(xElement.Attribute(Properties.ResourceFR.Id_XMI).Value);
-        IsForfeit = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsForfeit_XMI).Value);
-        IsForfeitFinal = bool.Parse(xElement.Attribute(Properties.ResourceFR.IsForfeitFinal_XMI).Value);
-        EntryTime = int.Parse(xElement.Attribute(Properties.ResourceFR.EntryTime_XMI).Value);
+        Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
+        IsForfeit = bool.Parse(xElement.Attribute(Properties.Resources.IsForfeit_XMI).Value);
+        IsForfeitFinal = bool.Parse(xElement.Attribute(Properties.Resources.IsForfeitFinal_XMI).Value);
+        EntryTime = int.Parse(xElement.Attribute(Properties.Resources.EntryTime_XMI).Value);
         Number = 1;
 
-        AthleteId = xElement.Attribute(Properties.ResourceFR.Athlete_XMI).Value;
+        AthleteId = xElement.Attribute(Properties.Resources.Athlete_XMI).Value;
         Athlete = lics.Find(l => l.Id == AthleteId);
         Athlete.IndividualTeams.Add(this);   
     }
@@ -54,13 +55,13 @@ public partial class IndividualTeam : Team
     #region Method
     public override XElement WriteXml()
     {
-        return new XElement(Properties.ResourceFR.IndividualTeam_XMI,
-                                new XAttribute(Properties.ResourceFR.Id_XMI, Id),
-                                new XAttribute(Properties.ResourceFR.IsForfeit_XMI, IsForfeit),
-                                new XAttribute(Properties.ResourceFR.IsForfeitFinal_XMI, IsForfeitFinal),
-                                new XAttribute(Properties.ResourceFR.EntryTime_XMI, EntryTime),
-                                new XAttribute(Properties.ResourceFR.Athlete_XMI, Athlete.Id),
-                                new XAttribute(Properties.ResourceFR.Race_XMI, Race.Id)
+        return new XElement(Properties.Resources.IndividualTeam_XMI,
+                                new XAttribute(Properties.Resources.Id_XMI, Id),
+                                new XAttribute(Properties.Resources.IsForfeit_XMI, IsForfeit),
+                                new XAttribute(Properties.Resources.IsForfeitFinal_XMI, IsForfeitFinal),
+                                new XAttribute(Properties.Resources.EntryTime_XMI, EntryTime),
+                                new XAttribute(Properties.Resources.Athlete_XMI, Athlete.Id),
+                                new XAttribute(Properties.Resources.Race_XMI, Race.Id)
                             );
     }
     #endregion

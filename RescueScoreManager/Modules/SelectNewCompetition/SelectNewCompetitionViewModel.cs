@@ -8,7 +8,7 @@ using RescueScoreManager.Data;
 using RescueScoreManager.Messages;
 using RescueScoreManager.Services;
 
-namespace RescueScoreManager.SelectNewCompetition;
+namespace RescueScoreManager.Modules.SelectNewCompetition;
 
 public partial class SelectNewCompetitionViewModel : ObservableObject
 {
@@ -23,11 +23,11 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
     public Competition _selectedCompetition;
 
     [ObservableProperty]
-    private List<Competition> _competitions = new List<Competition>();
+    private List<Competition> _competitions = new();
     #endregion Properties
 
     #region Attributes
-    private IWSIRestService _wsiService { get; }
+    private IApiService _wsiService { get; }
     private IMessenger _messenger { get; }
     #endregion Attributes
 
@@ -41,9 +41,10 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(CanValidate))]
-    private async Task Validate()
+    private Task Validate()
     {
-       _messenger.Send(new SelectNewCompetitionMessage(SelectedCompetition));
+        _messenger.Send(new SelectNewCompetitionMessage(SelectedCompetition));
+        return Task.CompletedTask;
     }
 
     private bool CanValidate() => SelectedCompetition != null;
@@ -56,13 +57,12 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
 
     public void OnRequestClose()
     {
-        if (RequestClose != null)
-            RequestClose(this, EventArgs.Empty);
+        RequestClose?.Invoke(this, EventArgs.Empty);
     }
     #endregion Command
 
     public SelectNewCompetitionViewModel(
-                            IWSIRestService wsiService,
+                            IApiService wsiService,
                             IMessenger messenger)
     {
         _title = "Nouvelle Compétition";
