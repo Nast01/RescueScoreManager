@@ -160,7 +160,11 @@
                        Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisConverter}}" />
               <StackPanel Orientation="Vertical">
                 <TextBlock Style="{StaticResource secondaryText}" Text="{Binding UserLabel, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextWrapping="Wrap" Width="120" FontSize="10" Foreground="White"/>
-                <TextBlock Style="{StaticResource secondaryText}" Text="{Binding UserRole, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextWrapping="Wrap" Width="120" FontSize="8" Foreground="White"/>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource secondaryText}" Text="{Binding UserType, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextWrapping="Wrap" FontSize="8" Foreground="White"/>
+                  <TextBlock Style="{StaticResource secondaryText}" Text=" - " TextWrapping="Wrap" FontSize="8" Foreground="White"/>
+                  <TextBlock Style="{StaticResource secondaryText}" Text="{Binding UserRole, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextWrapping="Wrap" FontSize="8" Foreground="White"/>
+                </StackPanel>
               </StackPanel>
             </StackPanel>
           </Grid>

@@ -58,6 +58,8 @@ public partial class MainWindowViewModel : ObservableObject,
     private string _userLabel;
     [ObservableProperty]
     private string _userRole;
+    [ObservableProperty]
+    private string _userType;
 
     public ObservableCollection<LanguageModel> AvailableLanguages => _localizationService.AvailableLanguages;
 
@@ -144,8 +146,9 @@ public partial class MainWindowViewModel : ObservableObject,
     private void UpdateLogInfo()
     {
         IsLoggedIn = _authService.IsAuthenticated;
-        UserLabel = _authService.CurrentUser?.Label ?? $"{ResourceManagerLocalizationService.Instance.GetString("UnknownUser")}";
+        UserLabel = _authService.CurrentUser?.Label ?? $"{ResourceManagerLocalizationService.Instance.GetString("NotConnected")}";
         UserRole = _authService.CurrentUser?.Role ?? "";
+        UserType = _authService.CurrentUser?.Type ?? "";
     }
     #endregion Private functions
 
@@ -158,6 +161,7 @@ public partial class MainWindowViewModel : ObservableObject,
     {
         UserLabel = _authService.IsAuthenticated ? _authService.CurrentUser.Label : $"{ResourceManagerLocalizationService.Instance.GetString("NotConnected")}";
         UserRole = _authService.IsAuthenticated ? _authService.CurrentUser.Role : "";
+        UserType = _authService.IsAuthenticated ? _authService.CurrentUser.Type : "";
         IsLoggedIn = _authService.IsAuthenticated;
     }
 
