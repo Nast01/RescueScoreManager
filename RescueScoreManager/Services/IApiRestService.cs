@@ -18,7 +18,7 @@ public interface IApiService
     public Competition GetCompetition();
     public void SetCompetition(Competition competition);
     public Task<List<Competition>> GetCompetitions(DateTime startDate,AuthenticationInfo authenticationInfo);
-    public Task Load(Competition competition);
+    public Task Load(Competition competition,AuthenticationInfo authenticationInfo);
     public Task SetLicenseeNationality(Licensee licensee);
 
 }

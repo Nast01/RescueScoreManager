@@ -241,6 +241,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Compétition chargée.
+        /// </summary>
+        internal static string CompetitionLoadedInfo {
+            get {
+                return ResourceManager.GetString("CompetitionLoadedInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Connecté.
         /// </summary>
         internal static string Connected {
@@ -255,6 +264,15 @@ namespace RescueScoreManager.Properties {
         internal static string Connection {
             get {
                 return ResourceManager.GetString("Connection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Chargement des données.
+        /// </summary>
+        internal static string DataLoadingInfo {
+            get {
+                return ResourceManager.GetString("DataLoadingInfo", resourceCulture);
             }
         }
         
@@ -313,6 +331,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Fin du chargement.
+        /// </summary>
+        internal static string EndLoadingInfo {
+            get {
+                return ResourceManager.GetString("EndLoadingInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à EntryLimitDate.
         /// </summary>
         internal static string EntryLimitDate_XMI {
@@ -327,6 +354,24 @@ namespace RescueScoreManager.Properties {
         internal static string EntryTime_XMI {
             get {
                 return ResourceManager.GetString("EntryTime_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Création du fichier.
+        /// </summary>
+        internal static string FileCreationInfo {
+            get {
+                return ResourceManager.GetString("FileCreationInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Fichier ouvert !.
+        /// </summary>
+        internal static string FileOpenInfo {
+            get {
+                return ResourceManager.GetString("FileOpenInfo", resourceCulture);
             }
         }
         
@@ -610,6 +655,24 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Aucun fichier de disqualification existant!.
+        /// </summary>
+        internal static string NoDisqualificationFileError {
+            get {
+                return ResourceManager.GetString("NoDisqualificationFileError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Pas de connexion internet.
+        /// </summary>
+        internal static string NoInternetConnectionError {
+            get {
+                return ResourceManager.GetString("NoInternetConnectionError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Non Connecté.
         /// </summary>
         internal static string NotConnected {
@@ -642,6 +705,15 @@ namespace RescueScoreManager.Properties {
         internal static string Open {
             get {
                 return ResourceManager.GetString("Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Problème lors de l&apos;ouverture du fichier!.
+        /// </summary>
+        internal static string OpenFileError {
+            get {
+                return ResourceManager.GetString("OpenFileError", resourceCulture);
             }
         }
         

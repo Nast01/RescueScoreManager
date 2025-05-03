@@ -393,4 +393,28 @@
   <data name="LoadingImageError" xml:space="preserve">
     <value>Erreur récupération de l'image</value>
   </data>
+  <data name="NoDisqualificationFileError" xml:space="preserve">
+    <value>Aucun fichier de disqualification existant!</value>
+  </data>
+  <data name="FileOpenInfo" xml:space="preserve">
+    <value>Fichier ouvert !</value>
+  </data>
+  <data name="OpenFileError" xml:space="preserve">
+    <value>Problème lors de l'ouverture du fichier!</value>
+  </data>
+  <data name="NoInternetConnectionError" xml:space="preserve">
+    <value>Pas de connexion internet</value>
+  </data>
+  <data name="DataLoadingInfo" xml:space="preserve">
+    <value>Chargement des données</value>
+  </data>
+  <data name="EndLoadingInfo" xml:space="preserve">
+    <value>Fin du chargement</value>
+  </data>
+  <data name="FileCreationInfo" xml:space="preserve">
+    <value>Création du fichier</value>
+  </data>
+  <data name="CompetitionLoadedInfo" xml:space="preserve">
+    <value>Compétition chargée</value>
+  </data>
 </root>

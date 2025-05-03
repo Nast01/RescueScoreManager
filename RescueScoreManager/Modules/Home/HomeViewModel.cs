@@ -19,17 +19,19 @@ namespace RescueScoreManager.Modules.Home;
 
 public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompetitionMessage>
 {
-    //private RescueScoreManagerContext _context { get; }
+    #region Attributes
     private LoginViewModel _loginViewModel { get; }
     private SelectNewCompetitionViewModel _selectNewCompetitionViewModel { get; }
     private HomeInformationsViewModel _homeGraphsViewModel { get; }
     private IDialogService _dialogService { get; }
-    private IApiService _wsiService { get; }
+    private IApiService _apiService { get; }
     private IAuthenticationService _authService { get; }
     private IXMLService _xmlService { get; }
     private IExcelService _excelService { get; }
     private IMessenger _messenger { get; }
+    #endregion Attributes
 
+    #region Properties
     [ObservableProperty]
     private Competition? _competition = null;
 
@@ -41,12 +43,13 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
     [NotifyCanExecuteChangedFor(nameof(NewCompetitionCommand))]
     [NotifyCanExecuteChangedFor(nameof(OpenStartListFileCommand))]
     private bool _isLoaded = false;
+    #endregion Properties
 
     public HomeViewModel(LoginViewModel loginViewModel,
                             SelectNewCompetitionViewModel selectNewCompetitionViewModel,
                             HomeInformationsViewModel homeGraphsViewModel,
                             IDialogService dialogService,
-                            IApiService wsiService,
+                            IApiService apiService,
                             IAuthenticationService authService,
                             IXMLService xmlService,
                             IExcelService excelService,
@@ -57,7 +60,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         _selectNewCompetitionViewModel = selectNewCompetitionViewModel;
         _homeGraphsViewModel = homeGraphsViewModel;
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(_dialogService));
-        _wsiService = wsiService;
+        _apiService = apiService;
         _authService = authService;
         _xmlService = xmlService;
         _excelService = excelService;
@@ -72,13 +75,13 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
     {
         if (GetFile() is { } file)
         {
-            _messenger.Send(new IsBusyMessage(true, "Chargement des données..."));
+            _messenger.Send(new IsBusyMessage(true, $"{ResourceManagerLocalizationService.Instance.GetString("DataLoadingInfo")}..."));
             _xmlService.SetPath(file);
             _xmlService.Load();
             IsLoaded = true;
 
             _messenger.Send(new IsBusyMessage());
-            _messenger.Send(new SnackMessage("Compétition chargée!"));
+            _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("CompetitionLoadedInfo")} !"));
 
             CurrentViewModel = _homeGraphsViewModel;
             _homeGraphsViewModel.Update();
@@ -110,7 +113,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         FileInfo fileInfo = new(path);
         if (fileInfo.Exists == false)
         {
-            _messenger.Send(new SnackMessage("Aucun fichier de disqualification existant!"));
+            _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("NoDisqualificationFileError")}"));
         }
         else
         {
@@ -118,11 +121,11 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
             {
                 Process.Start("explorer.exe", path);
 
-                _messenger.Send(new SnackMessage("Fichier ouvert!"));
+                _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("FileOpenInfo")}"));
             }
             catch (Exception)
             {
-                _messenger.Send(new SnackMessage("Problème lors de l'ouverture du fichier!"));
+                _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("OpenFileError")}"));                
             }
         }
     }
@@ -139,13 +142,12 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         }
         catch (Exception)
         {
-            _messenger.Send(new SnackMessage("Problème lors de l'ouverture du fichier!"));
+            _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("OpenFileError")}"));
         }
     }
 
     private bool CanOpenStartListFile() => IsLoaded == true;
     #endregion OpenStartListFile Command
-
     #region OpenClubListFile Command
     [RelayCommand(CanExecute = nameof(CanOpenClubListFile))]
     private void OpenClubListFile()
@@ -157,7 +159,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         }
         catch (Exception)
         {
-            _messenger.Send(new SnackMessage("Problème lors de l'ouverture du fichier!"));
+            _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("OpenFileError")}"));
         }
     }
 
@@ -174,7 +176,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         else
         {
             // No internet connection
-            _messenger.Send(new SnackMessage("Pas de connexion internet"));
+            _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("NoInternetConnectionError")}"));
             return false;
         }
     }
@@ -193,48 +195,30 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         return openFileDialog.ShowDialog() == true ? new FileInfo(openFileDialog.FileName) : null;
     }
 
-
-
-
-    //public async void Receive(LoginMessage message)
-    //{
-    //    if (message.IsConnected == true)
-    //    {
-    //        CurrentViewModel = _selectNewCompetitionViewModel;
-    //        //_dialogService.ShowSelectNewCompetition(_selectNewCompetitionViewModel);
-    //        //List<Competition> comps = await _wsiService.GetCompetitions(DateTime.Now);
-    //        //comps = comps.OrderBy(c => c.BeginDate).ToList();
-    //    }
-    //    else
-    //    {
-    //        CurrentViewModel = null;
-    //        IsLoaded = false;
-    //    }
-    //}
     public async void Receive(SelectNewCompetitionMessage message)
     {
         if (message.NewCompetition != null)
         {
-            _messenger.Send(new IsBusyMessage(true, "Chargement des données..."));
+            _messenger.Send(new IsBusyMessage(true, $"{ResourceManagerLocalizationService.Instance.GetString("DataLoadingInfo")}..."));
 
-            // load the data coming from the rest service
-            await _wsiService.Load(message.NewCompetition);
+            // load the data coming from the api service
+            await _apiService.Load(message.NewCompetition,_authService.AuthenticationInfo);
 
-            _messenger.Send(new IsBusyMessage(true, "Création du fichier..."));
+            _messenger.Send(new IsBusyMessage(true, $"{ResourceManagerLocalizationService.Instance.GetString("FileCreationInfo")}..."));
             // set the path to the folder of the competition
             _xmlService.SetPath(message.NewCompetition.Name);
 
             // create the xml file and load it
-            _xmlService.Initialize(message.NewCompetition, _wsiService.GetCategories(), _wsiService.GetClubs(),
-                                    _wsiService.GetLicensees(), _wsiService.GetRaces(), _wsiService.GetTeams());
+            _xmlService.Initialize(message.NewCompetition, _apiService.GetCategories(), _apiService.GetClubs(),
+                                    _apiService.GetLicensees(), _apiService.GetRaces(), _apiService.GetTeams());
             _xmlService.Save();
             _xmlService.Reset();
             _xmlService.Load();
 
-            _messenger.Send(new IsBusyMessage(true, "Fin du chargement..."));
+            _messenger.Send(new IsBusyMessage(true, $"{ResourceManagerLocalizationService.Instance.GetString("EndLoadingInfo")}..."));
 
             _messenger.Send(new IsBusyMessage());
-            _messenger.Send(new SnackMessage("Compétition récupérée!"));
+            _messenger.Send(new SnackMessage($"{ResourceManagerLocalizationService.Instance.GetString("DataLoadingInfo")} !"));
 
             CurrentViewModel = _homeGraphsViewModel;
             _homeGraphsViewModel.Update();
@@ -242,6 +226,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         }
         else
         {
+            //if selectnewcompetition has been canceled we clean the view
             CurrentViewModel = null;
         }
     }

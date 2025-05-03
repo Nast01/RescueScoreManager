@@ -25,7 +25,6 @@ public class ApiService : IApiService
     private string _baseAdress = "https://ffss.fr/api/v1.0";
     public ApiToken? Token { get; set; }
     public bool IsLoaded { get; set; }
-
     public Competition? Competition { get; set; }
     public List<Category> Categories { get; set; }
     public List<Licensee> Licensees { get; set; }
@@ -40,6 +39,7 @@ public class ApiService : IApiService
         {
             _baseAdress = "https://qual.ffss.fr/api/v1.0";
         }
+
         // Initialize the HttpClient with base API URL, headers, or other configuration
         _httpClient = new HttpClient();
         _httpClient.BaseAddress = new Uri(_baseAdress);
@@ -309,15 +309,15 @@ public class ApiService : IApiService
         return competitions;
     }
 
-    public async Task Load(Competition competition)
+    public async Task Load(Competition competition, AuthenticationInfo authenticationInfo)
     {
         try
         {
             SetCompetition(competition);
-            await GetCategories(competition);
-            await GetClubsAndLicensees(competition);
-            await GetRaces(competition);
-            await GetTeams(competition);
+            await LoadCategories(competition, authenticationInfo);
+            await LoadClubsAndLicensees(competition);
+            await LoadRaces(competition);
+            await LoadTeams(competition);
             IsLoaded = true;
         }
         catch (HttpRequestException ex)
@@ -378,12 +378,12 @@ public class ApiService : IApiService
     }
 
     #region Private Methods
-    private async Task GetCategories(Competition competition)
+    private async Task LoadCategories(Competition competition, AuthenticationInfo authenticationInfo)
     {
         string endpoint = $"/competition/evenement/{competition.Id}/categories";
         var queryParameters = new Dictionary<string, string>
             {
-                { "token", Token.Token }
+                { "token", authenticationInfo.Token }
             };
         // Define the data to be sent in the request body
         string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
@@ -425,7 +425,7 @@ public class ApiService : IApiService
             Console.WriteLine("Error: " + ex.Message);
         }
     }
-    private async Task GetClubsAndLicensees(Competition competition)
+    private async Task LoadClubsAndLicensees(Competition competition)
     {
         string endpoint = $"/competition/evenement/{competition.Id}/organismes";
         var queryParameters = new Dictionary<string, string>
@@ -541,7 +541,7 @@ public class ApiService : IApiService
             Console.WriteLine("Error: " + ex.Message);
         }
     }
-    private async Task<List<Race>> GetRaces(Competition competition)
+    private async Task<List<Race>> LoadRaces(Competition competition)
     {
         string endpoint = $"/competition/epreuve";
         var queryParameters = new Dictionary<string, string>
@@ -597,7 +597,7 @@ public class ApiService : IApiService
 
         return races;
     }
-    private async Task GetTeams(Competition competition)
+    private async Task LoadTeams(Competition competition)
     {
         foreach (Race race in competition.Races)
         {
