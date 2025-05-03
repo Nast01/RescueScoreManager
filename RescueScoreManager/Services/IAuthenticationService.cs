@@ -14,5 +14,6 @@ public interface IAuthenticationService
     Task<bool> ValidateAndRefreshTokenAsync();
     bool IsAuthenticated { get; }
     UserInfo CurrentUser { get; }
+    AuthenticationInfo AuthenticationInfo { get; }
     void Logout();
 }

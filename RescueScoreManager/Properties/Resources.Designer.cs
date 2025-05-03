@@ -232,6 +232,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Level.
+        /// </summary>
+        internal static string CompetitionLevel_XMI {
+            get {
+                return ResourceManager.GetString("CompetitionLevel_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Connecté.
         /// </summary>
         internal static string Connected {
@@ -345,6 +354,24 @@ namespace RescueScoreManager.Properties {
         internal static string Gender_XMI {
             get {
                 return ResourceManager.GetString("Gender_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Juge Principal.
+        /// </summary>
+        internal static string HeadReferee {
+            get {
+                return ResourceManager.GetString("HeadReferee", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à HeadReferee.
+        /// </summary>
+        internal static string HeadReferee_XMI {
+            get {
+                return ResourceManager.GetString("HeadReferee_XMI", resourceCulture);
             }
         }
         
@@ -484,6 +511,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur récupération de l&apos;image.
+        /// </summary>
+        internal static string LoadingImageError {
+            get {
+                return ResourceManager.GetString("LoadingImageError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Location.
         /// </summary>
         internal static string Location_XMI {
@@ -502,7 +538,7 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à La connexion a échoué. Vérifiez vos identifiants.
+        ///   Recherche une chaîne localisée semblable à La connexion a échoué. Vérifiez vos identifiants..
         /// </summary>
         internal static string LoginError {
             get {
@@ -561,6 +597,15 @@ namespace RescueScoreManager.Properties {
         internal static string New {
             get {
                 return ResourceManager.GetString("New", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Nouvelle Compétition.
+        /// </summary>
+        internal static string NewCompetition {
+            get {
+                return ResourceManager.GetString("NewCompetition", resourceCulture);
             }
         }
         

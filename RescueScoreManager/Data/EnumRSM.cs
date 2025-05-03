@@ -4,7 +4,7 @@ namespace RescueScoreManager.Data;
 
 public class EnumRSM
 {
-    public static  string GetEnumDescription(Enum value)
+    public static string GetEnumDescription(Enum value)
     {
         // Get the Description attribute value for the enum value
         var fieldInfo = value.GetType().GetField(value.ToString());
@@ -17,6 +17,16 @@ public class EnumRSM
     {
         Valide,
         NonValide
+    }
+
+    public enum CompetitionLevel
+    {
+        Animation = 0,
+        Department = 1,
+        Regional = 2,
+        National = 3,
+        International = 4,
+        Federal = 10
     }
 
     public enum BeachType

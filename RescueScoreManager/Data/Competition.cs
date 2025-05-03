@@ -31,6 +31,8 @@ public partial class Competition
     public int PriceByEntry { get; set; }
     public int PriceByClub { get; set; }
     public string Organizer { get; set; }
+    public int HeadRefereeId { get; set; }
+    public CompetitionLevel Level { get; set; }
     public ICollection<Club> Clubs { get; } = new List<Club>();//one-to-many relationship
     public ICollection<Race> Races { get; } = new List<Race>();//one-to-many relationship
     public ICollection<Meeting> Meetings { get; } = new List<Meeting>();//one-to-many relationship
@@ -45,6 +47,7 @@ public partial class Competition
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
         Status = (Status)Enum.Parse(typeof(Status), xElement.Attribute(Properties.Resources.Status_XMI).Value);
+        Level = (CompetitionLevel)Enum.Parse(typeof(CompetitionLevel), xElement.Attribute(Properties.Resources.CompetitionLevel_XMI).Value);
         Name = xElement.Attribute(Properties.Resources.Name_XMI).Value;
         Description = xElement.Attribute(Properties.Resources.Description_XMI).Value;
         Location = xElement.Attribute(Properties.Resources.Location_XMI).Value;
@@ -91,11 +94,14 @@ public partial class Competition
         PriceByEntry = int.Parse(xElement.Attribute(Properties.Resources.PriceByEntry_XMI).Value);
         PriceByClub = int.Parse(xElement.Attribute(Properties.Resources.PriceByClub_XMI).Value);
         Organizer = xElement.Attribute(Properties.Resources.Organizer_XMI).Value;
+        HeadRefereeId = int.Parse(xElement.Attribute(Properties.Resources.HeadReferee_XMI).Value);
     }
 
     public Competition(JToken data)
     {
         this.Id = data["Id"].Value<int>();
+        this.Status = (Status)Enum.Parse(typeof(Status), data["Statut"].Value<string>());
+        this.Level = (CompetitionLevel)data["Niveau"].Value<int>();
         this.Name = TextHelper.CleanedText(TextHelper.RemoveDiacritics(data["Nom"].Value<string>())).Trim();
         this.Description = data["Description"].Value<string>();
         this.Location = data["Lieu"].Value<string>();
@@ -121,6 +127,8 @@ public partial class Competition
         this.IsEligibleToNationalRecord = data["isEligibleToNationalRecord"].Value<bool>();
 
         this.Organizer = data["Organisme"]["NomOrga"].Value<string>();
+        
+        this.HeadRefereeId = data["officielPrincipal"].HasValues == false ? 0 : data["officielPrincipal"]["Id"].Value<int>();
     }
 
 
@@ -130,6 +138,8 @@ public partial class Competition
                                 new XAttribute(Properties.Resources.Id_XMI, Id),
                                 //new XAttribute(Properties.Resources.IdApi_XMI, IdApi),
                                 new XAttribute(Properties.Resources.Name_XMI, Name),
+                                new XAttribute(Properties.Resources.Status_XMI, Status.ToString()),
+                                new XAttribute(Properties.Resources.CompetitionLevel_XMI, Level.ToString()),
                                 new XAttribute(Properties.Resources.Description_XMI, Description.Replace("\\r\\n", Environment.NewLine)),
                                 new XAttribute(Properties.Resources.Location_XMI, Location),
                                 new XAttribute(Properties.Resources.BeginDate_XMI, BeginDate.ToShortDateString()),
@@ -143,7 +153,8 @@ public partial class Competition
                                 new XAttribute(Properties.Resources.PriceByAthlete_XMI, PriceByAthlete),
                                 new XAttribute(Properties.Resources.PriceByEntry_XMI, PriceByEntry),
                                 new XAttribute(Properties.Resources.PriceByClub_XMI, PriceByClub),
-                                new XAttribute(Properties.Resources.Organizer_XMI, Organizer)
+                                new XAttribute(Properties.Resources.Organizer_XMI, Organizer),
+                                new XAttribute(Properties.Resources.HeadReferee_XMI, HeadRefereeId.ToString())
                             );
         return xElement;
     }

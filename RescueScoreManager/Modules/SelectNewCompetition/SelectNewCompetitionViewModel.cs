@@ -1,4 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Net.Http;
+using System.Windows;
+using System.Windows.Media.Imaging;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -17,6 +21,8 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
     private string _title;
     [ObservableProperty]
     private DateTime _beginDate;
+    [ObservableProperty]
+    private bool _isLoading = false;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
@@ -24,10 +30,12 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
 
     [ObservableProperty]
     private List<Competition> _competitions = new();
+
     #endregion Properties
 
     #region Attributes
-    private IApiService _wsiService { get; }
+    private IApiService _apiService { get; }
+    private IAuthenticationService _authService { get; }
     private IMessenger _messenger { get; }
     #endregion Attributes
 
@@ -35,9 +43,11 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
 
     #region Command
     [RelayCommand]
-    private async Task Refresh()
+    public async Task Refresh()
     {
+        IsLoading = true;
         await UpdateCompetitionList();
+        IsLoading = false;
     }
 
     [RelayCommand(CanExecute = nameof(CanValidate))]
@@ -62,12 +72,16 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
     #endregion Command
 
     public SelectNewCompetitionViewModel(
-                            IApiService wsiService,
+                            IApiService apiService,
+                            IAuthenticationService authenticationService,
                             IMessenger messenger)
     {
-        _title = "Nouvelle Compétition";
+        _title = $"{ResourceManagerLocalizationService.Instance.GetString("NewCompetition")}";
         _beginDate = DateTime.Now;
-        _wsiService = wsiService;
+
+        _apiService = apiService;
+        _authService = authenticationService;
+
         _messenger = messenger;
     }
 
@@ -76,13 +90,7 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
     public async Task UpdateCompetitionList()
     {
         Competitions.Clear();
-        Competitions.AddRange(await _wsiService.GetCompetitions(BeginDate));
+        Competitions.AddRange(await _apiService.GetCompetitions(BeginDate, _authService.AuthenticationInfo));
         Competitions = Competitions.OrderBy(c => c.BeginDate).ToList();
     }
-
-    //public void OnRequestClose()
-    //{
-    //    if (RequestClose != null)
-    //        RequestClose(this, EventArgs.Empty);
-    //}
 }

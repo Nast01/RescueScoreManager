@@ -251,7 +251,7 @@ public class ApiService : IApiService
 
     #endregion Accessors
 
-    public async Task<List<Competition>> GetCompetitions(DateTime startDate)
+    public async Task<List<Competition>> GetCompetitions(DateTime startDate, AuthenticationInfo authenticationInfo)
     {
         string endpoint = "/competition/evenement";
         var queryParameters = new Dictionary<string, string>
@@ -268,7 +268,7 @@ public class ApiService : IApiService
         try
         {
             // Set the Authorization header with the bearer token
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token.Token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
 
             // Make a GET request
             HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
@@ -277,24 +277,24 @@ public class ApiService : IApiService
             {
                 string responseBody = await response.Content.ReadAsStringAsync();
                 // Deserialize the JSON response into a class
-                //JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+                JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
 
-                //if (jResponse != null)
-                //{
-                //    bool jStatus = jResponse["success"].Value<bool>();
-                //    int jRecordsFiltered = jResponse["recordsFiltered"].Value<int>();
-                //    int jAlreadyShown = jResponse["alreadyShown"].Value<int>();
-                //    int jRemains = jResponse["remains"].Value<int>();
-                //    int jNext = jResponse["remains"].Value<int>();
+                if (jResponse != null)
+                {
+                    bool jStatus = jResponse["success"].Value<bool>();
+                    int jRecordsFiltered = jResponse["recordsFiltered"].Value<int>();
+                    int jAlreadyShown = jResponse["alreadyShown"].Value<int>();
+                    int jRemains = jResponse["remains"].Value<int>();
+                    int jNext = jResponse["remains"].Value<int>();
 
-                //    JArray? jData = jResponse["data"] as JArray;
-                //    foreach (var data in jData.Children())
-                //    {
-                //        Competition competition = new Competition(data);
+                    JArray? jData = jResponse["data"] as JArray;
+                    foreach (var data in jData.Children())
+                    {
+                        Competition competition = new Competition(data);
 
-                //        competitions.Add(competition);
-                //    }
-                //}
+                        competitions.Add(competition);
+                    }
+                }
             }
             else
             {

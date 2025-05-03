@@ -29,7 +29,6 @@
 
   </Window.Resources>
   <xctk:BusyIndicator BusyContent="{Binding BusyMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsBusy="{Binding IsBusy}">
-
     <Border Padding="20" Background="#F7F6F4">
       <Grid>
         <Grid.ColumnDefinitions>

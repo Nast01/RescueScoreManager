@@ -94,18 +94,8 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
 
         if (CheckInternetConnection())
         {
-            bool hasToken = await _authService.ValidateAndRefreshTokenAsync();
-            bool result = true;
-            if (hasToken == false)
-            {
-                var loginViewModel = new LoginViewModel(_authService, _messenger);
-                result = _dialogService.ShowDialog(loginViewModel).Value;
-            }
-
-            if ((hasToken || result) == true)
-            {
-                CurrentViewModel = _selectNewCompetitionViewModel;
-            }
+            CurrentViewModel = _selectNewCompetitionViewModel;
+            await _selectNewCompetitionViewModel.Refresh();
         }
     }
 
@@ -250,7 +240,10 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
             _homeGraphsViewModel.Update();
             IsLoaded = true;
         }
-
+        else
+        {
+            CurrentViewModel = null;
+        }
     }
 }
 

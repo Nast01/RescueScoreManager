@@ -378,4 +378,19 @@
   <data name="Connection" xml:space="preserve">
     <value>Login</value>
   </data>
+  <data name="NewCompetition" xml:space="preserve">
+    <value>New Competition</value>
+  </data>
+  <data name="CompetitionLevel_XMI" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="HeadReferee_XMI" xml:space="preserve">
+    <value>HeadReferee</value>
+  </data>
+  <data name="HeadReferee" xml:space="preserve">
+    <value>Head Referee</value>
+  </data>
+  <data name="LoadingImageError" xml:space="preserve">
+    <value>Error loading image</value>
+  </data>
 </root>

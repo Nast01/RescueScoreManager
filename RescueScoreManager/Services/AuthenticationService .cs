@@ -16,6 +16,7 @@ public class AuthenticationService : IAuthenticationService
     private AuthenticationInfo _authInfo;
 
     public UserInfo? CurrentUser => _authInfo?.UserInfo;
+    public AuthenticationInfo? AuthenticationInfo => _authInfo;
     public bool IsAuthenticated => _authInfo != null && _authInfo.IsTokenValid;
 
     public AuthenticationService(IApiService apiService, IStorageService storageService)

@@ -361,7 +361,7 @@
     <value>Erreur lors de la sauvegarde des données d'authentification</value>
   </data>
   <data name="LoginError" xml:space="preserve">
-    <value>La connexion a échoué. Vérifiez vos identifiants</value>
+    <value>La connexion a échoué. Vérifiez vos identifiants.</value>
   </data>
   <data name="NotConnected" xml:space="preserve">
     <value>Non Connecté</value>
@@ -377,5 +377,20 @@
   </data>
   <data name="Connection" xml:space="preserve">
     <value>Connexion</value>
+  </data>
+  <data name="NewCompetition" xml:space="preserve">
+    <value>Nouvelle Compétition</value>
+  </data>
+  <data name="CompetitionLevel_XMI" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="HeadReferee_XMI" xml:space="preserve">
+    <value>HeadReferee</value>
+  </data>
+  <data name="HeadReferee" xml:space="preserve">
+    <value>Juge Principal</value>
+  </data>
+  <data name="LoadingImageError" xml:space="preserve">
+    <value>Erreur récupération de l'image</value>
   </data>
 </root>
