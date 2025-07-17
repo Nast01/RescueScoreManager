@@ -24,13 +24,21 @@ public partial class Club
 
     public Club()
     {
-        
+
     }
 
-    public Club(JToken data)
+    public Club(JToken data, bool isForeignClub)
     {
-        Id = data["Id"].Value<int>();
-        Name = data["label"].Value<string>();
+        if (isForeignClub == false)
+        {
+            Id = data["Id"].Value<int>();
+            Name = data["label"].Value<string>();
+        }
+        else
+        {
+            Id = data["athletes"][0]["idClub"].Value<int>();
+            Name = data["athletes"][0]["clubLabel"].Value<string>();
+        }
     }
 
     public Club(XElement clubElement)
@@ -49,7 +57,7 @@ public partial class Club
                             );
         foreach (Licensee licensee in Licensees)
         {
-            xElement.Add(licensee.WriteXml());  
+            xElement.Add(licensee.WriteXml());
         }
 
         return xElement;

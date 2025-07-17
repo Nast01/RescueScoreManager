@@ -28,7 +28,7 @@ public partial class IndividualTeam : Team
         Number = race.NumberByTeam;
 
         string licNumber = jData["athletes"][0]["NumeroLicence"].Value<string>() == "INV" ? jData["athletes"][0]["idInvite"].Value<string>() : jData["athletes"][0]["NumeroLicence"].Value<string>();
-        Athlete = lics.Find(l => l.Id == licNumber) as Athlete;
+        //Athlete = lics.Find(l => l.Id == licNumber) as Athlete;
         Category category = categories.Find(cat => cat.Id == jData["categorie"]["Id"].Value<int>());
         Athlete.Category = category; 
         Athlete.CategoryId = category.Id;
@@ -47,7 +47,7 @@ public partial class IndividualTeam : Team
         Number = 1;
 
         AthleteId = xElement.Attribute(Properties.Resources.Athlete_XMI).Value;
-        Athlete = lics.Find(l => l.Id == AthleteId);
+        //Athlete = lics.Find(l => l.Id == AthleteId);
         Athlete.IndividualTeams.Add(this);   
     }
 

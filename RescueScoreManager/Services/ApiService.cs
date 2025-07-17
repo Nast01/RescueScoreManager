@@ -159,61 +159,7 @@ public class ApiService : IApiService
             };
         }
     }
-
-    //public async Task<bool> RequestToken(string login, string password)
-    //{
-    //    string endpoint = "/requestToken";
-    //    var queryParameters = new Dictionary<string, string>
-    //        {
-    //            { "login", login },
-    //            { "password", password }
-    //        };
-
-    //    // Define the data to be sent in the request body
-    //    string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-
-    //    // Create a StringContent object with the request body and content type
-    //    var requestContent = new StringContent("", Encoding.UTF8, "application/json");
-
-    //    try
-    //    {
-    //        if (Token == null || Token.IsValid() == false)
-    //        {
-    //            // Make a POST request
-    //            HttpResponseMessage response = await _httpClient.PostAsync($"{_baseAdress}{endpoint}?{queryString}", requestContent);
-
-    //            if (response.IsSuccessStatusCode)
-    //            {
-    //                string responseBody = await response.Content.ReadAsStringAsync();
-    //                // Deserialize the JSON response into a class
-    //                Token = JsonConvert.DeserializeObject<ApiToken>(responseBody);
-    //                //DataAccessService.Instance.IsLoggedIn = true;
-    //            }
-    //            else
-    //            {
-    //                Console.WriteLine("Failed to retrieved the Token. Status Code: " + response.StatusCode);
-    //            }
-    //        }
-    //    }
-    //    catch (HttpRequestException ex)
-    //    {
-    //        Console.WriteLine("Error: " + ex.Message);
-    //    }
-
-    //    return Token.IsValid();
-    //}
-
-    //public ApiToken? GetToken()
-    //{
-    //    return Token;
-    //}
-
-    //public bool HasToken()
-    //{
-    //    return Token != null;
-    //}
     #endregion Token
-
     public bool GetIsLoaded()
     {
         return IsLoaded;
@@ -251,6 +197,7 @@ public class ApiService : IApiService
 
     #endregion Accessors
 
+    #region Public Methods
     public async Task<List<Competition>> GetCompetitions(DateTime startDate, AuthenticationInfo authenticationInfo)
     {
         string endpoint = "/competition/evenement";
@@ -268,7 +215,10 @@ public class ApiService : IApiService
         try
         {
             // Set the Authorization header with the bearer token
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
+            if (authenticationInfo != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
+            }
 
             // Make a GET request
             HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
@@ -315,9 +265,11 @@ public class ApiService : IApiService
         {
             SetCompetition(competition);
             await LoadCategories(competition, authenticationInfo);
-            await LoadClubsAndLicensees(competition);
-            await LoadRaces(competition);
-            await LoadTeams(competition);
+            await LoadClubs(competition, authenticationInfo);
+            await LoadReferees(competition, authenticationInfo);
+            //await LoadReferees(competition, authenticationInfo);
+            //await LoadRaces(competition);
+            //await LoadTeams(competition);
             IsLoaded = true;
         }
         catch (HttpRequestException ex)
@@ -326,17 +278,18 @@ public class ApiService : IApiService
             Console.WriteLine("Error: " + ex.Message);
         }
     }
+    #endregion Public Methods
 
-    public async Task SetLicenseeNationality(Licensee licensee)
+    #region Private Methods
+    private async Task LoadCategories(Competition competition, AuthenticationInfo authenticationInfo)
     {
-        string endpoint = $"/licencie";
-        var queryParameters = new Dictionary<string, string>
-            {
-                { "token", Token.Token },
-                { "mode", "api-cpt" },
-                { "licence", licensee.Id }
+        string endpoint = $"/competition/evenement/{competition.Id}/categories";
+        var queryParameters = new Dictionary<string, string>();
+        if (authenticationInfo != null && authenticationInfo.IsTokenValid == true)
 
-            };
+        {
+            queryParameters.Add("token", authenticationInfo.Token);
+        }
         // Define the data to be sent in the request body
         string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
         // Create a StringContent object with the request body and content type
@@ -345,42 +298,92 @@ public class ApiService : IApiService
         try
         {
             // Make a GET request
-            HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
+            string apiUrl = queryString != "" ? $"{_baseAdress}{endpoint}?{queryString}" : $"{_baseAdress}{endpoint}";
+            HttpResponseMessage response = await _httpClient.GetAsync($"{apiUrl}");
+            response.EnsureSuccessStatusCode();
 
-            if (response.IsSuccessStatusCode)
+            string responseBody = await response.Content.ReadAsStringAsync();
+            // Deserialize the JSON response into a class
+            JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+
+            if (jResponse != null)
             {
-                string responseBody = await response.Content.ReadAsStringAsync();
-                // Deserialize the JSON response into a class
-                //JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
-
-                //if (jResponse != null && jResponse["success"].Value<bool>() == true)
-                //{
-                //    JArray? jDatas = jResponse["data"] as JArray;
-                //    Console.WriteLine($"licensee: {licensee.FullName}");
-
-                //    try
-                //    {
-                //        string nationality = jDatas[0]["nationalite"].Value<string>();
-                //        licensee.Nationality = TextHelper.RemoveDiacritics(nationality);
-                //    }
-                //    catch (Exception e)
-                //    {
-                //        int i = 0;
-                //        ++i;
-                //    }
-                //}
+                JArray? jDatas = jResponse["data"] as JArray;
+                foreach (var jData in jDatas.Children())
+                {
+                    Category category = new Category(jData);
+                    Categories.Add(category);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")} the {ResourceManagerLocalizationService.Instance.GetString("Categories")}. {response.StatusCode}");
             }
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
+            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}");
         }
     }
-
-    #region Private Methods
-    private async Task LoadCategories(Competition competition, AuthenticationInfo authenticationInfo)
+    private async Task LoadClubs(Competition competition, AuthenticationInfo authenticationInfo)
     {
-        string endpoint = $"/competition/evenement/{competition.Id}/categories";
+        string endpoint = $"/competition/evenement/{competition.Id}/organismes";
+        var queryParameters = new Dictionary<string, string>();
+        if (authenticationInfo != null && authenticationInfo.IsTokenValid == true)
+        {
+            queryParameters.Add("token", authenticationInfo.Token);
+        }
+        // Define the data to be sent in the request body
+        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
+        // Create a StringContent object with the request body and content type
+        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
+
+        try
+        {
+            // Make a GET request
+            string apiUrl = queryString != "" ? $"{_baseAdress}{endpoint}?{queryString}" : $"{_baseAdress}{endpoint}";
+            HttpResponseMessage response = await _httpClient.GetAsync($"{apiUrl}");
+            response.EnsureSuccessStatusCode();
+
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            // Deserialize the JSON response into a class
+            JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+
+            if (jResponse != null)
+            {
+                JArray? jData = jResponse["data"] as JArray;
+                Club? club = null;
+                foreach (var data in jData.Children())
+                {
+                    int idClub = data["Id"].Value<int>();
+                    bool isForeignClub = (idClub == 245);
+
+                    club = new Club(data, isForeignClub);
+                    Clubs.Add(club);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")} the {ResourceManagerLocalizationService.Instance.GetString("Clubs")}. {response.StatusCode}");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}");
+        }
+    }
+    private async Task LoadReferees(Competition competition, AuthenticationInfo authenticationInfo)
+    {
+        string endpoint = $"/competition/evenement/{competition.Id}/officiels";
         var queryParameters = new Dictionary<string, string>
             {
                 { "token", authenticationInfo.Token }
@@ -390,155 +393,39 @@ public class ApiService : IApiService
         // Create a StringContent object with the request body and content type
         var requestContent = new StringContent("", Encoding.UTF8, "application/json");
 
+        List<Referee> referees = new List<Referee>();
         try
         {
             // Make a GET request
             HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
+            response.EnsureSuccessStatusCode();
 
-            if (response.IsSuccessStatusCode)
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            // Deserialize the JSON response into a class
+            JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+
+            if (jResponse != null)
             {
-                string responseBody = await response.Content.ReadAsStringAsync();
-                // Deserialize the JSON response into a class
-                //JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+                JArray? jReferees = jResponse["data"] as JArray;
+                foreach (var jReferee in jReferees)
+                {
+                    Referee referee = new Referee(jReferee, competition.BeginDate);
+                }
 
-                //if (jResponse != null && jResponse["success"].Value<bool>() == true)
-                //{
-                //    JArray? jDatas = jResponse["data"] as JArray;
-                //    foreach (var jData in jDatas.Children())
-                //    {
-                //        Category category = new Category(jData);
-                //        Categories.Add(category);
-                //    }
-                //}
-                //else
-                //{
-                //    Console.WriteLine("Failed to retrieved the Categories. Status Code: " + response.StatusCode);
-                //}
             }
             else
             {
-                Console.WriteLine("Failed to retrieved the Categories. Status Code: " + response.StatusCode);
+                Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")} the {ResourceManagerLocalizationService.Instance.GetString("Referees")}. {response.StatusCode}");
             }
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
+            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}");
         }
-    }
-    private async Task LoadClubsAndLicensees(Competition competition)
-    {
-        string endpoint = $"/competition/evenement/{competition.Id}/organismes";
-        var queryParameters = new Dictionary<string, string>
-            {
-                { "token", Token.Token }
-            };
-        // Define the data to be sent in the request body
-        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-        // Create a StringContent object with the request body and content type
-        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
-
-        List<Club> clubs = new List<Club>();
-        List<Competition> competitions = new List<Competition>();
-        try
+        catch (Exception ex)
         {
-            // Make a GET request
-            HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                string responseBody = await response.Content.ReadAsStringAsync();
-                // Deserialize the JSON response into a class
-                //JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
-
-                //if (jResponse != null && jResponse["success"].Value<bool>() == true)
-                //{
-                //    JArray? jData = jResponse["data"] as JArray;
-                //    #region Clubs & Licensees
-                //    Club club = null;
-                //    foreach (var data in jData.Children())
-                //    {
-                //        int idClub = data["Id"].Value<int>();
-                //        if (idClub != 245)
-                //        {
-                //            club = new Club(data);
-                //        }
-                //        else
-                //        {
-                //            // id 245 = FFSS club étranger
-                //            club = new Club();
-                //            club.Id = data["athletes"][0]["idClub"].Value<int>();
-                //            club.Name = data["athletes"][0]["clubLabel"].Value<string>();
-                //        }
-
-                //        club = new Club(data);
-                //        if (club != null)
-                //        {
-                //            JArray? jReferees = data["officiels"] as JArray;
-                //            foreach (var jReferee in jReferees.Children())
-                //            {
-                //                Referee referee = new Referee(jReferee, competition.BeginDate);
-                //                await SetLicenseeNationality(referee);
-                //                if (referee != null)
-                //                {
-                //                    referee.Club = club;
-                //                    referee.ClubId = club.Id;
-                //                    club.Licensees.Add(referee);// AddLicensee(referee);
-                //                }
-                //            }
-
-                //            JArray? jAthletes = data["athletes"] as JArray;
-                //            foreach (var jAthlete in jAthletes.Children())
-                //            {
-                //                Athlete athlete = new Athlete(jAthlete);
-                //                if (athlete != null && athlete.IsGuest)
-                //                {
-                //                    int i = 0;
-                //                    ++i;
-                //                }
-                //                await SetLicenseeNationality(athlete);
-                //                if (athlete != null)
-                //                {
-                //                    athlete.Club = club;
-                //                    athlete.ClubId = club.Id;
-                //                    club.Licensees.Add(athlete); //club.AddLicensee(athlete);
-                //                }
-                //            }
-                //            club.Licensees.ToList<Licensee>().Sort(new LicenseeFullNameComparer());
-
-                //            club.Competition = competition;
-                //            competition.Clubs.Add(club);
-
-                //            Licensees.AddRange(club.Licensees);
-                //            Clubs.Add(club);
-                //        }
-                //    }
-
-                //    //OrderNumber for each licensee by Club
-                //    //clubs.Sort(new ClubNameComparer());
-                //    //int orderNumber = 1;
-                //    //foreach (Club club1 in clubs)
-                //    //{
-                //    //    foreach (Athlete athlete in club1.GetAthletes())
-                //    //    {
-                //    //        athlete.OrderNumber = orderNumber++;
-                //    //    }
-                //    //}
-
-                //    #endregion Clubs & Licensees
-                //}
-                //else
-                //{
-                //    Console.WriteLine("Failed to retrieved the participating Clubs. Status Code: " + response.StatusCode);
-                //}
-            }
-            else
-            {
-                Console.WriteLine("Failed to retrieved the participating Clubs. Status Code: " + response.StatusCode);
-            }
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine("Error: " + ex.Message);
+            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}");
         }
     }
     private async Task<List<Race>> LoadRaces(Competition competition)

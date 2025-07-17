@@ -162,6 +162,15 @@ namespace RescueScoreManager.Properties {
         /// <summary>
         ///   Recherche une chaîne localisée semblable à Categories.
         /// </summary>
+        internal static string Categories {
+            get {
+                return ResourceManager.GetString("Categories", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Categories.
+        /// </summary>
         internal static string Categories_XMI {
             get {
                 return ResourceManager.GetString("Categories_XMI", resourceCulture);
@@ -192,6 +201,15 @@ namespace RescueScoreManager.Properties {
         internal static string Club_XMI {
             get {
                 return ResourceManager.GetString("Club_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Clubs.
+        /// </summary>
+        internal static string Clubs {
+            get {
+                return ResourceManager.GetString("Clubs", resourceCulture);
             }
         }
         
@@ -556,6 +574,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à LicenseeNumber.
+        /// </summary>
+        internal static string LicenseeNumber_XMI {
+            get {
+                return ResourceManager.GetString("LicenseeNumber_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Erreur récupération de l&apos;image.
         /// </summary>
         internal static string LoadingImageError {
@@ -610,6 +637,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à MaxLevel.
+        /// </summary>
+        internal static string MaxLevel_XMI {
+            get {
+                return ResourceManager.GetString("MaxLevel_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Procès Verbal.
         /// </summary>
         internal static string Minutes {
@@ -624,6 +660,15 @@ namespace RescueScoreManager.Properties {
         internal static string Name_XMI {
             get {
                 return ResourceManager.GetString("Name_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à NameEnglish.
+        /// </summary>
+        internal static string NameEnglish_XMI {
+            get {
+                return ResourceManager.GetString("NameEnglish_XMI", resourceCulture);
             }
         }
         
@@ -826,11 +871,29 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Juges.
+        /// </summary>
+        internal static string Referees {
+            get {
+                return ResourceManager.GetString("Referees", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à RelayTeam.
         /// </summary>
         internal static string RelayTeam_XMI {
             get {
                 return ResourceManager.GetString("RelayTeam_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur lors de la récupération.
+        /// </summary>
+        internal static string RetrieveFailedError {
+            get {
+                return ResourceManager.GetString("RetrieveFailedError", resourceCulture);
             }
         }
         

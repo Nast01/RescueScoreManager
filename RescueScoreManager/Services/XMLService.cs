@@ -571,14 +571,14 @@ public class XMLService : IXMLService
                 }
                 rootXElem.Add(clubsXElem);
 
-                XElement racesXElem = new XElement(Properties.Resources.Races_XMI);
-                foreach (Race race in Races)
-                {
-                    XElement raceXElem = race.WriteXml();
-                    if (raceXElem != null)
-                        racesXElem.Add(raceXElem);
-                }
-                rootXElem.Add(racesXElem);
+                //XElement racesXElem = new XElement(Properties.Resources.Races_XMI);
+                //foreach (Race race in Races)
+                //{
+                //    XElement raceXElem = race.WriteXml();
+                //    if (raceXElem != null)
+                //        racesXElem.Add(raceXElem);
+                //}
+                //rootXElem.Add(racesXElem);
 
 
                 #region SERCDefinitions

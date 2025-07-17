@@ -417,4 +417,25 @@
   <data name="CompetitionLoadedInfo" xml:space="preserve">
     <value>Competition loaded</value>
   </data>
+  <data name="RetrieveFailedError" xml:space="preserve">
+    <value>Failed to retrieved</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="NameEnglish_XMI" xml:space="preserve">
+    <value>NameEnglish</value>
+  </data>
+  <data name="Clubs" xml:space="preserve">
+    <value>Clubs</value>
+  </data>
+  <data name="Referees" xml:space="preserve">
+    <value>Referees</value>
+  </data>
+  <data name="LicenseeNumber_XMI" xml:space="preserve">
+    <value>LicenseeNumber</value>
+  </data>
+  <data name="MaxLevel_XMI" xml:space="preserve">
+    <value>MaxLevel</value>
+  </data>
 </root>

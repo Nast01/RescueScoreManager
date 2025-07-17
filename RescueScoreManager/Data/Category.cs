@@ -9,6 +9,7 @@ public class Category
     #region Attributes
     public int Id { get; set; }
     public string Name { get; set; }
+    public string EnglishName { get; set; }
     public int AgeMin { get; set; } = 0;
     public int AgeMax { get; set; } = 0;
     public ICollection<Athlete> Athletes { get; } = new List<Athlete>();//one-to-many relationship
@@ -26,6 +27,7 @@ public class Category
     {
         Id = data["Id"].Value<int>();
         Name = data["Nom"].Value<string>();
+        Name = data["NomEn"].Value<string>();
         if (data["AgeMin"].Value<string>() != null)
         {
             AgeMin = data["AgeMin"].Value<int>();
@@ -40,6 +42,7 @@ public class Category
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
         Name = xElement.Attribute(Properties.Resources.Name_XMI).Value;
+        Name = xElement.Attribute(Properties.Resources.NameEnglish_XMI).Value;
         AgeMin = int.Parse(xElement.Attribute(Properties.Resources.AgeMin_XMI).Value);
         AgeMax = int.Parse(xElement.Attribute(Properties.Resources.AgeMax_XMI).Value);
 
@@ -50,6 +53,7 @@ public class Category
         return new XElement(Properties.Resources.Category_XMI,
                             new XAttribute(Properties.Resources.Id_XMI, Id),
                             new XAttribute(Properties.Resources.Name_XMI, Name),
+                            new XAttribute(Properties.Resources.NameEnglish_XMI, Name),
                             new XAttribute(Properties.Resources.AgeMin_XMI, AgeMin),
                             new XAttribute(Properties.Resources.AgeMax_XMI, AgeMax)
                             );

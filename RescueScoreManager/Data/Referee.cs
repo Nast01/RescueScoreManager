@@ -12,20 +12,14 @@ public partial class Referee : Licensee
 {
     #region Attributes
     public RefereeLevel RefereeLevel { get; set; }
+    public RefereeLevel MaxRefereeLevel { get; set; }
     public List<RefereeDate> RefereeAvailabilities { get; set; } = new List<RefereeDate>();
-
+    public bool IsPrincipal {  get; set; }
     public String RefereeAvailabilitiesLabel
     {
         get
         {
             return string.Join(" ", RefereeAvailabilities.Select(ra => ra.Availability.ToShortDateString()));
-            //string label = "";
-            //foreach (RefereeDate refereeDate in RefereeAvailabilities)
-            //{
-            //    label += refereeDate.Availability.ToShortDateString() + " ";
-            //}
-
-            //return label;
         }
     }
     //public Category Category { get; set; }
@@ -39,7 +33,8 @@ public partial class Referee : Licensee
 
     public Referee(JToken? data, DateTime beginDate)
     {
-        Id = data["NumeroLicence"].Value<String>();
+        Id = data["Id"].Value<int>();
+        LicenseeNumber = data["NumeroLicence"].Value<String>();
         LastName = data["Nom"].Value<String>();
         FirstName = data["Prenom"].Value<String>();
         BirthYear = data["Annee"].Value<int>();
@@ -48,7 +43,18 @@ public partial class Referee : Licensee
         IsLicensee = data["isLicencie"].Value<bool>();
         IsGuest = data["isInvite"].Value<bool>();
 
-        RefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), data["NiveauMax"].Value<string>());
+        RefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), data["Niveau"].Value<string>());
+        MaxRefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), data["NiveauMax"].Value<string>());
+        IsPrincipal = data["Principal"].Value<bool>();
+
+        Nationality = data["nationaliteCode"].Value<String>();
+        Nationality = data["nationaliteLabel"].Value<String>();
+
+        //ClubId
+        //Club    
+        
+
+
         JArray? days = data["Jours"] as JArray;
         if (days != null)
         {
@@ -64,7 +70,8 @@ public partial class Referee : Licensee
 
     public Referee(XElement xElement)
     {
-        Id = xElement.Attribute(Properties.Resources.Id_XMI).Value;
+        Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
+        LicenseeNumber = xElement.Attribute(Properties.Resources.LicenseeNumber_XMI).Value;
         LastName = xElement.Attribute(Properties.Resources.LastName_XMI).Value;
         FirstName = xElement.Attribute(Properties.Resources.FirstName_XMI).Value;
         BirthYear = int.Parse(xElement.Attribute(Properties.Resources.BirthYear_XMI).Value);
@@ -89,15 +96,9 @@ public partial class Referee : Licensee
     #region Methods
     public override XElement WriteXml()
     {
-        string availabilities = string.Empty;
-        foreach (RefereeDate refereeDate in RefereeAvailabilities)
-        {
-            availabilities += refereeDate.Availability.ToShortDateString() + " ";
-        }
-        availabilities = availabilities.Trim();
-
-        XElement xElement = new XElement(Properties.Resources.Referee_XMI,
+        return new XElement(Properties.Resources.Referee_XMI,
                                 new XAttribute(Properties.Resources.Id_XMI, Id),
+                                new XAttribute(Properties.Resources.LicenseeNumber_XMI, Id),
                                 new XAttribute(Properties.Resources.LastName_XMI, LastName),
                                 new XAttribute(Properties.Resources.FirstName_XMI, FirstName),
                                 new XAttribute(Properties.Resources.BirthYear_XMI, BirthYear),
@@ -106,9 +107,9 @@ public partial class Referee : Licensee
                                 new XAttribute(Properties.Resources.IsGuest_XMI, IsGuest),
                                 new XAttribute(Properties.Resources.Nationality_XMI, Nationality),
                                 new XAttribute(Properties.Resources.Level_XMI, RefereeLevel),
-                                new XAttribute(Properties.Resources.Availabilities_XMI, availabilities)
+                                new XAttribute(Properties.Resources.MaxLevel_XMI, MaxRefereeLevel),
+                                new XAttribute(Properties.Resources.Availabilities_XMI, RefereeAvailabilitiesLabel)
                             );
-        return xElement;
     }
     #endregion  
 }

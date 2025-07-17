@@ -9,7 +9,8 @@ public abstract partial class Licensee
 {
     #region Attributes
     [Key]
-    public String Id { get; set; }
+    public int Id { get; set; }
+    public String LicenseeNumber { get; set; }
     public String LastName { get; set; }
     public String FirstName { get; set; }
     public int BirthYear { get; set; }
@@ -18,6 +19,7 @@ public abstract partial class Licensee
     public bool IsLicensee { get; set; }
     public bool IsGuest { get; set; }
     public string Nationality { get; set; }
+    public string NationalityCode { get; set; }
 
     //one-to-many relationship to Club
     public int ClubId { get; set; } // Required foreign key property

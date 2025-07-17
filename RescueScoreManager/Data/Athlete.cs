@@ -34,7 +34,8 @@ public partial class Athlete : Licensee
     {
         IsLicensee = data["isLicencie"].Value<bool>();
         IsGuest = data["isInvite"].Value<bool>();
-        Id = IsLicensee? data["NumeroLicence"].Value<String>() : data["idInvite"].Value<String>() ;
+
+        //Id = IsLicensee? data["NumeroLicence"].Value<String>() : data["idInvite"].Value<String>() ;
         FirstName = data["Prenom"].Value<String>();
         LastName = data["Nom"].Value<String>();
         BirthYear = data["Annee"].Value<int>();
@@ -45,7 +46,7 @@ public partial class Athlete : Licensee
 
     public Athlete(XElement xElement,List<Category> categories)
     {
-        Id = xElement.Attribute(Properties.Resources.Id_XMI).Value;
+        //Id = xElement.Attribute(Properties.Resources.Id_XMI).Value;
         LastName = xElement.Attribute(Properties.Resources.LastName_XMI).Value;
         FirstName = xElement.Attribute(Properties.Resources.FirstName_XMI).Value;
         BirthYear = int.Parse(xElement.Attribute(Properties.Resources.BirthYear_XMI).Value);

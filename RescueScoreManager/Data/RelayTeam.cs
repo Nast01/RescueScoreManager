@@ -22,7 +22,7 @@ public partial class RelayTeam: Team
         Number = race.NumberByTeam;
         foreach (JToken jAthlete in jData["athletes"].Children())
         {
-            Athlete athlete = lics.Find(l => l.Id == jData["athletes"][0]["NumeroLicence"].Value<string>()) as Athlete;
+            Athlete athlete = null;// lics.Find(l => l.Id == jData["athletes"][0]["NumeroLicence"].Value<string>()) as Athlete;
             AddAthlete(athlete);
         }
     }
@@ -38,7 +38,7 @@ public partial class RelayTeam: Team
         string[] athIds = xElement.Attribute(Properties.Resources.Athletes_XMI).Value.Split(" ");
         foreach (string id in athIds)
         {
-            Athlete athlete = lics.Find(l => l.Id == id);
+            Athlete athlete = null;// lics.Find(l => l.Id == id);
             if (athlete != null)
             {
                 Athletes.Add(athlete);
