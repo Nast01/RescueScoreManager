@@ -14,9 +14,4 @@ public partial class SelectNewCompetitionView : UserControl
     {
         InitializeComponent();
     }
-
-//    public void CloseWindow()
-//    {
-//        this.Close();
-//    }
 }

@@ -438,4 +438,10 @@
   <data name="MaxLevel_XMI" xml:space="preserve">
     <value>MaxLevel</value>
   </data>
+  <data name="Licensees_XMI" xml:space="preserve">
+    <value>Licensees</value>
+  </data>
+  <data name="Teams_XMI" xml:space="preserve">
+    <value>Teams</value>
+  </data>
 </root>

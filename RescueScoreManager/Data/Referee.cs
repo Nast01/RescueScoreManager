@@ -15,7 +15,7 @@ public partial class Referee : Licensee
     public RefereeLevel MaxRefereeLevel { get; set; }
     public List<RefereeDate> RefereeAvailabilities { get; set; } = new List<RefereeDate>();
     public bool IsPrincipal {  get; set; }
-    public String RefereeAvailabilitiesLabel
+    public string RefereeAvailabilitiesLabel
     {
         get
         {
@@ -34,11 +34,11 @@ public partial class Referee : Licensee
     public Referee(JToken? data, DateTime beginDate)
     {
         Id = data["Id"].Value<int>();
-        LicenseeNumber = data["NumeroLicence"].Value<String>();
-        LastName = data["Nom"].Value<String>();
-        FirstName = data["Prenom"].Value<String>();
+        LicenseeNumber = data["NumeroLicence"].Value<string>();
+        LastName = data["Nom"].Value<string>();
+        FirstName = data["Prenom"].Value<string>();
         BirthYear = data["Annee"].Value<int>();
-        Gender = JsonHelper.GetGenderFromJsonValue(data["Sexe"].Value<String>());
+        Gender = JsonHelper.GetGenderFromJsonValue(data["Sexe"].Value<string>());
 
         IsLicensee = data["isLicencie"].Value<bool>();
         IsGuest = data["isInvite"].Value<bool>();
@@ -47,8 +47,8 @@ public partial class Referee : Licensee
         MaxRefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), data["NiveauMax"].Value<string>());
         IsPrincipal = data["Principal"].Value<bool>();
 
-        Nationality = data["nationaliteCode"].Value<String>();
-        Nationality = data["nationaliteLabel"].Value<String>();
+        Nationality = data["nationaliteCode"].Value<string>();
+        Nationality = data["nationaliteLabel"].Value<string>();
 
         //ClubId
         //Club    

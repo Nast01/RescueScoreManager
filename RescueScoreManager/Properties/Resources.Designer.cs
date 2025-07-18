@@ -583,6 +583,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Licensees.
+        /// </summary>
+        internal static string Licensees_XMI {
+            get {
+                return ResourceManager.GetString("Licensees_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Erreur récupération de l&apos;image.
         /// </summary>
         internal static string LoadingImageError {
@@ -984,6 +993,15 @@ namespace RescueScoreManager.Properties {
         internal static string Team_XMI {
             get {
                 return ResourceManager.GetString("Team_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Teams.
+        /// </summary>
+        internal static string Teams_XMI {
+            get {
+                return ResourceManager.GetString("Teams_XMI", resourceCulture);
             }
         }
         

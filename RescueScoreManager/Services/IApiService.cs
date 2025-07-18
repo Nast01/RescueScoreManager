@@ -4,19 +4,24 @@ namespace RescueScoreManager.Services;
 
 public interface IApiService
 {
-    public Task<TokenResponse> RequestTokenAsync(string login, string password);
-    public Task<UserInfo> GetUserInfoAsync(string token);
-    //public Task<bool> RequestToken(string login, string password);
-    //public ApiToken? GetToken();
-    //public bool HasToken();
-    public bool GetIsLoaded();
-    public List<Category> GetCategories();
-    public List<Licensee> GetLicensees();
-    public List<Club> GetClubs();
-    public List<Race> GetRaces();
-    public List<Team> GetTeams();
-    public Competition GetCompetition();
-    public void SetCompetition(Competition competition);
-    public Task<List<Competition>> GetCompetitions(DateTime startDate,AuthenticationInfo authenticationInfo);
-    public Task Load(Competition competition,AuthenticationInfo authenticationInfo);
+    // Authentication methods
+    Task<TokenResponse> RequestTokenAsync(string login, string password);
+    Task<UserInfo> GetUserInfoAsync(string token);
+
+    // Data loading methods
+    Task LoadAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Competition>> GetCompetitionsAsync(DateTime startDate, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken = default);
+
+    // Data access methods
+    bool GetIsLoaded();
+    IReadOnlyList<Category> GetCategories();
+    IReadOnlyList<Licensee> GetLicensees();
+    IReadOnlyList<Club> GetClubs();
+    IReadOnlyList<Race> GetRaces();
+    IReadOnlyList<Team> GetTeams();
+    Competition? GetCompetition();
+    void SetCompetition(Competition competition);
+
+    // State management
+    void Reset();
 }

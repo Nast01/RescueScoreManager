@@ -90,7 +90,7 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
     public async Task UpdateCompetitionList()
     {
         Competitions.Clear();
-        Competitions.AddRange(await _apiService.GetCompetitions(BeginDate,_authService.AuthenticationInfo));
+        Competitions.AddRange(await _apiService.GetCompetitionsAsync(BeginDate,_authService.AuthenticationInfo));
         Competitions = Competitions.OrderBy(c => c.BeginDate).ToList();
     }
 }

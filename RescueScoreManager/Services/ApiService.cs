@@ -1,555 +1,659 @@
-﻿using System.Buffers.Text;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 
-using DocumentFormat.OpenXml.Office2010.Excel;
-
-using System.Text.Json;
-
-using RescueScoreManager.Comparer;
-using RescueScoreManager.Data;
-using RescueScoreManager.Helpers;
-
-using static System.Reflection.Metadata.BlobBuilder;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RescueScoreManager.Constants;
+using RescueScoreManager.Data;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RescueScoreManager.Services;
 
-public class ApiService : IApiService
+public class ApiService : IApiService, IDisposable
 {
-    #region Attributes
-    private HttpClient _httpClient;
-    private string _baseAdress = "https://ffss.fr/api/v1.0";
-    public ApiToken? Token { get; set; }
-    public bool IsLoaded { get; set; }
-    public Competition? Competition { get; set; }
-    public List<Category> Categories { get; set; }
-    public List<Licensee> Licensees { get; set; }
-    public List<Club> Clubs { get; set; }
-    public List<Race> Races { get; set; }
-    public List<Team> Teams { get; set; }
-    #endregion Attributes
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<ApiService> _logger;
+    private readonly string _baseAddress;
+    private bool _disposed = false;
 
-    public ApiService()
+    // Data storage
+    private bool _isLoaded { get; set; }
+    private Competition? _competition { get; set; }
+    private List<Category> _categories { get; set; } = new();
+    private List<Licensee> _licensees { get; set; } = new();
+    private List<Club> _clubs { get; set; } = new();
+    private List<Race> _races { get; set; } = new();
+    private List<Team> _teams { get; set; } = new();
+
+    public ApiService(ILogger<ApiService> logger)
     {
-        if (Debugger.IsAttached)
-        {
-            _baseAdress = "https://qual.ffss.fr/api/v1.0";
-        }
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        // Initialize the HttpClient with base API URL, headers, or other configuration
+        // Set base address based on environment
+        _baseAddress = Debugger.IsAttached ? "https://qual.ffss.fr/api/v1.0" : "https://ffss.fr/api/v1.0";
+
+        // Create and configure HttpClient
         _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri(_baseAdress);
+        _httpClient.BaseAddress = new Uri(_baseAddress);
+        _httpClient.Timeout = TimeSpan.FromSeconds(30);
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", "RescueScoreManager/1.0");
+        _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
-        Competition = null;
-        Categories = new List<Category>();
-        Licensees = new List<Licensee>();
-        Clubs = new List<Club>();
-        Races = new List<Race>();
-        Teams = new List<Team>();
-        IsLoaded = false;
+        Reset();
     }
 
-    #region Accessors
-    #region Token
+    #region Authentication Methods
+
     public async Task<TokenResponse> RequestTokenAsync(string login, string password)
     {
-        string endpoint = "/requestToken";
+        if (string.IsNullOrWhiteSpace(login))
+            throw new ArgumentException("Login cannot be null or empty", nameof(login));
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentException("Password cannot be null or empty", nameof(password));
+
+        const string endpoint = "/requestToken";
         var queryParameters = new Dictionary<string, string>
-            {
-                { "login", login },
-                { "password", password }
-            };
-
-        // Define the data to be sent in the request body
-        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-
-        // Create a StringContent object with the request body and content type
-        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
+        {
+            { "login", login },
+            { "password", password }
+        };
 
         try
         {
-            // Make a POST request
-            HttpResponseMessage response = await _httpClient.PostAsync($"{_baseAdress}{endpoint}?{queryString}", requestContent);
+            _logger.LogInformation("Requesting authentication token for user: {Login}", login);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            var requestContent = new StringContent("", Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync($"{endpoint}?{queryString}", requestContent);
             response.EnsureSuccessStatusCode();
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<TokenResponse>(jsonResponse);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
 
-            //if (response.IsSuccessStatusCode)
-            //{
-            //    string responseBody = await response.Content.ReadAsStringAsync();
-            //    // Deserialize the JSON response into a class
-            //    Token = JsonConvert.DeserializeObject<ApiToken>(responseBody);
-            //    //DataAccessService.Instance.IsLoggedIn = true;
-            //}
-            //else
-            //{
-            //    Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("TokenError")}" + response.StatusCode);
-            //}
+            if (jResponse == null)
+            {
+                _logger.LogError("Failed to deserialize token response");
+                return new TokenResponse { Success = false, Message = "Invalid response format" };
+            }
+
+            var tokenResponse = new TokenResponse
+            {
+                Success = jResponse["success"]?.Value<bool>() ?? false,
+                Message = jResponse["message"]?.Value<string>() ?? "Unknown error",
+                Token = jResponse["data"]?["token"]?.Value<string>() ?? string.Empty
+            };
+
+            if (jResponse["data"]?["expiration"]?.Value<string>() is string expirationStr &&
+                DateTime.TryParse(expirationStr, out DateTime expiration))
+            {
+                tokenResponse.Expiration = expiration;
+            }
+
+            _logger.LogInformation("Token request completed successfully: {Success}", tokenResponse.Success);
+            return tokenResponse;
         }
         catch (HttpRequestException ex)
         {
-            // En cas d'erreur HTTP, on retourne un TokenResponse avec l'erreur
+            _logger.LogError(ex, "HTTP error during token request for user: {Login}", login);
             return new TokenResponse
             {
                 Success = false,
-                Message = $"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}"
+                Message = $"Network error: {ex.Message}"
             };
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error during token request for user: {Login}", login);
             return new TokenResponse
             {
                 Success = false,
-                Message = $"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}"
+                Message = $"Unexpected error: {ex.Message}"
             };
         }
     }
+
     public async Task<UserInfo> GetUserInfoAsync(string token)
     {
-        string endpoint = "/me";
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            throw new ArgumentException("Token cannot be null or empty", nameof(token));
+        }
+        const string endpoint = "/user/info";
+        var queryParameters = new Dictionary<string, string>
+        {
+            { "token", token }
+        };
+
         try
         {
-            // Ajouter le token à l'en-tête pour l'authentification
-            //_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _logger.LogInformation("Requesting user information");
 
-            var queryParameters = new Dictionary<string, string>
-            {
-                { "token", token },
-            };
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
 
-            // Define the data to be sent in the request body
-            string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-
-            var response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
+            using var response = await _httpClient.GetAsync($"{endpoint}?{queryString}");
             response.EnsureSuccessStatusCode();
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            JToken? jResponse = JsonConvert.DeserializeObject(jsonResponse) as JToken;
-            UserInfo userInfo = new UserInfo();
-            if (jResponse != null)
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+            if (jResponse == null)
             {
-                userInfo.Success = jResponse["success"].Value<bool>();
-                userInfo.Message = jResponse["message"].Value<string>();
-                userInfo.Label = jResponse["label"].Value<string>();
-                userInfo.Type = jResponse["type"].Value<string>();
-                userInfo.Role = jResponse["data"]["role"].Value<string>();
+                _logger.LogError("Failed to deserialize user info response");
+                return new UserInfo { Success = false, Message = "Invalid response format" };
             }
 
+            var userInfo = new UserInfo
+            {
+                Success = jResponse["success"]?.Value<bool>() ?? false,
+                Message = jResponse["message"]?.Value<string>() ?? "Unknown error",
+                Label = jResponse["label"]?.Value<string>() ?? string.Empty,
+                Type = jResponse["type"]?.Value<string>() ?? string.Empty,
+                Role = jResponse["data"]?["role"]?.Value<string>() ?? string.Empty
+            };
+
+            _logger.LogInformation("User info request completed successfully: {Success}", userInfo.Success);
             return userInfo;
         }
         catch (HttpRequestException ex)
         {
+            _logger.LogError(ex, "HTTP error during user info request");
             return new UserInfo
             {
                 Success = false,
-                Message = $"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}"
+                Message = $"Network error: {ex.Message}"
             };
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error during user info request");
             return new UserInfo
             {
                 Success = false,
-                Message = $"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}"
+                Message = $"Unexpected error: {ex.Message}"
             };
         }
     }
-    #endregion Token
-    public bool GetIsLoaded()
-    {
-        return IsLoaded;
-    }
 
-    public Competition GetCompetition()
-    {
-        return Competition;
-    }
-    public void SetCompetition(Competition competition)
-    {
-        Competition = competition;
-    }
+    #endregion
 
-    public List<Category> GetCategories()
-    {
-        return Categories;
-    }
-    public List<Licensee> GetLicensees()
-    {
-        return Licensees;
-    }
-    public List<Club> GetClubs()
-    {
-        return Clubs;
-    }
-    public List<Race> GetRaces()
-    {
-        return Races;
-    }
-    public List<Team> GetTeams()
-    {
-        return Teams;
-    }
+    #region Data Loading Methods
 
-    #endregion Accessors
-
-    #region Public Methods
-    public async Task<List<Competition>> GetCompetitions(DateTime startDate, AuthenticationInfo authenticationInfo)
+    public async Task LoadAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken = default)
     {
-        string endpoint = "/competition/evenement";
-        var queryParameters = new Dictionary<string, string>
-            {
-                { "debut", startDate.ToString("yyyy-MM-dd") },
-                { "length", "500" }
-            };
-        // Define the data to be sent in the request body
-        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-        // Create a StringContent object with the request body and content type
-        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
-
-        List<Competition> competitions = new List<Competition>();
+        if (competition == null)
+        {
+            throw new ArgumentNullException(nameof(competition));
+        }
+        if (authenticationInfo == null)
+        {
+            throw new ArgumentNullException(nameof(authenticationInfo));
+        }
         try
         {
-            // Set the Authorization header with the bearer token
-            if (authenticationInfo != null)
+            _logger.LogInformation("Starting data load for competition: {CompetitionName} (ID: {CompetitionId})",
+                competition.Name, competition.Id);
+
+            // Reset previous data
+            Reset();
+            SetCompetition(competition);
+
+            // Set authentication header
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
+
+            // Load data in parallel where possible
+            var loadTasks = new List<Task>
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
-            }
+                LoadCategoriesAsync(competition, authenticationInfo, cancellationToken),
+                LoadClubsAsync(competition, authenticationInfo, cancellationToken),
+                LoadLicenseesAsync(competition, authenticationInfo, cancellationToken)
+            };
 
-            // Make a GET request
-            HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
+            // Wait for core data to load
+            await Task.WhenAll(loadTasks);
 
-            if (response.IsSuccessStatusCode)
+            // Load dependent data
+            await LoadRacesAsync(competition, authenticationInfo, cancellationToken);
+            await LoadTeamsAsync(competition, authenticationInfo, cancellationToken);
+
+            _isLoaded = true;
+            _logger.LogInformation("Data load completed successfully for competition: {CompetitionName}", competition.Name);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Data load was cancelled for competition: {CompetitionName}", competition.Name);
+            _isLoaded = false;
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading data for competition: {CompetitionName} (ID: {CompetitionId})",
+                competition.Name, competition.Id);
+            _isLoaded = false;
+            throw new InvalidOperationException($"Failed to load competition data: {ex.Message}", ex);
+        }
+        finally
+        {
+            // Clear authentication header
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
+    }
+
+    public async Task<IReadOnlyList<Competition>> GetCompetitionsAsync(DateTime startDate, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken = default)
+    {
+        if (authenticationInfo == null)
+        {
+            throw new ArgumentNullException(nameof(authenticationInfo));
+        }
+
+        const string endpoint = "/competition/evenement";
+        var queryParameters = new Dictionary<string, string>
+        {
+            { "debut", startDate.ToString("yyyy-MM-dd") },
+            { "length", "500" }
+        };
+
+        try
+        {
+            _logger.LogInformation("Requesting competitions starting from: {StartDate}", startDate);
+
+            // Set authentication header
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+
+            using var response = await _httpClient.GetAsync($"{endpoint}?{queryString}", cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+            var competitions = new List<Competition>();
+
+            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
             {
-                string responseBody = await response.Content.ReadAsStringAsync();
-                // Deserialize the JSON response into a class
-                JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
-
-                if (jResponse != null)
+                foreach (var competitionData in jData.Children())
                 {
-                    bool jStatus = jResponse["success"].Value<bool>();
-                    int jRecordsFiltered = jResponse["recordsFiltered"].Value<int>();
-                    int jAlreadyShown = jResponse["alreadyShown"].Value<int>();
-                    int jRemains = jResponse["remains"].Value<int>();
-                    int jNext = jResponse["remains"].Value<int>();
-
-                    JArray? jData = jResponse["data"] as JArray;
-                    foreach (var data in jData.Children())
+                    try
                     {
-                        Competition competition = new Competition(data);
-
+                        var competition = new Competition(competitionData);
                         competitions.Add(competition);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse competition data: {CompetitionData}", competitionData);
                     }
                 }
             }
             else
             {
-                Console.WriteLine("Failed to retrieved the Competitions. Status Code: " + response.StatusCode);
+                _logger.LogWarning("API returned unsuccessful response or invalid data format");
             }
+
+            _logger.LogInformation("Retrieved {CompetitionCount} competitions", competitions.Count);
+            return competitions;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Get competitions request was cancelled");
+            throw;
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
+            _logger.LogError(ex, "HTTP error during competitions request");
+            throw new InvalidOperationException($"Network error while retrieving competitions: {ex.Message}", ex);
         }
-
-        return competitions;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during competitions request");
+            throw new InvalidOperationException($"Unexpected error while retrieving competitions: {ex.Message}", ex);
+        }
+        finally
+        {
+            // Clear authentication header
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
     }
 
-    public async Task Load(Competition competition, AuthenticationInfo authenticationInfo)
-    {
-        try
-        {
-            SetCompetition(competition);
-            await LoadCategories(competition, authenticationInfo);
-            await LoadClubs(competition, authenticationInfo);
-            await LoadReferees(competition, authenticationInfo);
-            //await LoadReferees(competition, authenticationInfo);
-            //await LoadRaces(competition);
-            //await LoadTeams(competition);
-            IsLoaded = true;
-        }
-        catch (HttpRequestException ex)
-        {
-            IsLoaded = false;
-            Console.WriteLine("Error: " + ex.Message);
-        }
-    }
-    #endregion Public Methods
+    #endregion
 
-    #region Private Methods
-    private async Task LoadCategories(Competition competition, AuthenticationInfo authenticationInfo)
+    #region Private Data Loading Methods
+
+    private async Task LoadCategoriesAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
     {
         string endpoint = $"/competition/evenement/{competition.Id}/categories";
         var queryParameters = new Dictionary<string, string>();
-        if (authenticationInfo != null && authenticationInfo.IsTokenValid == true)
 
+        if (authenticationInfo.IsTokenValid)
         {
             queryParameters.Add("token", authenticationInfo.Token);
         }
-        // Define the data to be sent in the request body
-        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-        // Create a StringContent object with the request body and content type
-        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
 
         try
         {
-            // Make a GET request
-            string apiUrl = queryString != "" ? $"{_baseAdress}{endpoint}?{queryString}" : $"{_baseAdress}{endpoint}";
-            HttpResponseMessage response = await _httpClient.GetAsync($"{apiUrl}");
+            _logger.LogDebug("Loading categories for competition: {CompetitionId}", competition.Id);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+
+            using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            // Deserialize the JSON response into a class
-            JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
 
-            if (jResponse != null)
+            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
             {
-                JArray? jDatas = jResponse["data"] as JArray;
-                foreach (var jData in jDatas.Children())
+                _categories.Clear();
+                foreach (var categoryData in jData.Children())
                 {
-                    Category category = new Category(jData);
-                    Categories.Add(category);
+                    try
+                    {
+                        var category = new Category(categoryData);
+                        _categories.Add(category);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse category data: {CategoryData}", categoryData);
+                    }
                 }
+                _logger.LogDebug("Loaded {CategoryCount} categories", _categories.Count);
             }
             else
             {
-                Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")} the {ResourceManagerLocalizationService.Instance.GetString("Categories")}. {response.StatusCode}");
+                _logger.LogWarning("Categories API returned unsuccessful response");
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}");
+            _logger.LogError(ex, "Error loading categories for competition: {CompetitionId}", competition.Id);
+            throw;
         }
     }
-    private async Task LoadClubs(Competition competition, AuthenticationInfo authenticationInfo)
+
+    private async Task LoadClubsAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
     {
-        string endpoint = $"/competition/evenement/{competition.Id}/organismes";
+        string endpoint = $"/competition/evenement/{competition.Id}/clubs";
         var queryParameters = new Dictionary<string, string>();
-        if (authenticationInfo != null && authenticationInfo.IsTokenValid == true)
+
+        if (authenticationInfo.IsTokenValid)
         {
             queryParameters.Add("token", authenticationInfo.Token);
         }
-        // Define the data to be sent in the request body
-        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-        // Create a StringContent object with the request body and content type
-        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
 
         try
         {
-            // Make a GET request
-            string apiUrl = queryString != "" ? $"{_baseAdress}{endpoint}?{queryString}" : $"{_baseAdress}{endpoint}";
-            HttpResponseMessage response = await _httpClient.GetAsync($"{apiUrl}");
+            _logger.LogDebug("Loading clubs for competition: {CompetitionId}", competition.Id);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+
+            using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-
             string responseBody = await response.Content.ReadAsStringAsync();
-            // Deserialize the JSON response into a class
-            JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
 
-            if (jResponse != null)
+            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
             {
-                JArray? jData = jResponse["data"] as JArray;
-                Club? club = null;
-                foreach (var data in jData.Children())
+                _clubs.Clear();
+                foreach (var clubData in jData.Children())
                 {
-                    int idClub = data["Id"].Value<int>();
-                    bool isForeignClub = (idClub == 245);
+                    try
+                    {
+                        int idClub = clubData["Id"].Value<int>();
+                        bool isForeignClub = (idClub == 245);
 
-                    club = new Club(data, isForeignClub);
-                    Clubs.Add(club);
+                        var club = new Club(clubData, isForeignClub);
+                        _clubs.Add(club);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse club data: {ClubData}", clubData);
+                    }
                 }
+                _logger.LogDebug("Loaded {ClubCount} clubs", _clubs.Count);
             }
             else
             {
-                Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")} the {ResourceManagerLocalizationService.Instance.GetString("Clubs")}. {response.StatusCode}");
+                _logger.LogWarning("Clubs API returned unsuccessful response");
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}");
+            _logger.LogError(ex, "Error loading clubs for competition: {CompetitionId}", competition.Id);
+            throw;
         }
     }
-    private async Task LoadReferees(Competition competition, AuthenticationInfo authenticationInfo)
-    {
-        string endpoint = $"/competition/evenement/{competition.Id}/officiels";
-        var queryParameters = new Dictionary<string, string>
-            {
-                { "token", authenticationInfo.Token }
-            };
-        // Define the data to be sent in the request body
-        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-        // Create a StringContent object with the request body and content type
-        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
 
-        List<Referee> referees = new List<Referee>();
+    private async Task LoadLicenseesAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
+    {
+        string endpoint = $"/competition/evenement/{competition.Id}/licensees";
+        var queryParameters = new Dictionary<string, string>();
+
+        if (authenticationInfo.IsTokenValid)
+        {
+            queryParameters.Add("token", authenticationInfo.Token);
+        }
+
         try
         {
-            // Make a GET request
-            HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
+            _logger.LogDebug("Loading licensees for competition: {CompetitionId}", competition.Id);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+
+            using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-
             string responseBody = await response.Content.ReadAsStringAsync();
-            // Deserialize the JSON response into a class
-            JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
 
-            if (jResponse != null)
+            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
             {
-                JArray? jReferees = jResponse["data"] as JArray;
-                foreach (var jReferee in jReferees)
+                _licensees.Clear();
+                foreach (var licenseeData in jData.Children())
                 {
-                    Referee referee = new Referee(jReferee, competition.BeginDate);
-                }
+                    try
+                    {
 
+                        Referee referee = new Referee(licenseeData, competition.BeginDate);
+                        _licensees.Add(referee);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse licensee data: {LicenseeData}", licenseeData);
+                    }
+                }
+                _logger.LogDebug("Loaded {LicenseeCount} licensees", _licensees.Count);
             }
             else
             {
-                Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")} the {ResourceManagerLocalizationService.Instance.GetString("Referees")}. {response.StatusCode}");
+                _logger.LogWarning("Licensees API returned unsuccessful response");
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("HttpError")}: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"{ResourceManagerLocalizationService.Instance.GetString("UnexpectedError")}: {ex.Message}");
+            _logger.LogError(ex, "Error loading licensees for competition: {CompetitionId}", competition.Id);
+            throw;
         }
     }
-    private async Task<List<Race>> LoadRaces(Competition competition)
-    {
-        string endpoint = $"/competition/epreuve";
-        var queryParameters = new Dictionary<string, string>
-            {
-                { "token", Token.Token },
-                { "evenement", competition.Id.ToString() }
-            };
-        // Define the data to be sent in the request body
-        string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-        // Create a StringContent object with the request body and content type
-        var requestContent = new StringContent("", Encoding.UTF8, "application/json");
 
-        List<Race> races = new List<Race>();
+    private async Task LoadRacesAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
+    {
+        string endpoint = $"/competition/evenement/{competition.Id}/races";
+        var queryParameters = new Dictionary<string, string>();
+
+        if (authenticationInfo.IsTokenValid)
+        {
+            queryParameters.Add("token", authenticationInfo.Token);
+        }
+
         try
         {
-            // Make a GET request
-            HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
+            _logger.LogDebug("Loading races for competition: {CompetitionId}", competition.Id);
 
-            if (response.IsSuccessStatusCode)
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+
+            using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
             {
-                string responseBody = await response.Content.ReadAsStringAsync();
-                // Deserialize the JSON response into a class
-                //JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
-
-                //if (jResponse != null && jResponse["success"].Value<bool>() == true)
-                //{
-                //    JArray? jDatas = jResponse["data"] as JArray;
-                //    foreach (var jData in jDatas.Children())
-                //    {
-                //        Race race = new Race(jData, Categories);
-                //        if (race != null)
-                //        {
-                //            Races.Add(race);
-                //            race.Competition = competition;
-                //            competition.Races.Add(race);
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    Console.WriteLine("Failed to retrieved the Races. Status Code: " + response.StatusCode);
-                //}
+                _races.Clear();
+                foreach (var raceData in jData.Children())
+                {
+                    try
+                    {
+                        var race = new Race(raceData, _categories);
+                        if (race != null)
+                        {
+                            _races.Add(race);
+                            race.Competition = competition;
+                            competition.Races.Add(race);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse race data: {RaceData}", raceData);
+                    }
+                }
+                _logger.LogDebug("Loaded {RaceCount} races", _races.Count);
             }
             else
             {
-                Console.WriteLine("Failed to retrieved the Races. Status Code: " + response.StatusCode);
+                _logger.LogWarning("Races API returned unsuccessful response");
             }
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
+            _logger.LogError(ex, "Error loading races for competition: {CompetitionId}", competition.Id);
+            throw;
         }
-
-        return races;
     }
-    private async Task LoadTeams(Competition competition)
+
+    private async Task LoadTeamsAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
     {
-        foreach (Race race in competition.Races)
+        try
         {
-            string endpoint = $"/competition/engagement";
-            var queryParameters = new Dictionary<string, string>
-                {
-                    { "token", Token.Token },
-                    { "epreuve", race.Id.ToString() }
-                };
-            // Define the data to be sent in the request body
-            string queryString = string.Join("&", queryParameters.Select(p => $"{p.Key}={p.Value}"));
-            // Create a StringContent object with the request body and content type
-            var requestContent = new StringContent("", Encoding.UTF8, "application/json");
+            _logger.LogDebug("Loading teams for {RaceCount} races in competition: {CompetitionId}", _races.Count, competition.Id);
 
-            List<Race> races = new List<Race>();
-            try
-            {
-                // Make a GET request
-                HttpResponseMessage response = await _httpClient.GetAsync($"{_baseAdress}{endpoint}?{queryString}");
+            var teamLoadTasks = _races.Select(race => LoadTeamsForRaceAsync(race, authenticationInfo, cancellationToken));
+            await Task.WhenAll(teamLoadTasks);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    // Deserialize the JSON response into a class
-                    //JToken? jResponse = JsonConvert.DeserializeObject(responseBody) as JToken;
-
-                    //if (jResponse != null && jResponse["success"].Value<bool>() == true)
-                    //{
-                    //    List<Team> teams = new List<Team>();
-                    //    JArray? jDatas = jResponse["data"] as JArray;
-                    //    foreach (var jData in jDatas.Children())
-                    //    {
-                    //        Team team = null;
-                    //        if (race.NumberByTeam == 1)
-                    //        {
-                    //            team = new IndividualTeam(jData, race, Licensees, Categories);
-                    //        }
-                    //        else
-                    //        {
-                    //            team = new RelayTeam(jData, race, Licensees);
-                    //        }
-
-                    //        if (team != null)
-                    //        {
-                    //            team.Race = race;
-                    //            race.Teams.Add(team);
-                    //        }
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    Console.WriteLine("Failed to retrieved the Teams. Status Code: " + response.StatusCode);
-                    //}
-                }
-                else
-                {
-                    Console.WriteLine("Failed to retrieved the Teams. Status Code: " + response.StatusCode);
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-            }
+            _logger.LogDebug("Loaded teams for all races in competition: {CompetitionId}", competition.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading teams for competition: {CompetitionId}", competition.Id);
+            throw;
         }
     }
 
-    #endregion Private Methods
+    private async Task LoadTeamsForRaceAsync(Race race, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
+    {
+        string endpoint = "/competition/engagement";
+        var queryParameters = new Dictionary<string, string>
+        {
+            { "token", authenticationInfo.Token },
+            { "epreuve", race.Id.ToString() }
+        };
+
+        try
+        {
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+
+            using var response = await _httpClient.GetAsync($"{endpoint}?{queryString}", cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
+            {
+                foreach (var teamData in jData.Children())
+                {
+                    try
+                    {
+                        //var team = new Team(teamData);
+                        //Teams.Add(team);
+                        //race.Teams.Add(team);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse team data for race {RaceId}: {TeamData}", race.Id, teamData);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading teams for race: {RaceId}", race.Id);
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region Data Access Methods
+
+    public bool GetIsLoaded() => _isLoaded;
+    public IReadOnlyList<Category> GetCategories() => _categories.AsReadOnly();
+    public IReadOnlyList<Licensee> GetLicensees() => _licensees.AsReadOnly();
+    public IReadOnlyList<Club> GetClubs() => _clubs.AsReadOnly();
+    public IReadOnlyList<Race> GetRaces() => _races.AsReadOnly();
+    public IReadOnlyList<Team> GetTeams() => _teams.AsReadOnly();
+    public Competition? GetCompetition() => _competition;
+    public void SetCompetition(Competition competition) => _competition = competition ?? throw new ArgumentNullException(nameof(competition));
+
+    public void Reset()
+    {
+        _isLoaded = false;
+        _competition = null;
+        _categories.Clear();
+        _licensees.Clear();
+        _clubs.Clear();
+        _races.Clear();
+        _teams.Clear();
+        _logger.LogDebug("ApiService data has been reset");
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _httpClient?.Dispose();
+            }
+            _disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    #endregion
 }

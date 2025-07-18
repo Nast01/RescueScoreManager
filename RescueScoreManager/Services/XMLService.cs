@@ -18,622 +18,510 @@ namespace RescueScoreManager.Services;
 
 public class XMLService : IXMLService
 {
-    public bool Loaded { get; set; }
-    public required Competition Competition { get; set; }
-    public List<Category> Categories { get; set; } = new List<Category>();
-    public List<Club> Clubs { get; set; } = new List<Club>();
-    public List<Licensee> Licensees { get; set; } = new List<Licensee>();
-    public List<Athlete> Athletes { get; set; } = new List<Athlete>();
-    public List<Referee> Referees { get; set; } = new List<Referee>();
-    public List<Race> Races { get; set; } = new List<Race>();
-    public List<Team> Teams { get; set; } = new List<Team>();
+    private readonly ILogger<XMLService> _logger;
 
+    // Internal storage using List<T> for better performance
+    private Competition? _competition;
+    private readonly List<Category> _categories = new();
+    private readonly List<Club> _clubs = new();
+    private readonly List<Licensee> _licensees = new();
+    private readonly List<Athlete> _athletes = new();
+    private readonly List<Referee> _referees = new();
+    private readonly List<Race> _races = new();
+    private readonly List<Team> _teams = new();
 
+    public bool IsLoaded { get; private set; }
 
-    public Competition GetCompetition() => Competition;
-    public List<Category> GetCategories()
+    public XMLService(ILogger<XMLService> logger)
     {
-        Categories.Sort(new CategoryComparer());
-        return Categories;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-    public List<Club> GetClubs()
+
+    #region Data Access Methods (Public API returns IReadOnlyList)
+    public Competition? GetCompetition() => _competition;
+
+    public IReadOnlyList<Category> GetCategories()
     {
-        return Clubs;
+        var sortedCategories = _categories.ToList();
+        sortedCategories.Sort(new CategoryComparer());
+        return sortedCategories.AsReadOnly();
     }
-    public List<Licensee> GetLicensees()
+
+    public IReadOnlyList<Club> GetClubs()
     {
-        return Licensees;
+        var sortedClubs = _clubs.ToList();
+        sortedClubs.Sort(new ClubNameComparer());
+        return sortedClubs.AsReadOnly();
     }
-    public List<Athlete> GetAthletes()
+
+    public IReadOnlyList<Licensee> GetLicensees()
     {
-        return Athletes;
+        var sortedLicensees = _licensees.ToList();
+        sortedLicensees.Sort(new LicenseeClubFullNameComparer());
+        return sortedLicensees.AsReadOnly();
     }
-    public List<Referee> GetReferees()
-    {
-        return Referees;
-    }
-    public List<Race> GetRaces()
-    {
-        return Races;
-    }
-    public List<Team> GetTeams()
-    {
-        return Teams;
-    }
+
+    public IReadOnlyList<Athlete> GetAthletes() => _athletes.AsReadOnly();
+    public IReadOnlyList<Referee> GetReferees() => _referees.AsReadOnly();
+    public IReadOnlyList<Race> GetRaces() => _races.AsReadOnly();
+    public IReadOnlyList<Team> GetTeams() => _teams.AsReadOnly();
+    #endregion
+
+    #region Path Management
     public void SetPath(string name)
     {
-        string cleanedName = TextHelper.CleanedText(name);
+        try
+        {
+            string cleanedName = TextHelper.CleanedText(name);
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string filePath = Path.Combine(documentsPath, "RescueScore", cleanedName, cleanedName + ".ffss");
+            var fileInfo = new FileInfo(filePath);
 
-        FileInfo fi = new FileInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RescueScore", cleanedName, cleanedName + ".ffss"));
+            Properties.Settings.Default.FilePath = fileInfo.FullName;
+            Properties.Settings.Default.DirPath = fileInfo.DirectoryName;
+            Properties.Settings.Default.Save();
 
-        Properties.Settings.Default.FilePath = fi.FullName;
-        Properties.Settings.Default.DirPath = fi.DirectoryName;
-        Properties.Settings.Default.Save();
+            _logger.LogInformation("XML path set to: {FilePath}", fileInfo.FullName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting XML path for name: {Name}", name);
+            throw;
+        }
     }
+
     public void SetPath(FileInfo file)
     {
-        Properties.Settings.Default.FilePath = file.FullName;
-        Properties.Settings.Default.DirPath = file.DirectoryName;
-        Properties.Settings.Default.Save();
-    }
-
-    public string GetFilePath()
-    {
-        return Properties.Settings.Default.FilePath;
-    }
-
-    public string GetDirPath()
-    {
-        return Properties.Settings.Default.DirPath;
-    }
-
-
-    public void Initialize(Competition competition, List<Category> categories, List<Club> clubs, List<Licensee> licensees, List<Race> races, List<Team> teams)
-    {
-        Competition = competition;
-        Categories = categories;
-        Clubs = clubs;
-        Licensees = licensees;
-
-        Clubs.Sort(new ClubNameComparer());
-        Licensees.Sort(new LicenseeClubFullNameComparer());
-
-        int orderNumber = 1;
-        foreach (Licensee licensee in licensees)
+        if (file == null)
         {
-            if (licensee is Athlete)
-            {
-                ((Athlete)licensee).OrderNumber = orderNumber;
-                ++orderNumber;
-                Athletes.Add((Athlete)licensee);
-            }
-            if (licensee is Referee)
-            {
-                Referees.Add((Referee)licensee);
-            }
+            throw new ArgumentNullException(nameof(file));
         }
 
-        Races = races;
-        Teams = teams;
+        try
+        {
+            Properties.Settings.Default.FilePath = file.FullName;
+            Properties.Settings.Default.DirPath = file.DirectoryName;
+            Properties.Settings.Default.Save();
 
-        //initialize order number
+            _logger.LogInformation("XML path set to: {FilePath}", file.FullName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting XML path for file: {FileName}", file.FullName);
+            throw;
+        }
+    }
+
+    public string GetFilePath() => Properties.Settings.Default.FilePath ?? string.Empty;
+    public string GetDirPath() => Properties.Settings.Default.DirPath ?? string.Empty;
+    #endregion
+
+    #region Data Initialization
+    public void Initialize(Competition competition, IEnumerable<Category> categories, IEnumerable<Club> clubs,
+                          IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams)
+    {
+        if (competition == null)
+        {
+            throw new ArgumentNullException(nameof(competition));
+        }
+
+        try
+        {
+            _logger.LogInformation("Initializing XML service with competition: {CompetitionName}", competition.Name);
+
+            // Reset existing data
+            Reset();
+
+            // Set competition
+            _competition = competition;
+
+            // Initialize collections
+            if (categories != null)
+            {
+                _categories.AddRange(categories);
+            }
+
+            if (clubs != null)
+            {
+                _clubs.AddRange(clubs);
+                _clubs.Sort(new ClubNameComparer());
+            }
+
+            if (licensees != null)
+            {
+                _licensees.AddRange(licensees);
+                _licensees.Sort(new LicenseeClubFullNameComparer());
+
+                // Separate athletes and referees with order numbers
+                int orderNumber = 1;
+                foreach (var licensee in _licensees)
+                {
+                    switch (licensee)
+                    {
+                        case Athlete athlete:
+                            athlete.OrderNumber = orderNumber++;
+                            _athletes.Add(athlete);
+                            break;
+                        case Referee referee:
+                            _referees.Add(referee);
+                            break;
+                    }
+                }
+            }
+
+            if (races != null)
+            {
+                _races.AddRange(races);
+            }
+
+            if (teams != null)
+            {
+                _teams.AddRange(teams);
+            }
+
+            _logger.LogInformation("XML service initialized successfully with {CategoriesCount} categories, {ClubsCount} clubs, {AthletesCount} athletes, {RefereesCount} referees, {RacesCount} races, {TeamsCount} teams",
+                _categories.Count, _clubs.Count, _athletes.Count, _referees.Count, _races.Count, _teams.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error initializing XML service");
+            throw;
+        }
     }
 
     public void Reset()
     {
-        Categories.Clear();
-        Clubs.Clear();
-        Licensees.Clear();
-        Athletes.Clear();
-        Referees.Clear();
-        Races.Clear();
-        Teams.Clear();
-    }
+        _logger.LogDebug("Resetting XML service data");
 
+        _competition = null;
+        _categories.Clear();
+        _clubs.Clear();
+        _licensees.Clear();
+        _athletes.Clear();
+        _referees.Clear();
+        _races.Clear();
+        _teams.Clear();
+        IsLoaded = false;
+    }
+    #endregion
+
+    #region File Operations
     public void Load()
     {
-        XDocument xDoc = XDocument.Load(Properties.Settings.Default.FilePath);
-
-        XElement rootElement = xDoc.Element(Properties.Resources.Root_XMI);
-
-        //get event
-        #region Event
-        XElement eventElement = rootElement.Element(Properties.Resources.Competition_XMI);
-        Competition = new Competition(xElement: eventElement);
-        #endregion
-
-        //get setting 
-        #region Setting
-        //XElement settingElement = rootElement.Element("Setting");
-        //AppSetting setting = new AppSetting(settingElement);
-        //dataService.Setting = setting;
-        #endregion
-
-        //get all the categories
-        #region Categories
-        IEnumerable<XElement> catElements = rootElement.Descendants(Properties.Resources.Category_XMI);
-        foreach (XElement catElement in catElements)
+        string filePath = GetFilePath();
+        if (string.IsNullOrEmpty(filePath))
         {
-            Category category = new Category(catElement);
-            if (Categories.Contains(category) == false)
-            {
-                Categories.Add(category);
-            }
-        }
-        Categories = Categories.OrderByDescending(cat => cat.AgeMin).ToList();
-        #endregion
-
-        //get all the clubs and licensee
-        #region Club and Licensee
-        IEnumerable<XElement> clubsElement = rootElement.Descendants(Properties.Resources.Club_XMI);
-        foreach (XElement clubElement in clubsElement)
-        {
-            Club club = new Club(clubElement);
-            club.Competition = Competition;
-            club.CompetitionId = Competition.Id;
-            Competition.Clubs.Add(club);
-
-            IEnumerable<XElement> athletesElement = clubElement.Descendants(Properties.Resources.Athlete_XMI);
-            IEnumerable<XElement> refereesElement = clubElement.Descendants(Properties.Resources.Referee_XMI);
-            foreach (XElement athElement in athletesElement)
-            {
-                Athlete licensee = new Athlete(athElement, Categories);
-                licensee.Club = club;
-                licensee.ClubId = club.Id;
-                Category category = Categories.Find(cat => cat.Id == licensee.CategoryId);
-                category.Athletes.Add(licensee);
-                licensee.Category = category;
-
-                club.AddLicensee(licensee);
-                Licensees.Add(licensee);
-                Athletes.Add(licensee);
-            }
-            foreach (XElement refElement in refereesElement)
-            {
-                Referee licensee = new Referee(refElement);
-                licensee.Club = club;
-                licensee.ClubId = club.Id;
-
-                club.AddLicensee(licensee);
-                Licensees.Add(licensee);
-                Referees.Add(licensee);
-            }
-            Clubs.Add(club);
-        }
-        #endregion
-
-        //get all the races and teams
-        #region Races and Teams
-        IEnumerable<XElement> racesElement = rootElement.Descendants(Properties.Resources.Race_XMI);
-
-        foreach (XElement raceElement in racesElement)
-        {
-            Race race = new Race(raceElement, Categories);
-            race.Competition = Competition;
-            race.CompetitionId = Competition.Id;
-
-            IEnumerable<XElement> indivTeamElement = raceElement.Descendants(Properties.Resources.IndividualTeam_XMI);
-            IEnumerable<XElement> relayTeamElement = raceElement.Descendants(Properties.Resources.RelayTeam_XMI);
-            IEnumerable<XElement> teamsElement = raceElement.Descendants(Properties.Resources.Team_XMI);
-            Team team = null;
-            foreach (XElement teamElement in indivTeamElement)
-            {
-                team = new IndividualTeam(teamElement, Athletes);
-                team.Race = race;
-                team.RaceId = race.Id;
-                race.AddTeam(team);
-                Teams.Add(team);
-            }
-            foreach (XElement teamElement in relayTeamElement)
-            {
-                team = new RelayTeam(teamElement, Athletes);
-                team.Race = race;
-                team.RaceId = race.Id;
-                race.AddTeam(team);
-                Teams.Add(team);
-            }
-
-            Races.Add(race);
+            throw new InvalidOperationException("No file path set. Call SetPath first.");
         }
 
-        #endregion
+        LoadFromFile(filePath);
+    }
 
-        //get disqualifications
-        #region Disqualifications
+    public void LoadFromFile(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+        {
+            throw new ArgumentException("File path cannot be null or empty", nameof(filePath));
+        }
 
-        // ImportExcelService.ImportDisqualification();
-        #endregion
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"XML file not found: {filePath}");
+        }
 
-        //Get all the SERCDefinition
-        #region SERCDefinitions
+        try
+        {
+            _logger.LogInformation("Loading XML from file: {FilePath}", filePath);
 
-        //IEnumerable<XElement> sercDefinitionsXElement = rootElement.Descendants(Properties.Resources.SERCDefinition_XMI);
-        //List<SERCDefinition> sercDefinitions = new List<SERCDefinition>();
+            // Reset existing data
+            Reset();
 
-        //foreach (XElement sercElement in sercDefinitionsXElement)
-        //{
-        //    SERCDefinition sercDefinition = new SERCDefinition(sercElement);
+            // Load XML document
+            var xDoc = XDocument.Load(filePath);
+            var rootElement = xDoc.Element(Properties.Resources.Root_XMI);
 
-        //    IEnumerable<XElement> sercCriteriasXElement = sercElement.Descendants(Properties.Resources.SERCCriteria_XMI);
-        //    foreach (XElement sercCriteriaElement in sercCriteriasXElement)
-        //    {
-        //        SERCCriteria sercCriteria = new SERCCriteria(sercCriteriaElement, sercDefinition);
-        //        sercDefinition.SERCCriterias.Add(sercCriteria);
-        //    }
+            if (rootElement == null)
+            {
+                throw new InvalidOperationException("Invalid XML format: Root element not found");
+            }
 
-        //    sercDefinitions.Add(sercDefinition);
-        //}
+            // Load competition
+            LoadCompetition(rootElement);
 
-        //dataService.SERCDefinitions = sercDefinitions;
-        #endregion
+            // Load categories
+            LoadCategories(rootElement);
 
-        //Get all the BeachProgram
-        #region BeachProgram
+            // Load clubs
+            LoadClubs(rootElement);
 
-        //IEnumerable<XElement> sercDefinitionsXElement = rootElement.Descendants(Properties.Resources.SERCDefinition_XMI);
-        //List<SERCDefinition> sercDefinitions = new List<SERCDefinition>();
-        //XElement beachProgramElement = rootElement.Element(Properties.Resources.BeachProgram_XMI);
-        //BeachProgram beachProgram = null;
+            // Load licensees (athletes and referees)
+            LoadLicensees(rootElement);
 
-        //if (beachProgramElement != null)
-        //{
-        //    beachProgram = new BeachProgram();
+            // Load races
+            LoadRaces(rootElement);
 
-        //    IEnumerable<XElement> beachProgramItemsXElement = rootElement.Descendants(Properties.Resources.BeachProgramItem_XMI);
+            // Load teams
+            LoadTeams(rootElement);
 
-        //    foreach (XElement beachProgramItemElement in beachProgramItemsXElement)
-        //    {
-        //        int raceId = int.Parse(beachProgramItemElement.Attribute(Properties.Resources.Race_XMI).Value);
-
-        //        int catId = 0;
-        //        int.TryParse(beachProgramItemElement.Attribute(Properties.Resources.Category_XMI).Value, out catId);
-
-        //        BeachProgramItem beachProgramItem = new BeachProgramItem(beachProgramItemElement, dataService.GetRaceById(raceId), dataService.GetCategoryById(catId));
-
-        //        IEnumerable<XElement> beachProgramDatasXElement = beachProgramItemElement.Descendants(Properties.Resources.BeachProgramData_XMI);
-
-        //        foreach (XElement beachProgramDataXElement in beachProgramDatasXElement)
-        //        {
-        //            BeachProgramData pData = new BeachProgramData(beachProgramDataXElement);
-
-        //            IEnumerable<XElement> beachProgramDetailsXElement = beachProgramDataXElement.Descendants(Properties.Resources.BeachProgramDetail_XMI);
-        //            foreach (XElement beachProgramDetailXElement in beachProgramDetailsXElement)
-        //            {
-        //                BeachProgramDetail pDetail = new BeachProgramDetail(beachProgramDetailXElement);
-
-        //                pData.BeachProgramDetails.Add(pDetail);
-        //            }
-
-        //            pData.Program = " [" + string.Join(";", pData.BeachProgramDetails.Select(pDetail => pDetail.NumberByHeat.ToString()).ToArray()) + "]";
-        //            pData.ProgramNumbers = pData.BeachProgramDetails.Select(pDetail => pDetail.NumberByHeat).ToArray();
-
-        //            beachProgramItem.BeachProgramDatas.Add(pData);
-        //        }
-
-        //        beachProgram.BeachProgramItems.Add(beachProgramItem);
-        //    }
-        //}
-        //dataService.BeachProgram = beachProgram;
-        #endregion
-
-        #region Schedule
-        //XElement scheduleElement = rootElement.Element(Properties.Resources.Schedule_XMI);
-        //Schedule schedule = null;
-        //if (scheduleElement != null)
-        //{
-        //    schedule = new Schedule(scheduleElement);
-
-        //    ScheduleDay scheduleDay = null;
-        //    ScheduleDetail scheduleDetail = null;
-
-        //    IEnumerable<XElement> scheduleDaysXElement = rootElement.Descendants(Properties.Resources.ScheduleDay_XMI);
-        //    foreach (XElement scheduleDayXElement in scheduleDaysXElement)
-        //    {
-        //        scheduleDay = new ScheduleDay(scheduleDayXElement, schedule);
-
-        //        IEnumerable<XElement> scheduleItemsXElement = scheduleDayXElement.Descendants(Properties.Resources.ScheduleItems_XMI);
-        //        foreach (XElement scheduleItemXElement in scheduleItemsXElement)
-        //        {
-        //            foreach (XElement sItemXElement in scheduleItemXElement.Descendants())
-        //            {
-        //                if (sItemXElement.Name == Properties.Resources.SwimScheduleItem_XMI)
-        //                {
-        //                    //IEnumerable<XElement> swimScheduleItemsXElement = sItemXElement.Descendants(Properties.Resources.SwimScheduleItem_XMI);
-        //                    //foreach (XElement swimScheduleItemXElement in swimScheduleItemsXElement)
-        //                    //{
-        //                    SwimScheduleItem scheduleItem = new SwimScheduleItem(sItemXElement, scheduleDay);
-
-        //                    IEnumerable<XElement> scheduleDetailsXElement = sItemXElement.Descendants(Properties.Resources.ScheduleDetails_XMI);
-        //                    foreach (XElement scheduleDetailXElement in scheduleDetailsXElement)
-        //                    {
-        //                        IEnumerable<XElement> xElements = scheduleDetailXElement.Elements();
-        //                        foreach (XElement xElement in xElements)
-        //                        {
-        //                            if (xElement.Name == Properties.Resources.SwimRaceScheduleDetail_XMI)
-        //                            {
-        //                                int raceId = int.Parse(xElement.Attribute(Properties.Resources.Race_XMI).Value);
-        //                                Race race = dataService.GetRaceById(raceId);
-
-        //                                int catId = 0;
-        //                                int.TryParse(xElement.Attribute(Properties.Resources.Category_XMI).Value, out catId);
-        //                                Category cat = dataService.GetCategoryById(catId);
-
-        //                                scheduleDetail = new SwimRaceScheduleDetail(xElement, scheduleItem, race, cat);
-        //                            }
-        //                            else if (xElement.Name == Properties.Resources.BreakScheduleDetail_XMI)
-        //                            {
-        //                                scheduleDetail = new BreakScheduleDetail(xElement, scheduleItem);
-        //                            }
-        //                            scheduleItem.ScheduleDetails.Add(scheduleDetail);
-        //                        }
-        //                    }
-        //                    scheduleDay.ScheduleItems.Add(scheduleItem);
-        //                    //}
-        //                }
-        //                else if (sItemXElement.Name == Properties.Resources.BeachScheduleItem_XMI)
-        //                {
-        //                    //IEnumerable<XElement> beachScheduleItemsXElement = sItemXElement.Descendants(Properties.Resources.BeachScheduleItem_XMI);
-
-        //                    //foreach (XElement beachScheduleItemXElement in beachScheduleItemsXElement)
-        //                    //{
-        //                    BeachScheduleItem beachScheduleItem = new BeachScheduleItem(sItemXElement, scheduleDay);
-
-        //                    IEnumerable<XElement> scheduleLocationsXElement = sItemXElement.Descendants(Properties.Resources.ScheduleLocation_XMI);
-        //                    foreach (XElement scheduleLocationXElement in scheduleLocationsXElement)
-        //                    {
-        //                        ScheduleLocation scheduleLocation = new ScheduleLocation(schLocationXElement: scheduleLocationXElement, beachItem: beachScheduleItem);
-
-        //                        IEnumerable<XElement> scheduleDetailsXElement = scheduleLocationXElement.Descendants(Properties.Resources.ScheduleDetails_XMI);
-        //                        foreach (XElement scheduleDetailXElement in scheduleDetailsXElement)
-        //                        {
-        //                            IEnumerable<XElement> xElements = scheduleDetailXElement.Elements();
-        //                            foreach (XElement xElement in xElements)
-        //                            {
-        //                                if (xElement.Name == Properties.Resources.BeachRaceScheduleDetail_XMI)
-        //                                {
-        //                                    int raceId = int.Parse(xElement.Attribute(Properties.Resources.Race_XMI).Value);
-        //                                    Race race = dataService.GetRaceById(raceId);
-
-        //                                    int catId = 0;
-        //                                    int.TryParse(xElement.Attribute(Properties.Resources.Category_XMI).Value, out catId);
-        //                                    Category cat = dataService.GetCategoryById(catId);
-
-        //                                    scheduleDetail = new BeachRaceScheduleDetail(beachRaceSchDetailXElement: xElement,
-        //                                                                                 item: beachScheduleItem,
-        //                                                                                 location: scheduleLocation,
-        //                                                                                 race: race,
-        //                                                                                 category: cat);
-        //                                }
-        //                                else if (xElement.Name == Properties.Resources.BreakScheduleDetail_XMI)
-        //                                {
-        //                                    scheduleDetail = new BreakScheduleDetail(xElement, beachScheduleItem);
-        //                                }
-
-        //                                scheduleLocation.ScheduleDetails.Add(scheduleDetail);
-        //                            }
-        //                        }
-
-        //                        beachScheduleItem.ScheduleLocations.Add(scheduleLocation);
-        //                    }
-
-        //                    scheduleDay.ScheduleItems.Add(beachScheduleItem);
-        //                    //}
-        //                }
-        //            }
-        //        }
-
-        //        schedule.ScheduleDays.Add(scheduleDay);
-        //    }
-        //}
-        //dataService.Schedule = schedule;
-
-        #endregion
-
-        //Get all the Meetings
-        #region Meetings
-        //IEnumerable<XElement> meetingsXElement = rootElement.Descendants(Properties.Resources.Meeting_XMI);
-        //Meetings meetings = new Meetings();
-        //foreach (XElement meetingElement in meetingsXElement)
-        //{
-        //    Meeting meeting = new Meeting(meetingElement);
-
-        //    IEnumerable<XElement> meetingElementsElement = meetingElement.Descendants(Properties.Resources.MeetingElement_XMI);
-        //    foreach (XElement mElementXElement in meetingElementsElement)
-        //    {
-        //        MeetingElement mElement = null;
-
-        //        if (meeting.MeetingType == SpecialityType.EauPlate)
-        //            mElement = new SwimMeetingElement(mElementXElement, meeting);
-        //        else
-        //            mElement = new BeachMeetingElement(mElementXElement, meeting);
-
-        //        IEnumerable<XElement> roundsElement = mElementXElement.Descendants(Properties.Resources.Round_XMI);
-        //        foreach (XElement roundXElement in roundsElement)
-        //        {
-        //            Category cat = null;
-        //            string catId = roundXElement.Attribute(Properties.Resources.Category_XMI).Value;
-        //            if (!String.IsNullOrEmpty(catId))
-        //                cat = dataService.GetCategoryById(int.Parse(catId));
-
-        //            Race race = dataService.GetRaceById(int.Parse(roundXElement.Attribute(Properties.Resources.Race_XMI).Value));
-        //            Round round = new Round(roundXElement, cat, mElement, race);
-        //            bool isSERC = race.Name.Contains("SERC");
-
-        //            mElement.AddRound(round);
-
-        //            IEnumerable<XElement> heatsElement = roundXElement.Descendants(Properties.Resources.Heat_XMI);
-        //            foreach (XElement heatXElement in heatsElement)
-        //            {
-        //                Heat heat = new Heat(heatXElement);
-
-        //                heat.Round = round;
-        //                IEnumerable<XElement> heatResultsElement = heatXElement.Descendants(Properties.Resources.HeatResult_XMI);
-        //                foreach (XElement heatResultXElement in heatResultsElement)
-        //                {
-        //                    int id = int.Parse(heatResultXElement.Attribute(Properties.Resources.Team_XMI).Value);
-        //                    Team team = (heat.IsFinalA || heat.IsFinalB) ? dataService.GetTeamById(id) : dataService.GetTeamByIdAndRace(id, mElement.Race);
-        //                    HeatResult heatResult = null;
-        //                    //Disqualification disq = dataService.GetDisqualificationByCode(heatResultXElement.Attribute(Properties.Resources.Disqualification_XMI).Value);
-        //                    if (isSERC)
-        //                    {
-        //                        Guid criteriaId = Guid.Parse(heatResultXElement.Attribute(Properties.Resources.SERCCriteria_XMI).Value);
-        //                        SERCCriteria criteria = dataService.GetSERCCriteriaById(criteriaId);
-
-        //                        heatResult = new SERCHeatResult(heatResultXElement, heat, team, criteria);
-        //                    }
-        //                    else if (race.RaceType == SpecialityType.EauPlate)
-        //                    {
-        //                        heatResult = new SwimHeatResult(heatResultXElement, heat, team);
-        //                    }
-        //                    else
-        //                    {
-        //                        heatResult = new BeachHeatResult(heatResultXElement, heat, team);
-        //                    }
-        //                    heat.HeatResults.Add(heatResult);
-        //                }
-
-        //                round.Heats.Add(heat);
-        //            }
-        //        }
-
-        //        meeting.MeetingElements.Add(mElement);
-        //    }
-        //    meetings.Add(meeting);
-        //}
-
-        ////Create link with related meeting
-        //foreach (XElement meetingXElement in meetingsXElement)
-        //{
-        //    Guid meetingId = Guid.Parse(meetingXElement.Attribute(Properties.Resources.Id_XMI).Value);
-        //    Meeting meeting = meetings.ToList().Find(m => m.Id.Equals(meetingId));
-
-        //    Meeting relatedMeeting = null;
-        //    if (meetingXElement.Attribute(Properties.Resources.RelatedMeeting_XMI).Value != string.Empty)
-        //    {
-        //        Guid relatedMeetingId = Guid.Parse(meetingXElement.Attribute(Properties.Resources.RelatedMeeting_XMI).Value);
-        //        relatedMeeting = meetings.ToList().Find(m => m.Id.Equals(relatedMeetingId));
-        //    }
-
-        //    meeting.RelatedMeeting = relatedMeeting;
-        //}
-        //dataService.Meetings = meetings;
-        #endregion
-        //dataService.Event = newEvent;
-
-        //if (Settings.Default.IsDesign)
-        //    DataAccessService.Instance.IsLoaded = true;
-        //Messenger.Default.Send(new IsDataLoadedMessage() { IsDataLoaded = true });
-        Loaded = true;
+            IsLoaded = true;
+            _logger.LogInformation("XML loaded successfully from: {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading XML from file: {FilePath}", filePath);
+            Reset();
+            throw;
+        }
     }
 
     public bool Save()
     {
-        if (Competition != null)
+        string xmlFile = GetFilePath();
+        if (string.IsNullOrEmpty(xmlFile))
         {
-            string xmlFile = Properties.Settings.Default.FilePath;
-            if (!String.IsNullOrEmpty(xmlFile) && !String.IsNullOrEmpty(xmlFile))
+            _logger.LogError("No file path set for saving");
+            return false;
+        }
+
+        if (_competition == null)
+        {
+            _logger.LogError("No competition data to save");
+            return false;
+        }
+
+        try
+        {
+            _logger.LogInformation("Saving XML to file: {FilePath}", xmlFile);
+
+            var xDoc = new XDocument(new XDeclaration("1.0", "utf-8", "true"));
+            var rootElement = new XElement(Properties.Resources.Root_XMI);
+
+            // Save competition
+            var competitionElement = _competition.WriteXml();
+            if (competitionElement != null)
             {
-                XDocument xDoc = new XDocument(
-                    new XDeclaration("1.0", "utf-8", "true")
-                    );
-
-                XElement rootXElem = new XElement(Properties.Resources.Root_XMI);
-
-                XElement eventXElem = Competition.WriteXml();
-                if (eventXElem != null)
-                    rootXElem.Add(eventXElem);
-                //XElement settingXElem = dataService.Setting.WriteXml();
-                //if (settingXElem != null)
-                //    rootXElem.Add(settingXElem);
-
-                //if (dataService.Schedule != null)
-                //{
-                //    XElement scheduleXElem = dataService.Schedule.WriteXml();
-                //    if (scheduleXElem != null)
-                //        rootXElem.Add(scheduleXElem);
-                //}
-                XElement catsXElem = new XElement(Properties.Resources.Categories_XMI);
-                foreach (Category category in Categories)
-                {
-                    XElement catXElem = category.WriteXml();
-                    if (catXElem != null)
-                        catsXElem.Add(catXElem);
-                }
-                rootXElem.Add(catsXElem);
-
-
-                XElement clubsXElem = new XElement(Properties.Resources.Clubs_XMI);
-                foreach (Club club in Clubs)
-                {
-                    XElement clubXElem = club.WriteXml();
-                    if (clubXElem != null)
-                        clubsXElem.Add(clubXElem);
-                }
-                rootXElem.Add(clubsXElem);
-
-                //XElement racesXElem = new XElement(Properties.Resources.Races_XMI);
-                //foreach (Race race in Races)
-                //{
-                //    XElement raceXElem = race.WriteXml();
-                //    if (raceXElem != null)
-                //        racesXElem.Add(raceXElem);
-                //}
-                //rootXElem.Add(racesXElem);
-
-
-                #region SERCDefinitions
-
-                //if (dataService.SERCDefinitions.Count > 0)
-                //{
-                //    XElement sercElement = new XElement(Properties.Resources.SERCDefinitions_XMI);
-                //    foreach (SERCDefinition definition in dataService.SERCDefinitions)
-                //    {
-                //        sercElement.Add(definition.WriteXml());
-                //    }
-
-                //    rootXElem.Add(sercElement);
-                //}
-                #endregion SERCDefinitions
-
-                #region BeachProgram
-
-                //if (dataService.BeachProgram != null)
-                //{
-                //    XElement beachProgramElement = dataService.BeachProgram.WriteXml();
-
-                //    rootXElem.Add(beachProgramElement);
-                //}
-                #endregion BeachProgram
-
-
-                //XElement meetingsXElem = dataService.Meetings.WriteXml();
-                //if (meetingsXElem != null)
-                //    rootXElem.Add(meetingsXElem);
-
-                xDoc.Add(rootXElem);
-
-                FileInfo fi = new FileInfo(xmlFile);
-                DirectoryInfo di = new DirectoryInfo(fi.DirectoryName);
-                if (!di.Exists)
-                {
-                    di.Create();
-                }
-
-                xDoc.Save(fi.FullName);
-                return true;
+                rootElement.Add(competitionElement);
             }
-            else
+
+            // Save categories
+            var categoriesElement = new XElement(Properties.Resources.Categories_XMI);
+            foreach (var category in _categories)
             {
-                return false;
-                throw new Exception("Error in Save()");// CustomException(Properties.Resources.CE08);
+                var categoryElement = category.WriteXml();
+                if (categoryElement != null)
+                {
+                    categoriesElement.Add(categoryElement);
+                }
+            }
+            rootElement.Add(categoriesElement);
+
+            // Save clubs
+            var clubsElement = new XElement(Properties.Resources.Clubs_XMI);
+            foreach (var club in _clubs)
+            {
+                var clubElement = club.WriteXml();
+                if (clubElement != null)
+                {
+                    clubsElement.Add(clubElement);
+                }
+            }
+            rootElement.Add(clubsElement);
+
+            // Save licensees
+            var licenseesElement = new XElement(Properties.Resources.Licensees_XMI);
+            foreach (var licensee in _licensees)
+            {
+                var licenseeElement = licensee.WriteXml();
+                if (licenseeElement != null)
+                {
+                    licenseesElement.Add(licenseeElement);
+                }
+            }
+            rootElement.Add(licenseesElement);
+
+            // Save races
+            var racesElement = new XElement(Properties.Resources.Races_XMI);
+            foreach (var race in _races)
+            {
+                var raceElement = race.WriteXml();
+                if (raceElement != null)
+                {
+                    racesElement.Add(raceElement);
+                }
+            }
+            rootElement.Add(racesElement);
+
+            // Save teams
+            var teamsElement = new XElement(Properties.Resources.Teams_XMI);
+            foreach (var team in _teams)
+            {
+                var teamElement = team.WriteXml();
+                if (teamElement != null)
+                {
+                    teamsElement.Add(teamElement);
+                }
+            }
+            rootElement.Add(teamsElement);
+
+            xDoc.Add(rootElement);
+
+            // Ensure directory exists
+            var fileInfo = new FileInfo(xmlFile);
+            if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
+            {
+                fileInfo.Directory.Create();
+            }
+
+            xDoc.Save(fileInfo.FullName);
+            _logger.LogInformation("XML saved successfully to: {FilePath}", xmlFile);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving XML to file: {FilePath}", xmlFile);
+            return false;
+        }
+    }
+
+    bool IXMLService.IsLoaded() => IsLoaded;
+    #endregion
+
+    #region Private Loading Methods
+    private void LoadCompetition(XElement rootElement)
+    {
+        var competitionElement = rootElement.Element(Properties.Resources.Competition_XMI);
+        if (competitionElement != null)
+        {
+            _competition = new Competition(xElement: competitionElement);
+            _logger.LogDebug("Competition loaded: {CompetitionName}", _competition.Name);
+        }
+    }
+
+    private void LoadCategories(XElement rootElement)
+    {
+        var categoryElements = rootElement.Descendants(Properties.Resources.Category_XMI);
+        foreach (var categoryElement in categoryElements)
+        {
+            try
+            {
+                var category = new Category(categoryElement);
+                if (!_categories.Contains(category))
+                {
+                    _categories.Add(category);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load category from XML element");
             }
         }
-        return false;
+
+        _categories.Sort(new CategoryComparer());
+        _logger.LogDebug("Loaded {Count} categories", _categories.Count);
     }
 
-    public bool IsLoaded()
+    private void LoadClubs(XElement rootElement)
     {
-        return Loaded;
+        var clubElements = rootElement.Descendants(Properties.Resources.Club_XMI);
+        foreach (var clubElement in clubElements)
+        {
+            try
+            {
+                var club = new Club(clubElement);
+                if (!_clubs.Contains(club))
+                {
+                    _clubs.Add(club);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load club from XML element");
+            }
+        }
+
+        _clubs.Sort(new ClubNameComparer());
+        _logger.LogDebug("Loaded {Count} clubs", _clubs.Count);
     }
+
+    private void LoadLicensees(XElement rootElement)
+    {
+        var licenseeElements = rootElement.Descendants(Properties.Resources.Licensee_XMI);
+        foreach (XElement licenseeElement in licenseeElements)
+        {
+            try
+            {
+                // Determine licensee type and create appropriate object
+                string? licenseeType = licenseeElement.Attribute("Type")?.Value;
+                Licensee licensee = licenseeType?.ToLower() switch
+                {
+                    "referee" => new Referee(licenseeElement),
+                    _ => new Athlete(licenseeElement, _categories)
+                };
+
+                if (!_licensees.Contains(licensee))
+                {
+                    _licensees.Add(licensee);
+
+                    // Add to specific collections
+                    switch (licensee)
+                    {
+                        case Athlete athlete:
+                            _athletes.Add(athlete);
+                            break;
+                        case Referee referee:
+                            _referees.Add(referee);
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load licensee from XML element");
+            }
+        }
+
+        _licensees.Sort(new LicenseeClubFullNameComparer());
+        _logger.LogDebug("Loaded {LicenseeCount} licensees ({AthleteCount} athletes, {RefereeCount} referees)",
+            _licensees.Count, _athletes.Count, _referees.Count);
+    }
+
+    private void LoadRaces(XElement rootElement)
+    {
+        var raceElements = rootElement.Descendants(Properties.Resources.Race_XMI);
+        foreach (var raceElement in raceElements)
+        {
+            try
+            {
+                var race = new Race(raceElement, _categories);
+                _races.Add(race);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load race from XML element");
+            }
+        }
+
+        _logger.LogDebug("Loaded {Count} races", _races.Count);
+    }
+
+    private void LoadTeams(XElement rootElement)
+    {
+        var teamElements = rootElement.Descendants(Properties.Resources.Team_XMI);
+        foreach (var teamElement in teamElements)
+        {
+            try
+            {
+                //var team = new Team(teamElement);
+                //_teams.Add(team);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load team from XML element");
+            }
+        }
+
+        _logger.LogDebug("Loaded {Count} teams", _teams.Count);
+    }
+    #endregion
 
 }

@@ -14,6 +14,8 @@ using RescueScoreManager.Services;
 using RescueScoreManager.Modules.Login;
 using CommunityToolkit.Mvvm.Input;
 using RescueScoreManager.Modules.SelectNewCompetition;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RescueScoreManager;
 
@@ -22,26 +24,18 @@ public partial class MainWindowViewModel : ObservableObject,
                                             IRecipient<IsBusyMessage>,
                                             IRecipient<SnackMessage>
 {
-    //private readonly RescueScoreManagerContext _context;
-
-    //This is using the source generators from CommunityToolkit.Mvvm to generate a RelayCommand
-    //See: https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/generators/observableproperty
-    //and: https://learn.microsoft.com/windows/communitytoolkit/mvvm/observableobject
-    //[ObservableProperty]
-    //[NotifyCanExecuteChangedFor(nameof(IncrementCountCommand))]
-    //private int _count;
-
     private readonly HomeViewModel _homeViewModel;
-    private readonly IApiService _apiService; 
+    private readonly IApiService _apiService;
     private readonly IAuthenticationService _authService;
-    private readonly IXMLService _xmlService; 
+    private readonly IXMLService _xmlService;
     private readonly ILocalizationService _localizationService;
     private readonly IDialogService _dialogService;
-
-    private IMessenger _messenger { get; }
+    private readonly IMessenger _messenger;
+    private readonly ILogger<MainWindowViewModel> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
-    private ObservableObject _currentViewModel;
+    private ObservableObject? _currentViewModel;
     [ObservableProperty]
     private bool _isBusy = false;
     [ObservableProperty]
@@ -55,43 +49,47 @@ public partial class MainWindowViewModel : ObservableObject,
     [ObservableProperty]
     private bool _isLoggedIn;
     [ObservableProperty] 
-    private string _userLabel;
+    private string _userLabel = "";
     [ObservableProperty]
-    private string _userRole;
+    private string _userRole = "";
     [ObservableProperty]
-    private string _userType;
+    private string _userType = "";
 
     public ObservableCollection<LanguageModel> AvailableLanguages => _localizationService.AvailableLanguages;
 
-    public MainWindowViewModel(HomeViewModel homeViewModel,
-                                IApiService apiService,
-                                IAuthenticationService authService,
-                                IXMLService xmlService,
-                                ILocalizationService localizationService,
-                                IDialogService dialogService,
-                                IMessenger messenger)//RescueScoreManagerContext context,
+    public MainWindowViewModel(
+        HomeViewModel homeViewModel,
+        IApiService apiService,
+        IAuthenticationService authService,
+        IXMLService xmlService,
+        ILocalizationService localizationService,
+        IDialogService dialogService,
+        IMessenger messenger,
+        ILogger<MainWindowViewModel> logger,
+        IServiceProvider serviceProvider)
     {
-        //_context = context;
-        _homeViewModel = homeViewModel;
+
+        _homeViewModel = homeViewModel ?? throw new ArgumentNullException(nameof(homeViewModel));
+        _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
+        _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
+        _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+        _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger)); 
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+
+
         _currentViewModel = homeViewModel;
-
-        _apiService = apiService;
-        _authService = authService;
-        _xmlService = xmlService;
-        _localizationService = localizationService;
-        _dialogService = dialogService;
-
-
-        _messenger = messenger;
         _snackbarMessageQueue = new SnackbarMessageQueue();
-
-        _currentLanguage = AvailableLanguages[0];
+        _currentLanguage = AvailableLanguages.FirstOrDefault() ?? new LanguageModel { DisplayName = "English", CultureCode = "en-US" };
 
         UpdateLogInfo();
+        messenger.Register<LoginMessage>(this);
+        messenger.Register<IsBusyMessage>(this);
+        messenger.Register<SnackMessage>(this);
 
-        messenger.RegisterAll(this);
-
-        // Check user connected
+        // Check existing authentication
         CheckExistingAuthAsync();
     }
 
@@ -101,8 +99,16 @@ public partial class MainWindowViewModel : ObservableObject,
     [RelayCommand]
     private void Logout()
     {
-        _authService.Logout();
-        UpdateLogInfo();
+        try
+        {
+            _authService.Logout();
+            UpdateLogInfo();
+            _logger.LogInformation("User logged out successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during logout");
+        }
     }
 
     #endregion Logout Command
@@ -110,14 +116,29 @@ public partial class MainWindowViewModel : ObservableObject,
     [RelayCommand]
     private void Login()
     {
-        var loginViewModel = new LoginViewModel(_authService,_messenger);
-        bool? result = _dialogService.ShowDialog(loginViewModel);
-
-        if (result == true)
+        try
         {
-            UpdateLogInfo();
+            // Create LoginViewModel through DI to get proper logger injection
+            var loginViewModel = _serviceProvider.GetRequiredService<LoginViewModel>();
+
+            // Use the specific ShowLoginView method instead of generic ShowDialog
+            bool? result = _dialogService.ShowLoginView(loginViewModel);
+
+            if (result == true)
+            {
+                UpdateLogInfo();
+                _logger.LogInformation("User logged in successfully");
+            }
+            else
+            {
+                _logger.LogInformation("Login was cancelled or failed");
+            }
         }
-        loginViewModel.OnRequestClose();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during login process");
+            SnackbarMessageQueue.Enqueue("Login error occurred. Please try again.");
+        }
 
     }
 
@@ -127,28 +148,36 @@ public partial class MainWindowViewModel : ObservableObject,
     #region Private functions
     private async void CheckExistingAuthAsync()
     {
-        bool isValid = await _authService.ValidateAndRefreshTokenAsync();
-
-        if (isValid)
+        try
         {
-            OnLoginSucceeded();
+            bool isValid = await _authService.ValidateAndRefreshTokenAsync();
+            if (isValid)
+            {
+                OnLoginSucceeded();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking existing authentication");
         }
     }
     private void OnLoginSucceeded()
     {
-        // Mettre à jour l'interface après connexion
         UpdateLogInfo();
-
-        // Ici, vous pourriez charger un autre ViewModel pour afficher le contenu après connexion
-        // Par exemple : CurrentViewModel = new DashboardViewModel();
+        _logger.LogInformation("Login succeeded, UI updated");
     }
 
     private void UpdateLogInfo()
     {
         IsLoggedIn = _authService.IsAuthenticated;
-        UserLabel = _authService.CurrentUser?.Label ?? $"{ResourceManagerLocalizationService.Instance.GetString("NotConnected")}";
+        UserLabel = _authService.CurrentUser?.Label ?? GetLocalizedString("NotConnected");
         UserRole = _authService.CurrentUser?.Role ?? "";
         UserType = _authService.CurrentUser?.Type ?? "";
+    }
+
+    private string GetLocalizedString(string key)
+    {
+        return ResourceManagerLocalizationService.Instance.GetString(key) ?? key;
     }
     #endregion Private functions
 
@@ -163,23 +192,29 @@ public partial class MainWindowViewModel : ObservableObject,
         UserRole = _authService.IsAuthenticated ? _authService.CurrentUser.Role : "";
         UserType = _authService.IsAuthenticated ? _authService.CurrentUser.Type : "";
         IsLoggedIn = _authService.IsAuthenticated;
+
+        UpdateLogInfo();
+        if (message.IsConnected)
+        {
+            SnackbarMessageQueue.Enqueue(GetLocalizedString("LoginSuccessful"));
+        }
     }
 
     public void Receive(IsBusyMessage message)
     {
         IsBusy = message.IsBusy;
-        BusyMessage = message.Text;
+        BusyMessage = message.Text ?? "";
     }
     public void Receive(SnackMessage message)
     {
         SetSnackBarMessage(message.Text);
     }
 
-    public void Receive(OpenCompetitionMessage message)
-    {
-        Title = Title + " " + _xmlService.GetCompetition().Name;
-        SetSnackBarMessage("Compétition chargée!");
-    }
+    //public void Receive(OpenCompetitionMessage message)
+    //{
+    //    Title = Title + " " + _xmlService.GetCompetition().Name;
+    //    SetSnackBarMessage("Compétition chargée!");
+    //}
 
     private void SetSnackBarMessage(string message, int duration = 3)
     {

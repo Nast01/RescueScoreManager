@@ -6,21 +6,28 @@ namespace RescueScoreManager.Services;
 
 public interface IXMLService
 {
-    public bool Save();
-    public void Load();
-    public void SetPath(string name);
-    public void SetPath(FileInfo file);
-    public string GetFilePath();
-    public string GetDirPath();
-    public bool IsLoaded();
-    public void Initialize(Competition competition, List<Category> categories, List<Club> Clubs, List<Licensee> licensees, List<Race> races, List<Team> teams);
-    public void Reset();
-    public Competition GetCompetition();
-    public List<Category> GetCategories();
-    public List<Club> GetClubs();
-    public List<Licensee> GetLicensees();
-    public List<Athlete> GetAthletes();
-    public List<Referee> GetReferees();
-    public List<Race> GetRaces();
-    public List<Team> GetTeams();
+    // File operations
+    bool Save();
+    void Load();
+    void LoadFromFile(string filePath);
+    void SetPath(string name);
+    void SetPath(FileInfo file);
+    string GetFilePath();
+    string GetDirPath();
+    bool IsLoaded();
+
+    // Data management
+    void Initialize(Competition competition, IEnumerable<Category> categories, IEnumerable<Club> clubs,
+                   IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams);
+    void Reset();
+
+    // Data access - using IReadOnlyList to fix CA1002
+    Competition? GetCompetition();
+    IReadOnlyList<Category> GetCategories();
+    IReadOnlyList<Club> GetClubs();
+    IReadOnlyList<Licensee> GetLicensees();
+    IReadOnlyList<Athlete> GetAthletes();
+    IReadOnlyList<Referee> GetReferees();
+    IReadOnlyList<Race> GetRaces();
+    IReadOnlyList<Team> GetTeams();
 }

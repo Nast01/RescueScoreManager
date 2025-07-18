@@ -10,12 +10,12 @@ public abstract partial class Licensee
     #region Attributes
     [Key]
     public int Id { get; set; }
-    public String LicenseeNumber { get; set; }
-    public String LastName { get; set; }
-    public String FirstName { get; set; }
+    public string LicenseeNumber { get; set; }
+    public string LastName { get; set; }
+    public string FirstName { get; set; }
     public int BirthYear { get; set; }
     public Gender Gender { get; set; }
-    public String? FullName { get { return String.Join(" ", LastName, FirstName); } }
+    public string? FullName { get { return string.Join(" ", LastName, FirstName); } }
     public bool IsLicensee { get; set; }
     public bool IsGuest { get; set; }
     public string Nationality { get; set; }

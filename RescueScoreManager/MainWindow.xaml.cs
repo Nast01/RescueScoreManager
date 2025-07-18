@@ -9,13 +9,10 @@ namespace RescueScoreManager;
 /// </summary>
 public partial class MainWindow
 {
-    public MainWindow(HomeViewModel homeViewModel)
+    public MainWindow(HomeViewModel viewModel)
     {
         InitializeComponent();
-        
-        //DataContext = viewModel;
-        //HomeView.DataContext = homeViewModel;
-
+        DataContext = viewModel;
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }
 
