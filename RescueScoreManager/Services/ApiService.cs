@@ -26,6 +26,7 @@ public class ApiService : IApiService, IDisposable
     private readonly HttpClient _httpClient;
     private readonly ILogger<ApiService> _logger;
     private readonly string _baseAddress;
+    private readonly string _version;
     private bool _disposed = false;
 
     // Data storage
@@ -42,13 +43,13 @@ public class ApiService : IApiService, IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Set base address based on environment
-        _baseAddress = Debugger.IsAttached ? "https://qual.ffss.fr/api/v1.0" : "https://ffss.fr/api/v1.0";
+        _baseAddress = Debugger.IsAttached ? "https://qual.ffss.fr/" : "https://ffss.fr/";
+        _version = "api/v1.0";
 
         // Create and configure HttpClient
         _httpClient = new HttpClient();
         _httpClient.BaseAddress = new Uri(_baseAddress);
         _httpClient.Timeout = TimeSpan.FromSeconds(30);
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "RescueScoreManager/1.0");
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
         Reset();
@@ -77,7 +78,11 @@ public class ApiService : IApiService, IDisposable
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
             var requestContent = new StringContent("", Encoding.UTF8, "application/json");
 
-            using var response = await _httpClient.PostAsync($"{endpoint}?{queryString}", requestContent);
+            // Log the full URL being constructed for debugging
+            string fullUrl = $"{_httpClient.BaseAddress}{endpoint}?{queryString}";
+            _logger.LogDebug("Making request to: {FullUrl}", fullUrl);
+
+            using var response = await _httpClient.PostAsync($"{_version}{endpoint}?{queryString}", requestContent);
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -93,16 +98,16 @@ public class ApiService : IApiService, IDisposable
             {
                 Success = jResponse["success"]?.Value<bool>() ?? false,
                 Message = jResponse["message"]?.Value<string>() ?? "Unknown error",
-                Token = jResponse["data"]?["token"]?.Value<string>() ?? string.Empty
+                Token = jResponse["token"]?.Value<string>() ?? string.Empty
             };
 
-            if (jResponse["data"]?["expiration"]?.Value<string>() is string expirationStr &&
+            if (jResponse["expiration"]?.Value<string>() is string expirationStr &&
                 DateTime.TryParse(expirationStr, out DateTime expiration))
             {
                 tokenResponse.Expiration = expiration;
             }
 
-            _logger.LogInformation("Token request completed successfully: {Success}", tokenResponse.Success);
+            _logger.LogInformation("Token request completed successfully: {Success}", tokenResponse.Token);
             return tokenResponse;
         }
         catch (HttpRequestException ex)
@@ -131,7 +136,7 @@ public class ApiService : IApiService, IDisposable
         {
             throw new ArgumentException("Token cannot be null or empty", nameof(token));
         }
-        const string endpoint = "/user/info";
+        const string endpoint = "/me";
         var queryParameters = new Dictionary<string, string>
         {
             { "token", token }
@@ -143,7 +148,7 @@ public class ApiService : IApiService, IDisposable
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
 
-            using var response = await _httpClient.GetAsync($"{endpoint}?{queryString}");
+            using var response = await _httpClient.GetAsync($"{_version}{endpoint}?{queryString}");
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -274,7 +279,7 @@ public class ApiService : IApiService, IDisposable
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
 
-            using var response = await _httpClient.GetAsync($"{endpoint}?{queryString}", cancellationToken);
+            using var response = await _httpClient.GetAsync($"{_version}{endpoint}?{queryString}", cancellationToken);
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -345,7 +350,7 @@ public class ApiService : IApiService, IDisposable
             _logger.LogDebug("Loading categories for competition: {CompetitionId}", competition.Id);
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
 
             using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -397,7 +402,7 @@ public class ApiService : IApiService, IDisposable
             _logger.LogDebug("Loading clubs for competition: {CompetitionId}", competition.Id);
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
 
             using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -452,7 +457,7 @@ public class ApiService : IApiService, IDisposable
             _logger.LogDebug("Loading licensees for competition: {CompetitionId}", competition.Id);
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
 
             using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -505,7 +510,7 @@ public class ApiService : IApiService, IDisposable
             _logger.LogDebug("Loading races for competition: {CompetitionId}", competition.Id);
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{endpoint}?{queryString}";
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
 
             using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -578,7 +583,7 @@ public class ApiService : IApiService, IDisposable
         {
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
 
-            using var response = await _httpClient.GetAsync($"{endpoint}?{queryString}", cancellationToken);
+            using var response = await _httpClient.GetAsync($"{_version}{endpoint}?{queryString}", cancellationToken);
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();

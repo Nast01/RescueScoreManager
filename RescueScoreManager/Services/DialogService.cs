@@ -27,7 +27,7 @@ public class DialogService : IDialogService
             _logger.LogInformation("Showing login dialog");
 
             var loginView = _serviceProvider.GetRequiredService<LoginView>();
-            return ShowDialogInternal(loginView, viewModel, "Login");
+            return ShowDialogInternal(loginView, viewModel, "Login",true,WindowStyle.None);
         }
         catch (Exception ex)
         {
@@ -88,7 +88,7 @@ public class DialogService : IDialogService
         return result;
     }
 
-    private bool? ShowDialogInternal<TView, TViewModel>(TView view, TViewModel viewModel, string dialogTitle, bool isModal = true)
+    private bool? ShowDialogInternal<TView, TViewModel>(TView view, TViewModel viewModel, string dialogTitle, bool isModal = true, WindowStyle windowStyle = WindowStyle.SingleBorderWindow)
         where TView : class
         where TViewModel : class
     {
@@ -108,7 +108,7 @@ public class DialogService : IDialogService
             Owner = Application.Current.MainWindow,
             ShowInTaskbar = false,
             ResizeMode = ResizeMode.CanResize,
-            WindowStyle = WindowStyle.SingleBorderWindow
+            WindowStyle = windowStyle
         };
 
         // Set the dialog window as a parameter for commands that need it

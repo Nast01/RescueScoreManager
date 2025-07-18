@@ -35,15 +35,18 @@ public partial class LoginViewModel : ObservableObject
     public event EventHandler? RequestClose;
     public event EventHandler? LoginSucceeded;
 
+    public IAsyncRelayCommand ValidateAsyncCommand { get; }
+
     public LoginViewModel(IAuthenticationService authenticationService, IMessenger messenger, ILogger<LoginViewModel> logger)
     {
         _authService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        ValidateAsyncCommand = new AsyncRelayCommand<object>(ValidateAsync);
+
     }
 
-    //[RelayCommand(CanExecute = nameof(CanValidate))]
-    [RelayCommand]
     public async Task ValidateAsync(object param)
     {
         try
