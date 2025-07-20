@@ -61,6 +61,8 @@ public partial class App : Application
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IExceptionHandlingService, ExceptionHandlingService>();
             services.AddSingleton<IValidationService, ValidationService>();
+            services.AddSingleton<IImageService, ImageService>();
+            services.AddSingleton<INetworkConnectivityService, NetworkConnectivityService>();
 
             // Main Window (Singleton)
             services.AddSingleton<MainWindow>();

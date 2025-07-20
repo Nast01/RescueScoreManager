@@ -160,6 +160,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à CapUrl.
+        /// </summary>
+        internal static string CapUrl_XMI {
+            get {
+                return ResourceManager.GetString("CapUrl_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Categories.
         /// </summary>
         internal static string Categories {
@@ -637,6 +646,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à LogoUrl.
+        /// </summary>
+        internal static string LogoUrl_XMI {
+            get {
+                return ResourceManager.GetString("LogoUrl_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Déconnexion.
         /// </summary>
         internal static string Logout {
@@ -660,6 +678,15 @@ namespace RescueScoreManager.Properties {
         internal static string Minutes {
             get {
                 return ResourceManager.GetString("Minutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Mixte.
+        /// </summary>
+        internal static string Mixte {
+            get {
+                return ResourceManager.GetString("Mixte", resourceCulture);
             }
         }
         
@@ -889,6 +916,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Rafraichir liste des compétitions.
+        /// </summary>
+        internal static string RefreshCompetitionList {
+            get {
+                return ResourceManager.GetString("RefreshCompetitionList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à RelayTeam.
         /// </summary>
         internal static string RelayTeam_XMI {
@@ -1020,6 +1056,15 @@ namespace RescueScoreManager.Properties {
         internal static string UnexpectedError {
             get {
                 return ResourceManager.GetString("UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Inconnu.
+        /// </summary>
+        internal static string Unknown {
+            get {
+                return ResourceManager.GetString("Unknown", resourceCulture);
             }
         }
         

@@ -2,22 +2,10 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RescueScoreManager.Constants;
 using RescueScoreManager.Data;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RescueScoreManager.Services;
 

@@ -31,6 +31,8 @@ public partial class Competition
     public int PriceByEntry { get; set; }
     public int PriceByClub { get; set; }
     public string Organizer { get; set; }
+    public string OrganizerLogoUrl { get; set; }
+    public string OrganizerCapUrl { get; set; }
     public int HeadRefereeId { get; set; }
     public CompetitionLevel Level { get; set; }
     public ICollection<Club> Clubs { get; } = new List<Club>();//one-to-many relationship
@@ -94,41 +96,45 @@ public partial class Competition
         PriceByEntry = int.Parse(xElement.Attribute(Properties.Resources.PriceByEntry_XMI).Value);
         PriceByClub = int.Parse(xElement.Attribute(Properties.Resources.PriceByClub_XMI).Value);
         Organizer = xElement.Attribute(Properties.Resources.Organizer_XMI).Value;
+        OrganizerLogoUrl = xElement.Attribute(Properties.Resources.LogoUrl_XMI).Value;
+        OrganizerCapUrl = xElement.Attribute(Properties.Resources.CapUrl_XMI).Value;
         HeadRefereeId = int.Parse(xElement.Attribute(Properties.Resources.HeadReferee_XMI).Value);
     }
 
     public Competition(JToken data)
     {
-        this.Id = data["Id"].Value<int>();
-        this.Status = (Status)Enum.Parse(typeof(Status), data["Statut"].Value<string>());
-        this.Level = (CompetitionLevel)data["Niveau"].Value<int>();
-        this.Name = TextHelper.CleanedText(TextHelper.RemoveDiacritics(data["Nom"].Value<string>())).Trim();
-        this.Description = data["Description"].Value<string>();
-        this.Location = data["Lieu"].Value<string>();
-        this.PriceByAthlete = data["TarifParAthlete"].Value<int>();
-        this.PriceByEntry = data["TarifParEngagement"].Value<int>();
-        this.PriceByClub = data["TarifParClub"].Value<int>();
+        Id = data["Id"].Value<int>();
+        Status = (Status)Enum.Parse(typeof(Status), data["Statut"].Value<string>());
+        Level = (CompetitionLevel)data["Niveau"].Value<int>();
+        Name = TextHelper.CleanedText(TextHelper.RemoveDiacritics(data["Nom"].Value<string>())).Trim();
+        Description = data["Description"].Value<string>();
+        Location = data["Lieu"].Value<string>();
+        PriceByAthlete = data["TarifParAthlete"].Value<int>();
+        PriceByEntry = data["TarifParEngagement"].Value<int>();
+        PriceByClub = data["TarifParClub"].Value<int>();
 
         DateTime beginDate;
-        DateTime.TryParse(data["Debut"].Value<String>(), out beginDate);
-        this.BeginDate = beginDate;
+        DateTime.TryParse(data["Debut"].Value<string>(), out beginDate);
+        BeginDate = beginDate;
         DateTime endDate;
-        DateTime.TryParse(data["Fin"].Value<String>(), out endDate);
-        this.EndDate = endDate;
+        DateTime.TryParse(data["Fin"].Value<string>(), out endDate);
+        EndDate = endDate;
         DateTime entryLimitDate;
-        DateTime.TryParse(data["DebutEngagement"].Value<String>(), out entryLimitDate);
-        this.EntryLimitDate = entryLimitDate;
+        DateTime.TryParse(data["DebutEngagement"].Value<string>(), out entryLimitDate);
+        EntryLimitDate = entryLimitDate;
 
-        this.Speciality = JsonHelper.GetSpecialityFromJsonValue(data["specialiteLabel"].Value<string>());
-        this.BeachType = JsonHelper.GetBeachTypeFromJsonValue(data["specialiteLabel"].Value<string>(), data["water"].Value<string>());
-        this.SwimType = JsonHelper.GetSwimTypeFromJsonValue(data["specialiteLabel"].Value<string>(), data["bassin"].Value<string>());
-        this.ChronoType = JsonHelper.GetChronoTypeFromJsonValue(data["chronoLabel"].Value<string>());
+        Speciality = JsonHelper.GetSpecialityFromJsonValue(data["specialiteLabel"].Value<string>());
+        BeachType = JsonHelper.GetBeachTypeFromJsonValue(data["specialiteLabel"].Value<string>(), data["water"].Value<string>());
+        SwimType = JsonHelper.GetSwimTypeFromJsonValue(data["specialiteLabel"].Value<string>(), data["bassin"].Value<string>());
+        ChronoType = JsonHelper.GetChronoTypeFromJsonValue(data["chronoLabel"].Value<string>());
 
-        this.IsEligibleToNationalRecord = data["isEligibleToNationalRecord"].Value<bool>();
+        IsEligibleToNationalRecord = data["isEligibleToNationalRecord"].Value<bool>();
 
-        this.Organizer = data["Organisme"]["NomOrga"].Value<string>();
-        
-        this.HeadRefereeId = data["officielPrincipal"].HasValues == false ? 0 : data["officielPrincipal"]["Id"].Value<int>();
+        Organizer = data["Organisme"]["NomOrga"].Value<string>();
+        OrganizerLogoUrl = data["Organisme"]["logo"].Value<string>();
+        OrganizerCapUrl = data["Organisme"]["bonnet"].Value<string>();
+
+        HeadRefereeId = data["officielPrincipal"].HasValues == false ? 0 : data["officielPrincipal"]["Id"].Value<int>();
     }
 
 
@@ -154,6 +160,8 @@ public partial class Competition
                                 new XAttribute(Properties.Resources.PriceByEntry_XMI, PriceByEntry),
                                 new XAttribute(Properties.Resources.PriceByClub_XMI, PriceByClub),
                                 new XAttribute(Properties.Resources.Organizer_XMI, Organizer),
+                                new XAttribute(Properties.Resources.LogoUrl_XMI, OrganizerLogoUrl),
+                                new XAttribute(Properties.Resources.CapUrl_XMI, OrganizerCapUrl),
                                 new XAttribute(Properties.Resources.HeadReferee_XMI, HeadRefereeId.ToString())
                             );
         return xElement;

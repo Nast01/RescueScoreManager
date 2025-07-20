@@ -8,8 +8,8 @@ public class ReverseBooleanToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var boolean = false;
-        if (value is bool) boolean = (bool)value;
+        bool boolean = false;
+        if (value is bool) { boolean = (bool)value; }
         return boolean ? Visibility.Collapsed : Visibility.Visible;
     }
 

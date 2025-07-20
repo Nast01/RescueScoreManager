@@ -2,10 +2,12 @@
 using System.Windows;
 using System.Windows.Controls;
 
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RescueScoreManager.Modules.Login;
 using RescueScoreManager.Modules.SelectNewCompetition;
+
 
 namespace RescueScoreManager.Services;
 
@@ -27,7 +29,7 @@ public class DialogService : IDialogService
             _logger.LogInformation("Showing login dialog");
 
             var loginView = _serviceProvider.GetRequiredService<LoginView>();
-            return ShowDialogInternal(loginView, viewModel, "Login",true,WindowStyle.None);
+            return ShowDialogInternal(loginView, viewModel, ResourceManagerLocalizationService.Instance.GetString("Login"), true,WindowStyle.None);
         }
         catch (Exception ex)
         {
@@ -43,7 +45,7 @@ public class DialogService : IDialogService
             _logger.LogInformation("Showing select new competition dialog");
 
             var selectCompetitionView = _serviceProvider.GetRequiredService<SelectNewCompetitionView>();
-            return ShowDialogInternal(selectCompetitionView, viewModel, "Select Competition");
+            return ShowDialogInternal(selectCompetitionView, viewModel, ResourceManagerLocalizationService.Instance.GetString("SelectCompetition"));
         }
         catch (Exception ex)
         {
@@ -107,7 +109,7 @@ public class DialogService : IDialogService
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Owner = Application.Current.MainWindow,
             ShowInTaskbar = false,
-            ResizeMode = ResizeMode.CanResize,
+            ResizeMode = ResizeMode.NoResize,
             WindowStyle = windowStyle
         };
 

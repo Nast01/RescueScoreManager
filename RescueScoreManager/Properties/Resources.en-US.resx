@@ -444,4 +444,19 @@
   <data name="Teams_XMI" xml:space="preserve">
     <value>Teams</value>
   </data>
+  <data name="RefreshCompetitionList" xml:space="preserve">
+    <value>Refresh Competition List</value>
+  </data>
+  <data name="LogoUrl_XMI" xml:space="preserve">
+    <value>LogoUrl</value>
+  </data>
+  <data name="CapUrl_XMI" xml:space="preserve">
+    <value>CapUrl</value>
+  </data>
+  <data name="Mixte" xml:space="preserve">
+    <value>Mixte</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
 </root>
