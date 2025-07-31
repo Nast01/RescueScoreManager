@@ -16,6 +16,8 @@ public interface IApiService
     bool GetIsLoaded();
     IReadOnlyList<Category> GetCategories();
     IReadOnlyList<Licensee> GetLicensees();
+    IReadOnlyList<Athlete> GetAthletes();
+    IReadOnlyList<Referee> GetReferees();
     IReadOnlyList<Club> GetClubs();
     IReadOnlyList<Race> GetRaces();
     IReadOnlyList<Team> GetTeams();

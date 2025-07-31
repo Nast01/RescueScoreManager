@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -22,6 +23,8 @@ public class ApiService : IApiService, IDisposable
     private Competition? _competition { get; set; }
     private List<Category> _categories { get; set; } = new();
     private List<Licensee> _licensees { get; set; } = new();
+    private List<Athlete> _athletes { get; set; } = new();
+    private List<Referee> _referees { get; set; } = new();
     private List<Club> _clubs { get; set; } = new();
     private List<Race> _races { get; set; } = new();
     private List<Team> _teams { get; set; } = new();
@@ -206,20 +209,13 @@ public class ApiService : IApiService, IDisposable
             // Set authentication header
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
 
-            // Load data in parallel where possible
-            var loadTasks = new List<Task>
-            {
-                LoadCategoriesAsync(competition, authenticationInfo, cancellationToken),
-                LoadClubsAsync(competition, authenticationInfo, cancellationToken),
-                LoadLicenseesAsync(competition, authenticationInfo, cancellationToken)
-            };
-
-            // Wait for core data to load
-            await Task.WhenAll(loadTasks);
-
             // Load dependent data
+
+            await LoadCategoriesAsync(competition, authenticationInfo, cancellationToken);
+            await LoadClubsAsync(competition, authenticationInfo, cancellationToken);
+            await LoadLicenseesAsync(competition, authenticationInfo, cancellationToken);
             await LoadRacesAsync(competition, authenticationInfo, cancellationToken);
-            await LoadTeamsAsync(competition, authenticationInfo, cancellationToken);
+            //await LoadTeamsAsync(competition, authenticationInfo, cancellationToken);
 
             _isLoaded = true;
             _logger.LogInformation("Data load completed successfully for competition: {CompetitionName}", competition.Name);
@@ -330,7 +326,7 @@ public class ApiService : IApiService, IDisposable
 
         if (authenticationInfo.IsTokenValid)
         {
-            queryParameters.Add("token", authenticationInfo.Token);
+            queryParameters.Add("token", authenticationInfo.Token!);
         }
 
         try
@@ -377,12 +373,12 @@ public class ApiService : IApiService, IDisposable
 
     private async Task LoadClubsAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
     {
-        string endpoint = $"/competition/evenement/{competition.Id}/clubs";
+        string endpoint = $"/competition/evenement/{competition.Id}/organismes";
         var queryParameters = new Dictionary<string, string>();
 
         if (authenticationInfo.IsTokenValid)
         {
-            queryParameters.Add("token", authenticationInfo.Token);
+            queryParameters.Add("token", authenticationInfo.Token!);
         }
 
         try
@@ -390,8 +386,10 @@ public class ApiService : IApiService, IDisposable
             _logger.LogDebug("Loading clubs for competition: {CompetitionId}", competition.Id);
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}";
 
+            // Set authentication header
+            //_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
             using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
 
@@ -409,6 +407,7 @@ public class ApiService : IApiService, IDisposable
                         bool isForeignClub = (idClub == 245);
 
                         var club = new Club(clubData, isForeignClub);
+                        club.Competition = competition;
                         _clubs.Add(club);
                     }
                     catch (Exception ex)
@@ -432,49 +431,13 @@ public class ApiService : IApiService, IDisposable
 
     private async Task LoadLicenseesAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
     {
-        string endpoint = $"/competition/evenement/{competition.Id}/licensees";
-        var queryParameters = new Dictionary<string, string>();
-
-        if (authenticationInfo.IsTokenValid)
-        {
-            queryParameters.Add("token", authenticationInfo.Token);
-        }
-
         try
         {
             _logger.LogDebug("Loading licensees for competition: {CompetitionId}", competition.Id);
 
-            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
-
-            using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
-
-            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
-            {
-                _licensees.Clear();
-                foreach (var licenseeData in jData.Children())
-                {
-                    try
-                    {
-
-                        Referee referee = new Referee(licenseeData, competition.BeginDate);
-                        _licensees.Add(referee);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to parse licensee data: {LicenseeData}", licenseeData);
-                    }
-                }
-                _logger.LogDebug("Loaded {LicenseeCount} licensees", _licensees.Count);
-            }
-            else
-            {
-                _logger.LogWarning("Licensees API returned unsuccessful response");
-            }
+            await LoadAthletesAsync(competition, authenticationInfo, cancellationToken);
+            await LoadRefereesAsync(competition, authenticationInfo, cancellationToken);
+            
         }
         catch (Exception ex)
         {
@@ -483,9 +446,156 @@ public class ApiService : IApiService, IDisposable
         }
     }
 
+    private async Task LoadAthletesAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
+    {
+        string endpoint = $"/competition/evenement/{competition.Id}/participants";
+        var queryParameters = new Dictionary<string, string>();
+
+        try
+        {
+            if (authenticationInfo.IsTokenValid)
+            {
+                queryParameters.Add("token", authenticationInfo.Token!);
+
+
+                _logger.LogDebug("Loading Athletes for competition: {CompetitionId}", competition.Id);
+
+                string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+                string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
+
+                using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
+                response.EnsureSuccessStatusCode();
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+                if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
+                {
+                    _licensees.Clear();
+                    List<Club> clubs = GetClubs().ToList<Club>();
+                    foreach (var licenseeData in jData.Children())
+                    {
+                        try
+                        {
+
+                            Athlete athlete = new Athlete(licenseeData);
+                            Club? club = clubs.Find(c => c.Id == licenseeData["idClub"]!.Value<int>());
+                            if (club != null)
+                            {
+                                athlete.Club = club;
+                                athlete.ClubId = club.Id;
+                                club.AddLicensee(athlete);
+                            }
+                            else
+
+                            {
+                                // Handle the case where club is not found
+                                _logger.LogDebug("No club for Athlete : {AthleteFullName}", athlete.FullName);
+
+                                throw new InvalidOperationException("Club not found");
+                            }
+
+
+                            _licensees.Add(athlete);
+                            _athletes.Add(athlete);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse athletes data");
+                        }
+                    }
+                    _logger.LogDebug("Loaded {LicenseeCount} athletes", _athletes.Count);
+                }
+                else
+                {
+                    _logger.LogWarning("Athletes API returned unsuccessful response");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading athletes for competition: {CompetitionId}", competition.Id);
+            throw;
+        }
+    }
+    private async Task LoadRefereesAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
+    {
+        string endpoint = $"/competition/evenement/{competition.Id}/officiels";
+        var queryParameters = new Dictionary<string, string>();
+
+        try
+        {
+            if (authenticationInfo.IsTokenValid)
+            {
+                queryParameters.Add("token", authenticationInfo.Token!);
+
+
+                _logger.LogDebug("Loading Referees for competition: {CompetitionId}", competition.Id);
+
+                string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+                string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
+
+                using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
+                response.EnsureSuccessStatusCode();
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+                if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
+                {
+                    _licensees.Clear();
+                    List<Club> clubs = GetClubs().ToList<Club>();
+                    foreach (var licenseeData in jData.Children())
+                    {
+                        try
+                        {
+
+                            Referee referee = new Referee(licenseeData, competition.BeginDate);
+                            int idOrganisme = licenseeData["IdOrganisme"]!.Value<int>();
+                            int idClub = licenseeData["idOfficielClub"]!.Value<int>();
+                            Club? club = clubs.Find(c => c.Id == idClub);
+                            
+                            if (club != null)
+                            {
+                                referee.Club = club;
+                                club.AddLicensee(referee);
+                            }
+                            else
+
+                            {
+                                // Handle the case where club is not found
+                                _logger.LogDebug("No club for Referee : {AthleteFullName}", referee.FullName);
+
+                                throw new InvalidOperationException("Club not found");
+                            }
+
+
+                            _licensees.Add(referee);
+                            _referees.Add(referee);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse referees data: {LicenseeData}", licenseeData);
+                        }
+                    }
+                    _logger.LogDebug("Loaded {LicenseeCount} athletes", _referees.Count);
+                }
+                else
+                {
+                    _logger.LogWarning("Referees API returned unsuccessful response");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading athletes for competition: {CompetitionId}", competition.Id);
+            throw;
+        }
+    }
+
     private async Task LoadRacesAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
     {
-        string endpoint = $"/competition/evenement/{competition.Id}/races";
+        string endpoint = $"/competition/epreuve";
         var queryParameters = new Dictionary<string, string>();
 
         if (authenticationInfo.IsTokenValid)
@@ -608,6 +718,8 @@ public class ApiService : IApiService, IDisposable
     public bool GetIsLoaded() => _isLoaded;
     public IReadOnlyList<Category> GetCategories() => _categories.AsReadOnly();
     public IReadOnlyList<Licensee> GetLicensees() => _licensees.AsReadOnly();
+    public IReadOnlyList<Athlete> GetAthletes() => _athletes.AsReadOnly();
+    public IReadOnlyList<Referee> GetReferees() => _referees.AsReadOnly();
     public IReadOnlyList<Club> GetClubs() => _clubs.AsReadOnly();
     public IReadOnlyList<Race> GetRaces() => _races.AsReadOnly();
     public IReadOnlyList<Team> GetTeams() => _teams.AsReadOnly();

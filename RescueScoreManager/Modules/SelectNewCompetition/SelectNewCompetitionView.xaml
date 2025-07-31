@@ -377,7 +377,7 @@
               Margin="8"
               Visibility="{Binding IsLoading, Converter={StaticResource ReverseBoolToVisConverter}}"
               ItemsSource="{Binding Competitions}"
-              SelectedItem="{Binding SelectedCompetition.Competition, Mode=TwoWay}"
+              SelectedItem="{Binding SelectedCompetitionDetail, Mode=TwoWay}"
               ItemTemplate="{StaticResource CompetitionItemTemplate}"
               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
               ScrollViewer.VerticalScrollBarVisibility="Auto"

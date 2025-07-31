@@ -147,13 +147,13 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         {
             _messenger.Send(new IsBusyMessage(true, GetLocalizedString("DataLoadingInfo")));
             // TODO TO BE UPDATED
-            // await _apiService.LoadAsync(competition, _authService.AuthenticationInfo);
+            await _apiService.LoadAsync(competition, _authService.AuthenticationInfo);
 
             _messenger.Send(new IsBusyMessage(true, GetLocalizedString("FileCreationInfo")));
 
             _xmlService.SetPath(competition.Name);
-            //_xmlService.Initialize(competition, _apiService.GetCategories(), _apiService.GetClubs(),
-            //                    _apiService.GetLicensees(), _apiService.GetRaces(), _apiService.GetTeams());
+            _xmlService.Initialize(competition, _apiService.GetCategories(), _apiService.GetClubs(),
+                                _apiService.GetLicensees(), _apiService.GetRaces(), _apiService.GetTeams());
             _xmlService.Save();
             _xmlService.Reset();
             _xmlService.Load();

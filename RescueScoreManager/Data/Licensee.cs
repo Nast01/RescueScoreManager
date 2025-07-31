@@ -21,6 +21,8 @@ public abstract partial class Licensee
     public string Nationality { get; set; }
     public string NationalityCode { get; set; }
 
+    public bool IsValid { get; set; }
+
     //one-to-many relationship to Club
     public int ClubId { get; set; } // Required foreign key property
     public Club Club { get; set; } = null!; // Required reference navigation to principal

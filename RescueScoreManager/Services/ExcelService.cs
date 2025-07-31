@@ -256,10 +256,10 @@ public class ExcelService : IExcelService
 
                         ++column;
 
-                        if (athlete.Category != null)
-                            worksheet.Cell(row, column).Value = athlete.Category.Name;
-                        else
-                            worksheet.Cell(row, column).Value = String.Empty;
+                        //if (athlete.Category != null)
+                        //    worksheet.Cell(row, column).Value = athlete.Category.Name;
+                        //else
+                        //    worksheet.Cell(row, column).Value = String.Empty;
 
                         worksheet.Cell(row, column).Style.Font.FontSize = NORMALSIZE;
 
@@ -284,7 +284,7 @@ public class ExcelService : IExcelService
                             worksheet.Cell(row, 2).Value = athlete.FullName;
                             worksheet.Cell(row, 2).Style.Font.FontSize = NORMALSIZE;
 
-                            worksheet.Cell(row, 3).Value = athlete.Category.Name;
+                            //worksheet.Cell(row, 3).Value = athlete.Category.Name;
                             worksheet.Cell(row, 3).Style.Font.FontSize = NORMALSIZE;
 
                             ++row;
@@ -348,10 +348,10 @@ public class ExcelService : IExcelService
 
                         ++column;
                         worksheet.Cell(row, column).Value = "";
-                        if (athlete.Category != null)
-                        {
-                            worksheet.Cell(row, column).Value = athlete.Category.Name;
-                        }
+                        //if (athlete.Category != null)
+                        //{
+                        //    worksheet.Cell(row, column).Value = athlete.Category.Name;
+                        //}
 
                         worksheet.Cell(row, column).Style.Font.FontSize = NORMALSIZE;
 
@@ -372,10 +372,10 @@ public class ExcelService : IExcelService
                             worksheet.Cell(row, 2).Style.Font.FontSize = NORMALSIZE;
 
                             worksheet.Cell(row, 3).Value = "";
-                            if (athlete.Category != null)
-                            {
-                                worksheet.Cell(row, 3).Value = athlete.Category.Name;
-                            }
+                            //if (athlete.Category != null)
+                            //{
+                            //    worksheet.Cell(row, 3).Value = athlete.Category.Name;
+                            //}
                             worksheet.Cell(row, 3).Style.Font.FontSize = NORMALSIZE;
 
                             ++row;

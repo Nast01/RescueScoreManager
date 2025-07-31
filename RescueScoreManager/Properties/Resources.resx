@@ -459,4 +459,13 @@
   <data name="Unknown" xml:space="preserve">
     <value>Inconnu</value>
   </data>
+  <data name="IsValid_XMI" xml:space="preserve">
+    <value>IsValid</value>
+  </data>
+  <data name="DataLoadedSuccess" xml:space="preserve">
+    <value>Données chargées avec succès</value>
+  </data>
+  <data name="NationalityCode_XMI" xml:space="preserve">
+    <value>NationalityCode</value>
+  </data>
 </root>

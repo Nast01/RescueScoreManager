@@ -29,11 +29,11 @@ public partial class IndividualTeam : Team
 
         string licNumber = jData["athletes"][0]["NumeroLicence"].Value<string>() == "INV" ? jData["athletes"][0]["idInvite"].Value<string>() : jData["athletes"][0]["NumeroLicence"].Value<string>();
         //Athlete = lics.Find(l => l.Id == licNumber) as Athlete;
-        Category category = categories.Find(cat => cat.Id == jData["categorie"]["Id"].Value<int>());
-        Athlete.Category = category; 
-        Athlete.CategoryId = category.Id;
-        if (category.Athletes.Contains(Athlete) == false)
-            category.Athletes.Add(Athlete);
+        //Category category = categories.Find(cat => cat.Id == jData["categorie"]["Id"].Value<int>());
+        //Athlete.Category = category; 
+        //Athlete.CategoryId = category.Id;
+        //if (category.Athletes.Contains(Athlete) == false)
+        //    category.Athletes.Add(Athlete);
 
         Athlete.IndividualTeams.Add(this);
     }

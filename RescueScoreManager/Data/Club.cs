@@ -35,15 +35,15 @@ public partial class Club
         {
             Id = data["Id"].Value<int>();
             Name = data["label"].Value<string>();
-            LogoUrl = data["logo"].Value<string>();
-            CapUrl = data["bonnet"].Value<string>();
+            LogoUrl = data["logo"] == null ? "" : data["logo"].Value<string>();
+            CapUrl = data["bonnet"] == null ? "" : data["bonnet"].Value<string>();
         }
         else
         {
             Id = data["athletes"][0]["idClub"].Value<int>();
             Name = data["athletes"][0]["clubLabel"].Value<string>();
-            LogoUrl = data["logo"].Value<string>();
-            CapUrl = data["bonnet"].Value<string>();
+            LogoUrl = data["logo"] == null ? "" : data["logo"].Value<string>();
+            CapUrl = data["bonnet"] == null ? "" : data["bonnet"].Value<string>();
         }
     }
 
@@ -63,8 +63,8 @@ public partial class Club
         XElement xElement = new XElement(Properties.Resources.Club_XMI,
                             new XAttribute(Properties.Resources.Id_XMI, Id),
                             new XAttribute(Properties.Resources.Name_XMI, Name),
-                            new XAttribute(Properties.Resources.LogoUrl_XMI, Name),
-                            new XAttribute(Properties.Resources.CapUrl_XMI, Name)
+                            new XAttribute(Properties.Resources.LogoUrl_XMI, LogoUrl),
+                            new XAttribute(Properties.Resources.CapUrl_XMI, CapUrl)
                             );
         foreach (Licensee licensee in Licensees)
         {

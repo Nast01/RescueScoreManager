@@ -57,13 +57,6 @@ public class RescueScoreManagerContext : DbContext
             .HasValue<IndividualTeam>("Individual")
             .HasValue<RelayTeam>("Relay");
 
-        //Configure Category-Athletes One-to-Many relation
-        modelBuilder.Entity<Category>()
-            .HasMany(c => c.Athletes)
-            .WithOne(l => l.Category)
-            .HasForeignKey(l => l.CategoryId)
-            .IsRequired(true);
-
         //Configure Category-Round One-to-Many relation
         modelBuilder.Entity<Category>()
             .HasMany(c => c.Rounds)

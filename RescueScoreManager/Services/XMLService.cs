@@ -315,7 +315,7 @@ public class XMLService : IXMLService
             }
             rootElement.Add(categoriesElement);
 
-            // Save clubs
+            // Save clubs & licensees
             var clubsElement = new XElement(Properties.Resources.Clubs_XMI);
             foreach (var club in _clubs)
             {
@@ -328,16 +328,16 @@ public class XMLService : IXMLService
             rootElement.Add(clubsElement);
 
             // Save licensees
-            var licenseesElement = new XElement(Properties.Resources.Licensees_XMI);
-            foreach (var licensee in _licensees)
-            {
-                var licenseeElement = licensee.WriteXml();
-                if (licenseeElement != null)
-                {
-                    licenseesElement.Add(licenseeElement);
-                }
-            }
-            rootElement.Add(licenseesElement);
+            //var licenseesElement = new XElement(Properties.Resources.Licensees_XMI);
+            //foreach (var licensee in _licensees)
+            //{
+            //    var licenseeElement = licensee.WriteXml();
+            //    if (licenseeElement != null)
+            //    {
+            //        licenseesElement.Add(licenseeElement);
+            //    }
+            //}
+            //rootElement.Add(licenseesElement);
 
             // Save races
             var racesElement = new XElement(Properties.Resources.Races_XMI);
@@ -445,38 +445,57 @@ public class XMLService : IXMLService
 
     private void LoadLicensees(XElement rootElement)
     {
-        var licenseeElements = rootElement.Descendants(Properties.Resources.Licensee_XMI);
-        foreach (XElement licenseeElement in licenseeElements)
+        var athleteElements = rootElement.Descendants(Properties.Resources.Athlete_XMI);
+        foreach (XElement athleteElement in athleteElements)
         {
             try
             {
-                // Determine licensee type and create appropriate object
-                string? licenseeType = licenseeElement.Attribute("Type")?.Value;
-                Licensee licensee = licenseeType?.ToLower() switch
-                {
-                    "referee" => new Referee(licenseeElement),
-                    _ => new Athlete(licenseeElement, _categories)
-                };
+                Athlete athlete = new Athlete(athleteElement, _categories);
 
-                if (!_licensees.Contains(licensee))
+                if (!_licensees.Contains(athlete))
                 {
-                    _licensees.Add(licensee);
-
-                    // Add to specific collections
-                    switch (licensee)
+                    int clubId = int.Parse(athleteElement.Parent.Attribute(Properties.Resources.Id_XMI).Value);
+                    Club club = GetClubs().ToList().Find(c => c.Id == clubId);
+                    if (club != null)
                     {
-                        case Athlete athlete:
-                            _athletes.Add(athlete);
-                            break;
-                        case Referee referee:
-                            _referees.Add(referee);
-                            break;
+                        club.AddLicensee(athlete);
+                        athlete.Club = club;
+                        athlete.ClubId = clubId;
+                        _licensees.Add(athlete);
+                        _athletes.Add(athlete);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to load licensee from XML element");
+                _logger.LogWarning(ex, "Failed to load athletes from XML element");
+            }
+        }
+
+        var refereeElements = rootElement.Descendants(Properties.Resources.Referee_XMI);
+        foreach (XElement refereeElement in refereeElements)
+        {
+            try
+            {
+                Referee referee = new Referee(refereeElement);
+
+                if (!_licensees.Contains(referee))
+                {
+                    int clubId = int.Parse(refereeElement.Parent.Attribute(Properties.Resources.Id_XMI).Value);
+                    Club? club = GetClubs().ToList().Find(c => c.Id == clubId);
+                    if (club != null)
+                    {
+                        club.AddLicensee(referee);
+                        referee.Club = club;
+                        referee.ClubId = clubId;
+                        _licensees.Add(referee);
+                        _referees.Add(referee);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load referees from XML element");
             }
         }
 

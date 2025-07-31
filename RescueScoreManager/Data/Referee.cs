@@ -34,26 +34,23 @@ public partial class Referee : Licensee
     public Referee(JToken? data, DateTime beginDate)
     {
         Id = data["Id"].Value<int>();
-        LicenseeNumber = data["NumeroLicence"].Value<string>();
-        LastName = data["Nom"].Value<string>();
         FirstName = data["Prenom"].Value<string>();
-        BirthYear = data["Annee"].Value<int>();
-        Gender = JsonHelper.GetGenderFromJsonValue(data["Sexe"].Value<string>());
-
+        LastName = data["Nom"].Value<string>();
         IsLicensee = data["isLicencie"].Value<bool>();
         IsGuest = data["isInvite"].Value<bool>();
+        LicenseeNumber = data["NumeroLicence"].Value<string>();
+        Gender = JsonHelper.GetGenderFromJsonValue(data["Sexe"].Value<string>());
+        BirthYear = data["Annee"].Value<int>();
+
 
         RefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), data["Niveau"].Value<string>());
         MaxRefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), data["NiveauMax"].Value<string>());
         IsPrincipal = data["Principal"].Value<bool>();
 
-        Nationality = data["nationaliteCode"].Value<string>();
+        NationalityCode = data["nationaliteCode"].Value<string>();
         Nationality = data["nationaliteLabel"].Value<string>();
 
-        //ClubId
-        //Club    
-        
-
+        IsValid = data["isValid"].Value<bool>();
 
         JArray? days = data["Jours"] as JArray;
         if (days != null)
@@ -80,6 +77,7 @@ public partial class Referee : Licensee
         IsGuest = bool.Parse(xElement.Attribute(Properties.Resources.IsGuest_XMI).Value);
         Nationality = xElement.Attribute(Properties.Resources.Nationality_XMI).Value;
         RefereeLevel = (RefereeLevel)Enum.Parse(typeof(RefereeLevel), xElement.Attribute(Properties.Resources.Level_XMI).Value);
+        IsValid = bool.Parse(xElement.Attribute(Properties.Resources.IsValid_XMI).Value);
 
         string[] availabilities = xElement.Attribute(Properties.Resources.Availabilities_XMI).Value.Split(" ");
         foreach (string date in availabilities)
@@ -108,7 +106,8 @@ public partial class Referee : Licensee
                                 new XAttribute(Properties.Resources.Nationality_XMI, Nationality),
                                 new XAttribute(Properties.Resources.Level_XMI, RefereeLevel),
                                 new XAttribute(Properties.Resources.MaxLevel_XMI, MaxRefereeLevel),
-                                new XAttribute(Properties.Resources.Availabilities_XMI, RefereeAvailabilitiesLabel)
+                                new XAttribute(Properties.Resources.Availabilities_XMI, RefereeAvailabilitiesLabel),
+                                new XAttribute(Properties.Resources.IsValid_XMI, IsValid)
                             );
     }
     #endregion  

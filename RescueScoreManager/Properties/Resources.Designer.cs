@@ -295,6 +295,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Données chargées avec succès.
+        /// </summary>
+        internal static string DataLoadedSuccess {
+            get {
+                return ResourceManager.GetString("DataLoadedSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Chargement des données.
         /// </summary>
         internal static string DataLoadingInfo {
@@ -556,6 +565,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à IsValid.
+        /// </summary>
+        internal static string IsValid_XMI {
+            get {
+                return ResourceManager.GetString("IsValid_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à LastName.
         /// </summary>
         internal static string LastName_XMI {
@@ -714,6 +732,15 @@ namespace RescueScoreManager.Properties {
         internal static string Nationality_XMI {
             get {
                 return ResourceManager.GetString("Nationality_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à NationalityCode.
+        /// </summary>
+        internal static string NationalityCode_XMI {
+            get {
+                return ResourceManager.GetString("NationalityCode_XMI", resourceCulture);
             }
         }
         

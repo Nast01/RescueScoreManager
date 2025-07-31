@@ -22,11 +22,11 @@ public static class JsonHelper
     public static Speciality GetSpecialityFromJsonValue(string specialityValue)
     {
         Speciality speciality = Speciality.Mixte;
-        if (String.Compare(specialityValue, "Eau-plate") == 0)
+        if (string.Compare(specialityValue, "Eau-plate") == 0)
         {
             speciality = Speciality.EauPlate;
         }
-        else if (String.Compare(specialityValue, "Côtier") == 0)
+        else if (string.Compare(specialityValue, "Côtier") == 0)
         {
             speciality = Speciality.Cotier;
         }
@@ -41,14 +41,14 @@ public static class JsonHelper
     public static BeachType GetBeachTypeFromJsonValue(string specialityValue,string beachTypeValue)
     {
         BeachType beachType = BeachType.Lac;
-        if (String.Compare(specialityValue, "Côtier") == 0
-            || String.Compare(specialityValue, "Mixte") == 0)
+        if (string.Compare(specialityValue, "Côtier") == 0
+            || string.Compare(specialityValue, "Mixte") == 0)
         {
-            if (String.Compare(beachTypeValue, "Lac") == 0)
+            if (string.Compare(beachTypeValue, "Lac") == 0)
             {
                 beachType = BeachType.Lac;
             }
-            else if (String.Compare(beachTypeValue, "Ocean") == 0)
+            else if (string.Compare(beachTypeValue, "Ocean") == 0)
             {
                 beachType = BeachType.Ocean;
             }
@@ -64,10 +64,10 @@ public static class JsonHelper
     public static SwimType GetSwimTypeFromJsonValue( string specialityValue, string swimTypeValue)
     {
         SwimType swimType = SwimType.Bassin_25m;
-        if (String.Compare(specialityValue, "Eau-plate") == 0
-            || String.Compare(specialityValue, "Mixte") == 0)
+        if (string.Compare(specialityValue, "Eau-plate") == 0
+            || string.Compare(specialityValue, "Mixte") == 0)
         {
-            if (String.Compare(swimTypeValue, "bassin 25m") == 0)
+            if (string.Compare(swimTypeValue, "bassin 25m") == 0)
             {
                 swimType = SwimType.Bassin_25m;
             }
@@ -83,7 +83,7 @@ public static class JsonHelper
     public static ChronoType GetChronoTypeFromJsonValue(string chronoValue)
     {
         ChronoType chronoType = ChronoType.Manual;
-        if (String.Compare(chronoValue, "Manuel") == 0)
+        if (string.Compare(chronoValue, "Manuel") == 0)
         {
             chronoType = ChronoType.Manual;
         }

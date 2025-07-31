@@ -37,7 +37,7 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
-    public Competition? _selectedCompetition;
+    public CompetitionDisplayItem? _selectedCompetitionDetail;
 
     // Use ObservableCollection for better UI performance and automatic change notifications
     public ObservableCollection<CompetitionDisplayItem> Competitions { get; } = new();
@@ -86,7 +86,7 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
         catch (Exception ex)
         {
             // Handle error - could show message to user
-            System.Diagnostics.Debug.WriteLine($"Error refreshing competitions: {ex.Message}");
+            Debug.WriteLine($"Error refreshing competitions: {ex.Message}");
         }
         finally
         {
@@ -97,34 +97,16 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanValidate))]
     private void Validate()
     {
-        if (SelectedCompetition != null)
-        {
-            _messenger.Send(new SelectNewCompetitionMessage(SelectedCompetition));
-            OnRequestClose();
-        }
+        _messenger.Send(new SelectNewCompetitionMessage(SelectedCompetitionDetail!.Competition));
+        OnRequestClose();
     }
 
-    private bool CanValidate() => SelectedCompetition != null;
+    private bool CanValidate() => SelectedCompetitionDetail != null;
 
     [RelayCommand]
     private void Cancel()
     {
         _messenger.Send(new SelectNewCompetitionMessage());
-
-        // Find and close the parent dialog window
-        if (Application.Current.MainWindow != null)
-        {
-            foreach (Window window in Application.Current.Windows)
-            {
-                if (window.DataContext == this ||
-                    (window.Content is FrameworkElement fe && fe.DataContext == this))
-                {
-                    window.DialogResult = false;
-                    window.Close();
-                    break;
-                }
-            }
-        }
 
         OnRequestClose();
     }
@@ -142,7 +124,7 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
         _imageService = imageService; // Optional - for club logo loading
 
 
-        _beginDate = Debugger.IsAttached ? new DateTime(2024, 9, 29) : DateTime.Now;
+        _beginDate = Debugger.IsAttached ? new DateTime(2024, 9, 26) : DateTime.Now;
     }
 
     public async Task InitializeAsync()
@@ -193,6 +175,20 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
 
     private void OnRequestClose()
     {
+        // Find and close the parent dialog window
+        if (Application.Current.MainWindow != null)
+        {
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window.DataContext == this ||
+                    (window.Content is FrameworkElement fe && fe.DataContext == this))
+                {
+                    window.DialogResult = false;
+                    window.Close();
+                    break;
+                }
+            }
+        }
         RequestClose?.Invoke(this, EventArgs.Empty);
     }
 
