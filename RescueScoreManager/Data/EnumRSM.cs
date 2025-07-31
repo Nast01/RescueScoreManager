@@ -66,7 +66,7 @@ public class EnumRSM
     public enum Gender
     {
         [Description("Messieurs")]
-        Man,
+        Men,
         [Description("Dames")]
         Woman,
         [Description("Mixte")]

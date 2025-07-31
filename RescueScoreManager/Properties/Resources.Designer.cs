@@ -88,6 +88,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Athlètes.
+        /// </summary>
+        internal static string Athletes {
+            get {
+                return ResourceManager.GetString("Athletes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Athletes_XMI.
         /// </summary>
         internal static string Athletes_XMI {
@@ -502,6 +511,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Informations.
+        /// </summary>
+        internal static string Informations {
+            get {
+                return ResourceManager.GetString("Informations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Interval.
         /// </summary>
         internal static string Interval_XMI {
@@ -687,6 +705,15 @@ namespace RescueScoreManager.Properties {
         internal static string MaxLevel_XMI {
             get {
                 return ResourceManager.GetString("MaxLevel_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Messieurs.
+        /// </summary>
+        internal static string Men {
+            get {
+                return ResourceManager.GetString("Men", resourceCulture);
             }
         }
         
@@ -907,6 +934,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Epreuves.
+        /// </summary>
+        internal static string Races {
+            get {
+                return ResourceManager.GetString("Races", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Races.
         /// </summary>
         internal static string Races_XMI {
@@ -1110,6 +1146,15 @@ namespace RescueScoreManager.Properties {
         internal static string Validate {
             get {
                 return ResourceManager.GetString("Validate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Dames.
+        /// </summary>
+        internal static string Women {
+            get {
+                return ResourceManager.GetString("Women", resourceCulture);
             }
         }
     }

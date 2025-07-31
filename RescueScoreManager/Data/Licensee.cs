@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Xml.Linq;
 
+using RescueScoreManager.Services;
+
 using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Data;
@@ -15,6 +17,12 @@ public abstract partial class Licensee
     public string FirstName { get; set; }
     public int BirthYear { get; set; }
     public Gender Gender { get; set; }
+    public string GenderLabel => Gender switch
+    {
+        Gender.Woman => ResourceManagerLocalizationService.Instance.GetString("Women") ?? "Women",
+        Gender.Mixte => ResourceManagerLocalizationService.Instance.GetString("Mixte") ?? "Mixte",
+        Gender.Men or _ => ResourceManagerLocalizationService.Instance.GetString("Men") ?? "Men"
+    };
     public string? FullName { get { return string.Join(" ", LastName, FirstName); } }
     public bool IsLicensee { get; set; }
     public bool IsGuest { get; set; }

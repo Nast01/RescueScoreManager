@@ -468,4 +468,19 @@
   <data name="NationalityCode_XMI" xml:space="preserve">
     <value>NationalityCode</value>
   </data>
+  <data name="Women" xml:space="preserve">
+    <value>Women</value>
+  </data>
+  <data name="Men" xml:space="preserve">
+    <value>Men</value>
+  </data>
+  <data name="Athletes" xml:space="preserve">
+    <value>Athletes</value>
+  </data>
+  <data name="Races" xml:space="preserve">
+    <value>Races</value>
+  </data>
+  <data name="Informations" xml:space="preserve">
+    <value>Details</value>
+  </data>
 </root>

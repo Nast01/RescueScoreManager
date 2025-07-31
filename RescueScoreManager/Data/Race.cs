@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 
 using RescueScoreManager.Helper;
+using RescueScoreManager.Services;
 
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static RescueScoreManager.Data.EnumRSM;
@@ -20,7 +21,14 @@ public class Race
     public int Id { get; set; }
     public string Name { get; set; }
     public string Label => Categories.Count == 1 ? $"{Name} {Categories.FirstOrDefault().Name} {EnumRSM.GetEnumDescription(Gender)}" : $"{Name} {EnumRSM.GetEnumDescription(Gender)}";
+
     public Gender Gender { get; set; }
+    public string GenderLabel => Gender switch
+    {
+        Gender.Woman => ResourceManagerLocalizationService.Instance.GetString("Women") ?? "Women",
+        Gender.Mixte => ResourceManagerLocalizationService.Instance.GetString("Mixte") ?? "Mixte",
+        Gender.Men or _ => ResourceManagerLocalizationService.Instance.GetString("Men") ?? "Men"
+    };
     public Speciality Speciality { get; set; }
     public int Discipline { get; set; }
     public int NumberByTeam { get; set; }
@@ -28,7 +36,7 @@ public class Race
     public int Interval { get; set; } = 9000;
     public string IntervalLabel => TimeHelper.ConvertCentisecondInString(Interval);
     public bool IsRelay { get; set; }
-
+    public bool IsEligibleToNationalRecord { get; set; }
     //one-to-many relationship to Competition
     public int CompetitionId { get; set; } // Required foreign key property
     public Competition Competition { get; set; } = null!; // Required reference navigation to principal
@@ -50,6 +58,7 @@ public class Race
         Gender = JsonHelper.GetGenderFromJsonValue(jData["Genre"].Value<string>());
         Speciality = JsonHelper.GetSpecialityFromJsonValue(jData["discipline"]["specialiteLabel"].Value<string>());
         NumberByTeam = jData["discipline"]["NbAthleteParEquipe"].Value<int>();
+        IsEligibleToNationalRecord = jData["isEligibleToNationalRecord"].Value<bool>();
         IsRelay = NumberByTeam > 1;
         Distance = Speciality == Speciality.EauPlate ? jData["discipline"]["Distance"].Value<int>() : 0;
 
@@ -72,6 +81,7 @@ public class Race
         Distance = int.Parse(xElement.Attribute(Properties.Resources.Distance_XMI).Value);
         Interval = int.Parse(xElement.Attribute(Properties.Resources.Interval_XMI).Value);
         IsRelay = bool.Parse(xElement.Attribute(Properties.Resources.IsRelay_XMI).Value);
+        IsEligibleToNationalRecord = bool.Parse(xElement.Attribute(Properties.Resources.IsEligibleToNationalRecord_XMI).Value);
 
         string[] catIds = xElement.Attribute(Properties.Resources.Categories_XMI).Value.Split(" ");
         foreach (string catId in catIds)
@@ -117,9 +127,10 @@ public class Race
                             new XAttribute(Properties.Resources.Speciality_XMI, Speciality.ToString()),
                             new XAttribute(Properties.Resources.Discipline_XMI, Discipline),
                             new XAttribute(Properties.Resources.NumberByTeam_XMI, NumberByTeam),
-                            new XAttribute(Properties.Resources.Distance_XMI, Distance),
+                            new XAttribute(Properties.Resources.Distance_XMI, Distance!),
                             new XAttribute(Properties.Resources.Interval_XMI, Interval),
                             new XAttribute(Properties.Resources.IsRelay_XMI, IsRelay),
+                            new XAttribute(Properties.Resources.IsEligibleToNationalRecord_XMI, IsEligibleToNationalRecord),
                             new XAttribute(Properties.Resources.Categories_XMI, catIds)
                             //new XAttribute(Properties.Resources.MeetingElements_XMI, MeetingElements.GetXmiIds()),
                             //new XAttribute(Properties.Resources.AresStyleId_XMI, AresStyleId)

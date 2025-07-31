@@ -450,7 +450,7 @@ public class XMLService : IXMLService
         {
             try
             {
-                Athlete athlete = new Athlete(athleteElement, _categories);
+                Athlete athlete = new Athlete(athleteElement);
 
                 if (!_licensees.Contains(athlete))
                 {

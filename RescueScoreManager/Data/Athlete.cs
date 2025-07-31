@@ -46,7 +46,7 @@ public partial class Athlete : Licensee
         OrderNumber = 0;
     }
 
-    public Athlete(XElement xElement,List<Category> categories)
+    public Athlete(XElement xElement)
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
         LicenseeNumber = xElement.Attribute(Properties.Resources.LicenseeNumber_XMI).Value;

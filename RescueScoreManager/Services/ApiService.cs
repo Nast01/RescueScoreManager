@@ -437,7 +437,7 @@ public class ApiService : IApiService, IDisposable
 
             await LoadAthletesAsync(competition, authenticationInfo, cancellationToken);
             await LoadRefereesAsync(competition, authenticationInfo, cancellationToken);
-            
+
         }
         catch (Exception ex)
         {
@@ -554,7 +554,7 @@ public class ApiService : IApiService, IDisposable
                             int idOrganisme = licenseeData["IdOrganisme"]!.Value<int>();
                             int idClub = licenseeData["idOfficielClub"]!.Value<int>();
                             Club? club = clubs.Find(c => c.Id == idClub);
-                            
+
                             if (club != null)
                             {
                                 referee.Club = club;
@@ -597,50 +597,50 @@ public class ApiService : IApiService, IDisposable
     {
         string endpoint = $"/competition/epreuve";
         var queryParameters = new Dictionary<string, string>();
-
-        if (authenticationInfo.IsTokenValid)
-        {
-            queryParameters.Add("token", authenticationInfo.Token);
-        }
-
         try
         {
-            _logger.LogDebug("Loading races for competition: {CompetitionId}", competition.Id);
-
-            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
-
-            using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
-
-            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
+            if (authenticationInfo.IsTokenValid)
             {
-                _races.Clear();
-                foreach (var raceData in jData.Children())
+                queryParameters.Add("token", authenticationInfo.Token);
+                queryParameters.Add("evenement", competition.Id.ToString());
+
+                _logger.LogDebug("Loading races for competition: {CompetitionId}", competition.Id);
+
+                string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+                string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
+
+                using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
+                response.EnsureSuccessStatusCode();
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+                if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
                 {
-                    try
+                    _races.Clear();
+                    foreach (var raceData in jData.Children())
                     {
-                        var race = new Race(raceData, _categories);
-                        if (race != null)
+                        try
                         {
-                            _races.Add(race);
-                            race.Competition = competition;
-                            competition.Races.Add(race);
+                            var race = new Race(raceData, _categories);
+                            if (race != null)
+                            {
+                                _races.Add(race);
+                                race.Competition = competition;
+                                competition.Races.Add(race);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse race data: {RaceData}", raceData);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to parse race data: {RaceData}", raceData);
-                    }
+                    _logger.LogDebug("Loaded {RaceCount} races", _races.Count);
                 }
-                _logger.LogDebug("Loaded {RaceCount} races", _races.Count);
-            }
-            else
-            {
-                _logger.LogWarning("Races API returned unsuccessful response");
+                else
+                {
+                    _logger.LogWarning("Races API returned unsuccessful response");
+                }
             }
         }
         catch (Exception ex)

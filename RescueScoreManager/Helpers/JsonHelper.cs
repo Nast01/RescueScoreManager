@@ -9,7 +9,7 @@ public static class JsonHelper
         Gender gender = Gender.Mixte;
         if (genderValue.CompareTo("H") == 0)
         {
-            gender = Gender.Man;
+            gender = Gender.Men;
         }
         else if (genderValue.CompareTo("F") == 0)
         {

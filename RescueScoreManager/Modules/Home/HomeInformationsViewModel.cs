@@ -17,7 +17,15 @@ public partial class HomeInformationsViewModel : ObservableObject, IDisposable
     private bool _disposed = false;
 
     [ObservableProperty]
-    private int _athletesCount = 0;
+    private int _athletesCount = 0; 
+    [ObservableProperty]
+    private int _racesCount = 0;
+    [ObservableProperty]
+    private int _womenRacesCount = 0;
+    [ObservableProperty]
+    private int _menRacesCount = 0;
+    [ObservableProperty]
+    private int _mixteRacesCount = 0;
 
     [ObservableProperty]
     private string _title = string.Empty;
@@ -44,6 +52,11 @@ public partial class HomeInformationsViewModel : ObservableObject, IDisposable
             Categories = _xmlService.GetCategories().ToList();
             AthletesCount = _xmlService.GetAthletes().Count();
             Referees = _xmlService.GetReferees().ToList();
+            RacesCount = _xmlService.GetRaces().Count();
+
+            WomenRacesCount = _xmlService.GetRaces().ToList().FindAll(r => r.Gender == Gender.Woman).Count;
+            MenRacesCount = _xmlService.GetRaces().ToList().FindAll(r => r.Gender == Gender.Men).Count;
+            MixteRacesCount = _xmlService.GetRaces().ToList().FindAll(r => r.Gender == Gender.Mixte).Count;
 
             UpdateRefereeLevels();
             UpdateTitle();
@@ -78,7 +91,7 @@ public partial class HomeInformationsViewModel : ObservableObject, IDisposable
     private void UpdateTitle()
     {
         var competition = _xmlService.GetCompetition();
-        Title = competition != null ? $" - {competition.Name}" : string.Empty;
+        Title = competition != null ? $"- {competition.Name}" : string.Empty;
     }
 
     protected virtual void Dispose(bool disposing)
