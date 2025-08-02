@@ -412,6 +412,24 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Succès chargement fichier.
+        /// </summary>
+        internal static string FileLoadedSuccess {
+            get {
+                return ResourceManager.GetString("FileLoadedSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur Chargement Fichier ffss.
+        /// </summary>
+        internal static string FileLoadError {
+            get {
+                return ResourceManager.GetString("FileLoadError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Fichier ouvert !.
         /// </summary>
         internal static string FileOpenInfo {

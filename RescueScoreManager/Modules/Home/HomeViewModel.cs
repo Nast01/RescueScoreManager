@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -66,7 +66,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteFileCommands))]
-    private async Task OpenFileAsync()
+    private async Task OpenFile()
     {
         try
         {
@@ -119,7 +119,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         OpenFileDialog openFileDialog = new()
         {
             Title = GetLocalizedString("OpenFileTitle"),
-            Filter = "Competition Files (*.ffss)",
+            Filter = "Competition Files (*.ffss)|*.ffss",
             CheckFileExists = true,
             CheckPathExists = true,
             RestoreDirectory = true,
@@ -181,8 +181,9 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
             _xmlService.LoadFromFile(fileInfo.FullName);
             CurrentViewModel = _homeInformationsViewModel;
             _homeInformationsViewModel.Update();
-            IsLoaded = true;
         });
+
+        IsLoaded = true;
     }
 
     private async Task ProcessNewCompetitionAsync()

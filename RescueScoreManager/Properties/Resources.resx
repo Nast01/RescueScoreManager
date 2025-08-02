@@ -486,4 +486,10 @@
   <data name="StatusLabel_XMI" xml:space="preserve">
     <value>StatusLabel</value>
   </data>
+  <data name="FileLoadError" xml:space="preserve">
+    <value>Erreur Chargement Fichier ffss</value>
+  </data>
+  <data name="FileLoadedSuccess" xml:space="preserve">
+    <value>Succès chargement fichier</value>
+  </data>
 </root>
