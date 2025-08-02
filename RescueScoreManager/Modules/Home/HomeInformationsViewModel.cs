@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -26,6 +26,8 @@ public partial class HomeInformationsViewModel : ObservableObject, IDisposable
     private int _menRacesCount = 0;
     [ObservableProperty]
     private int _mixteRacesCount = 0;
+    [ObservableProperty]
+    private int _clubsCount = 0;
 
     [ObservableProperty]
     private string _title = string.Empty;
@@ -53,6 +55,7 @@ public partial class HomeInformationsViewModel : ObservableObject, IDisposable
             AthletesCount = _xmlService.GetAthletes().Count();
             Referees = _xmlService.GetReferees().ToList();
             RacesCount = _xmlService.GetRaces().Count();
+            ClubsCount = _xmlService.GetClubs().Count();
 
             WomenRacesCount = _xmlService.GetRaces().ToList().FindAll(r => r.Gender == Gender.Woman).Count;
             MenRacesCount = _xmlService.GetRaces().ToList().FindAll(r => r.Gender == Gender.Men).Count;
