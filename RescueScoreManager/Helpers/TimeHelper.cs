@@ -1,4 +1,4 @@
-﻿namespace RescueScoreManager.Helper;
+namespace RescueScoreManager.Helper;
 
 internal static class TimeHelper
 {
@@ -28,6 +28,10 @@ internal static class TimeHelper
             int milliseconds = centiseconds.Value % 100;
 
             formattedTime = string.Format("{0:D2}'{1:D2}\"{2:D2}", minutes, seconds, milliseconds);
+        }
+        else
+        {
+            formattedTime = "NT";
         }
         return formattedTime;
     }

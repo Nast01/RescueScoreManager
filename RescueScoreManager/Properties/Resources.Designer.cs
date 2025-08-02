@@ -1078,6 +1078,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à StatusLabel.
+        /// </summary>
+        internal static string StatusLabel_XMI {
+            get {
+                return ResourceManager.GetString("StatusLabel_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à SwimType.
         /// </summary>
         internal static string SwimType_XMI {

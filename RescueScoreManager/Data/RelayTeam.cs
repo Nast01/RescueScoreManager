@@ -1,4 +1,6 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
+
+using Microsoft.Office.Interop.Word;
 
 using Newtonsoft.Json.Linq;
 
@@ -13,18 +15,26 @@ public partial class RelayTeam: Team
     {
     }
 
-    public RelayTeam(JToken jData, Race race,List<Licensee> lics) 
+    public RelayTeam(JToken jData, Race race,List<Athlete> lics, List<Category> categories) 
     {
         Id = jData["Id"].Value<int>();
-        EntryTime = jData["Performance"].Value<int>();
+        EntryTime = jData["performance"].Value<int>();
         IsForfeit = false;
         IsForfeitFinal = false;
         Number = race.NumberByTeam;
         foreach (JToken jAthlete in jData["athletes"].Children())
         {
-            Athlete athlete = null;// lics.Find(l => l.Id == jData["athletes"][0]["NumeroLicence"].Value<string>()) as Athlete;
+            Athlete athlete = lics.Find(l => l.LicenseeNumber == jAthlete["NumeroLicence"]!.Value<string>()) as Athlete ?? throw new InvalidOperationException("Athlete not found");
+            athlete.RelayTeams.Add(this);
             AddAthlete(athlete);
         }
+
+        Race = race;
+
+        Category = categories.Find(cat => cat.Id == jData["categorie"]["Id"].Value<int>());
+
+        Status = jData["Statut"].Value<int>();
+        StatusLabel = jData["statutLabel"]?.Value<string>() ?? string.Empty;
     }
 
     public RelayTeam(XElement xElement,List<Athlete> lics)
@@ -71,9 +81,11 @@ public partial class RelayTeam: Team
                                 new XAttribute(Properties.Resources.IsForfeitFinal_XMI, IsForfeitFinal),
                                 new XAttribute(Properties.Resources.EntryTime_XMI, EntryTime),
                                 new XAttribute(Properties.Resources.Number_XMI, Number),
-                                //new XAttribute(Properties.Resources.IdApi_XMI, IdApi),
+                                new XAttribute(Properties.Resources.Category_XMI, Category.Id),
                                 new XAttribute(Properties.Resources.Athletes_XMI, athIds),
-                                new XAttribute(Properties.Resources.Race_XMI, Race.Id)
+                                new XAttribute(Properties.Resources.Race_XMI, Race.Id),
+                                new XAttribute(Properties.Resources.Status_XMI, Status),
+                                new XAttribute(Properties.Resources.StatusLabel_XMI, StatusLabel)
                             );
     }
     #region Athlete Methods

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata;
@@ -215,7 +215,7 @@ public class ApiService : IApiService, IDisposable
             await LoadClubsAsync(competition, authenticationInfo, cancellationToken);
             await LoadLicenseesAsync(competition, authenticationInfo, cancellationToken);
             await LoadRacesAsync(competition, authenticationInfo, cancellationToken);
-            //await LoadTeamsAsync(competition, authenticationInfo, cancellationToken);
+            await LoadTeamsAsync(competition, authenticationInfo, cancellationToken);
 
             _isLoaded = true;
             _logger.LogInformation("Data load completed successfully for competition: {CompetitionName}", competition.Name);
@@ -386,7 +386,7 @@ public class ApiService : IApiService, IDisposable
             _logger.LogDebug("Loading clubs for competition: {CompetitionId}", competition.Id);
 
             string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}";
+            string apiUrl = string.IsNullOrEmpty(queryString) ? $"{_version}{endpoint}" : $"{_version}{endpoint}?{queryString}";
 
             // Set authentication header
             //_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authenticationInfo.Token);
@@ -403,8 +403,13 @@ public class ApiService : IApiService, IDisposable
                 {
                     try
                     {
-                        int idClub = clubData["Id"].Value<int>();
+                        int idClub = clubData["Id"]?.Value<int>() ?? 0;
                         bool isForeignClub = (idClub == 245);
+                        if (isForeignClub == true)
+                        {
+                            int i = 0;
+                            ++i;
+                        }
 
                         var club = new Club(clubData, isForeignClub);
                         club.Competition = competition;
@@ -472,14 +477,19 @@ public class ApiService : IApiService, IDisposable
                 if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
                 {
                     _licensees.Clear();
-                    List<Club> clubs = GetClubs().ToList<Club>();
+                    int count = 0;
+                    _logger.LogDebug("expected athlete : {AhtleteNumber}",jData.Children().Count());
                     foreach (var licenseeData in jData.Children())
                     {
                         try
                         {
-
+                            if (licenseeData["Id"]!.Value<int>() == 535396)
+                            {
+                                int i = 0;
+                                ++i;
+                            }
                             Athlete athlete = new Athlete(licenseeData);
-                            Club? club = clubs.Find(c => c.Id == licenseeData["idClub"]!.Value<int>());
+                            Club? club = _clubs.Find(c => c.Id == licenseeData["idClub"]!.Value<int>());
                             if (club != null)
                             {
                                 athlete.Club = club;
@@ -490,14 +500,23 @@ public class ApiService : IApiService, IDisposable
 
                             {
                                 // Handle the case where club is not found
-                                _logger.LogDebug("No club for Athlete : {AthleteFullName}", athlete.FullName);
+                                _logger.LogInformation("No club for Athlete : {AthleteFullName}", athlete.FullName);
+                                Club missingClub = new Club(licenseeData["idClub"]!.Value<int>(), licenseeData["clubLabel"].Value<string>());
+                                if (_clubs.Exists(c => c.Id == missingClub.Id) == false)
+                                {
+                                    _clubs.Add(missingClub);
 
-                                throw new InvalidOperationException("Club not found");
+                                }
+                                athlete.Club = missingClub;
+                                athlete.ClubId = missingClub.Id;
+                                missingClub.AddLicensee(athlete);
                             }
 
 
                             _licensees.Add(athlete);
                             _athletes.Add(athlete);
+                            ++count;
+                            _logger.LogDebug("current number : {AhtleteCount}", count);
                         }
                         catch (Exception ex)
                         {
@@ -544,7 +563,6 @@ public class ApiService : IApiService, IDisposable
                 if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
                 {
                     _licensees.Clear();
-                    List<Club> clubs = GetClubs().ToList<Club>();
                     foreach (var licenseeData in jData.Children())
                     {
                         try
@@ -553,7 +571,7 @@ public class ApiService : IApiService, IDisposable
                             Referee referee = new Referee(licenseeData, competition.BeginDate);
                             int idOrganisme = licenseeData["IdOrganisme"]!.Value<int>();
                             int idClub = licenseeData["idOfficielClub"]!.Value<int>();
-                            Club? club = clubs.Find(c => c.Id == idClub);
+                            Club? club = _clubs.Find(c => c.Id == idClub);
 
                             if (club != null)
                             {
@@ -565,17 +583,23 @@ public class ApiService : IApiService, IDisposable
                             {
                                 // Handle the case where club is not found
                                 _logger.LogDebug("No club for Referee : {AthleteFullName}", referee.FullName);
-
+                                Club missingClub = new Club(licenseeData["idOfficielClub"]!.Value<int>(), licenseeData["officielClubLabel"].Value<string>());
+                                if (_clubs.Exists(c => c.Id == missingClub.Id) == false)
+                                {
+                                    _clubs.Add(missingClub);
+                                }
+                                referee.Club = missingClub;
+                                referee.ClubId = missingClub.Id;
+                                missingClub.AddLicensee(referee);
                                 throw new InvalidOperationException("Club not found");
                             }
-
 
                             _licensees.Add(referee);
                             _referees.Add(referee);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Failed to parse referees data: {LicenseeData}", licenseeData);
+                            _logger.LogWarning(ex, "Failed to parse referees data: {LicenseeData}", licenseeData["Id"]!.Value<int>());
                         }
                     }
                     _logger.LogDebug("Loaded {LicenseeCount} athletes", _referees.Count);
@@ -689,17 +713,33 @@ public class ApiService : IApiService, IDisposable
 
             if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
             {
+                Team? team = null;
                 foreach (var teamData in jData.Children())
                 {
                     try
                     {
-                        //var team = new Team(teamData);
-                        //Teams.Add(team);
-                        //race.Teams.Add(team);
+                        if(teamData["Id"].Value<int>() == 480041)
+                        {
+                            int i = 0;
+                            i++;
+                        }
+                        if (race.NumberByTeam == 1)
+                        {
+                            team = new IndividualTeam(teamData, race, _athletes, _categories);
+                        }
+                        else
+                        {
+                            team = new RelayTeam(teamData, race, _athletes, _categories);
+                        }
+                        if (team != null)
+                        {
+                            _teams.Add(team);
+                            race.Teams.Add(team);
+                        }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Failed to parse team data for race {RaceId}: {TeamData}", race.Id, teamData);
+                        _logger.LogWarning(ex, "Failed to parse team data for race {RaceId}: {TeamData}", race.Id, teamData["Id"].Value<int>());
                     }
                 }
             }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using System.Security.Claims;
 using System.Xml.Linq;
@@ -352,16 +352,16 @@ public class XMLService : IXMLService
             rootElement.Add(racesElement);
 
             // Save teams
-            var teamsElement = new XElement(Properties.Resources.Teams_XMI);
-            foreach (var team in _teams)
-            {
-                var teamElement = team.WriteXml();
-                if (teamElement != null)
-                {
-                    teamsElement.Add(teamElement);
-                }
-            }
-            rootElement.Add(teamsElement);
+            //var teamsElement = new XElement(Properties.Resources.IndividualTeam_XMI);
+            //foreach (var team in _teams)
+            //{
+            //    var teamElement = team.WriteXml();
+            //    if (teamElement != null)
+            //    {
+            //        teamsElement.Add(teamElement);
+            //    }
+            //}
+            //rootElement.Add(teamsElement);
 
             xDoc.Add(rootElement);
 

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 
 using System.ComponentModel;
 using System.Security.AccessControl;
@@ -24,9 +24,10 @@ public partial class Club
     //public List<Licensee>? Licensees { get; set; }
     #endregion Attributes
 
-    public Club()
+    public Club(int id, string name)
     {
-
+        Id = id;
+        Name = name;
     }
 
     public Club(JToken data, bool isForeignClub)
