@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 
@@ -16,6 +16,7 @@ using CommunityToolkit.Mvvm.Input;
 using RescueScoreManager.Modules.SelectNewCompetition;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using RescueScoreManager.Modules.Forfeit;
 
 namespace RescueScoreManager;
 
@@ -33,6 +34,10 @@ public partial class MainWindowViewModel : ObservableObject,
     private readonly IMessenger _messenger;
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly IServiceProvider _serviceProvider;
+
+
+    // ViewModels cache
+    private ForfeitViewModel? _forfeitViewModel;
 
     [ObservableProperty]
     private ObservableObject? _currentViewModel;
@@ -143,6 +148,56 @@ public partial class MainWindowViewModel : ObservableObject,
     }
 
     #endregion Login Command
+
+    #region Navigation Commands
+
+    [RelayCommand]
+    private void NavigateToHome()
+    {
+        try
+        {
+            CurrentViewModel = _homeViewModel;
+            _logger.LogInformation("Navigated to Home view");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error navigating to Home view");
+            _messenger.Send(new SnackMessage("Error navigating to Home"));
+        }
+    }
+
+    [RelayCommand]
+    private async Task NavigateToForfeit()
+    {
+        try
+        {
+            // Check if data is loaded
+            //if (_xmlService.IsLoaded())
+            //{
+            //    _messenger.Send(new SnackMessage("Please load a competition first"));
+            //    return;
+            //}
+
+            // Create or get cached ViewModel
+            _forfeitViewModel = null;
+            if (_forfeitViewModel == null)
+            {
+                _forfeitViewModel = _serviceProvider.GetRequiredService<ForfeitViewModel>();
+                await _forfeitViewModel.InitializeAsync();
+            }
+
+            CurrentViewModel = _forfeitViewModel;
+            _logger.LogInformation("Navigated to Forfeit view");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error navigating to Forfeit view");
+            _messenger.Send(new SnackMessage("Error navigating to Forfeit management"));
+        }
+    }
+    #endregion Navigation Commands
+
+
     #endregion Commands
 
     #region Private functions

@@ -13,9 +13,12 @@ public abstract partial class Team
     public bool IsForfeitFinal { get; set; } = false;
     public int EntryTime { get; set; }
     public string EntryTimeLabel => TimeHelper.ConvertCentisecondInString(EntryTime);
-    public int Number {  get; set; }
+    public int Number { get; set; }
     public int Status { get; set; }
-    public string StatusLabel { get;set; } = string.Empty;
+    public string StatusLabel { get; set; } = string.Empty;
+
+    public string TeamLabel { get; set; } = "";
+    
 
     //one-to-one relationship to Race
     public int RaceId { get; set; } // Required foreign key property

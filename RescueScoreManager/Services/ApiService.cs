@@ -1,8 +1,12 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
+
+using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
+
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -405,11 +409,6 @@ public class ApiService : IApiService, IDisposable
                     {
                         int idClub = clubData["Id"]?.Value<int>() ?? 0;
                         bool isForeignClub = (idClub == 245);
-                        if (isForeignClub == true)
-                        {
-                            int i = 0;
-                            ++i;
-                        }
 
                         var club = new Club(clubData, isForeignClub);
                         club.Competition = competition;
@@ -420,7 +419,17 @@ public class ApiService : IApiService, IDisposable
                         _logger.LogWarning(ex, "Failed to parse club data: {ClubData}", clubData);
                     }
                 }
-                _logger.LogDebug("Loaded {ClubCount} clubs", _clubs.Count);
+
+                if (jData.Count == _clubs.Count)
+                {
+                    _logger.LogDebug("Loaded {ClubCount} clubs", _clubs.Count);
+                }
+                else
+                {
+                    int missingClubCount = jData.Count - _clubs.Count;
+                    _logger.LogError("Not all clubs loaded missing { missingClubCount}", missingClubCount);
+                    throw new Exception($"Not all clubs loaded missing {missingClubCount}");
+                }
             }
             else
             {
@@ -523,7 +532,17 @@ public class ApiService : IApiService, IDisposable
                             _logger.LogWarning(ex, "Failed to parse athletes data");
                         }
                     }
-                    _logger.LogDebug("Loaded {LicenseeCount} athletes", _athletes.Count);
+
+                    if (jData.Count == _athletes.Count)
+                    {
+                        _logger.LogDebug("Loaded {LicenseeCount} athletes", _athletes.Count);
+                    }
+                    else
+                    {
+                        int missingAthletesCount = jData.Count - _athletes.Count;
+                        _logger.LogError("Not all athletes loaded, missing { missingAthletesCount}", missingAthletesCount);
+                        throw new Exception($"Not all athletes loaded, missing {missingAthletesCount}");
+                    }
                 }
                 else
                 {
@@ -659,7 +678,17 @@ public class ApiService : IApiService, IDisposable
                             _logger.LogWarning(ex, "Failed to parse race data: {RaceData}", raceData);
                         }
                     }
-                    _logger.LogDebug("Loaded {RaceCount} races", _races.Count);
+
+                    if (jData.Count == _races.Count)
+                    {
+                        _logger.LogDebug("Loaded {RaceCount} races", _races.Count);
+                    }
+                    else
+                    {
+                        int missingRacesCount = jData.Count - _races.Count;
+                        _logger.LogError("Not all races loaded, missing { missingRacesCount}", missingRacesCount);
+                        throw new Exception($"Not all races loaded, missing {missingRacesCount}");
+                    }
                 }
                 else
                 {
@@ -718,11 +747,6 @@ public class ApiService : IApiService, IDisposable
                 {
                     try
                     {
-                        if(teamData["Id"].Value<int>() == 480041)
-                        {
-                            int i = 0;
-                            i++;
-                        }
                         if (race.NumberByTeam == 1)
                         {
                             team = new IndividualTeam(teamData, race, _athletes, _categories);
@@ -741,6 +765,18 @@ public class ApiService : IApiService, IDisposable
                     {
                         _logger.LogWarning(ex, "Failed to parse team data for race {RaceId}: {TeamData}", race.Id, teamData["Id"].Value<int>());
                     }
+                }
+
+
+                if (jData.Count == _teams.Count)
+                {
+                    _logger.LogDebug("Loaded {TeamsCount} teams", _teams.Count);
+                }
+                else
+                {
+                    int missingTeamsCount = jData.Count - _teams.Count;
+                    _logger.LogError("Not all teams loaded, missing { missingTeamsCount}", missingTeamsCount);
+                    throw new Exception($"Not all teams loaded, missing {missingTeamsCount}");
                 }
             }
         }

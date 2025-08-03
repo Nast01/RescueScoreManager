@@ -35,9 +35,11 @@ public partial class RelayTeam: Team
 
         Status = jData["Statut"].Value<int>();
         StatusLabel = jData["statutLabel"]?.Value<string>() ?? string.Empty;
+
+        TeamLabel =  string.Join(", ", ((RelayTeam)this).Athletes.Select(a => a.FullName));
     }
 
-    public RelayTeam(XElement xElement,List<Athlete> lics)
+    public RelayTeam(XElement xElement,List<Athlete> lics, List<Race> races, List<Category> categories)
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
         IsForfeit = bool.Parse(xElement.Attribute(Properties.Resources.IsForfeit_XMI).Value);
@@ -48,13 +50,25 @@ public partial class RelayTeam: Team
         string[] athIds = xElement.Attribute(Properties.Resources.Athletes_XMI).Value.Split(" ");
         foreach (string id in athIds)
         {
-            Athlete athlete = null;// lics.Find(l => l.Id == id);
+            Athlete athlete = lics.Find(l => l.Id == int.Parse(id));
             if (athlete != null)
             {
                 Athletes.Add(athlete);
                 athlete.RelayTeams.Add(this);
             }
         }
+
+        RaceId = int.Parse(xElement.Attribute(Properties.Resources.Race_XMI)?.Value ?? "0");
+        Race = races.Find(r => r.Id == RaceId) ?? throw new InvalidOperationException("Race not found");
+        Race.Teams.Add(this);
+
+        int categoryId = int.Parse(xElement.Attribute(Properties.Resources.Category_XMI).Value);
+        Category = categories.Find(c => c.Id == categoryId) ?? throw new InvalidOperationException("Category not found");
+
+        Status = int.Parse(xElement.Attribute(Properties.Resources.Status_XMI).Value);
+        StatusLabel = xElement.Attribute(Properties.Resources.StatusLabel_XMI).Value;
+
+        TeamLabel = string.Join(", ", ((RelayTeam)this).Athletes.Select(a => a.FullName));
     }
     #endregion Constructor
 

@@ -492,4 +492,7 @@
   <data name="FileLoadedSuccess" xml:space="preserve">
     <value>Succès chargement fichier</value>
   </data>
+  <data name="LoginSuccessfull" xml:space="preserve">
+    <value>Connexion Réussie</value>
+  </data>
 </root>

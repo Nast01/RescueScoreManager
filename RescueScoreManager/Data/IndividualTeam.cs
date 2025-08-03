@@ -36,7 +36,7 @@ public partial class IndividualTeam : Team
         Status = jData["Statut"].Value<int>();
         StatusLabel = jData["statutLabel"]?.Value<string>() ?? string.Empty;
 
-
+        TeamLabel = Athlete.FullName!;
     }
 
     public IndividualTeam(XElement xElement,List<Athlete> lics,List<Race> races, List<Category> categories)
@@ -60,6 +60,8 @@ public partial class IndividualTeam : Team
 
         Status = int.Parse(xElement.Attribute(Properties.Resources.Status_XMI).Value);
         StatusLabel = xElement.Attribute(Properties.Resources.StatusLabel_XMI).Value;
+
+        TeamLabel = Athlete.FullName!;
     }
 
     #endregion Constructor

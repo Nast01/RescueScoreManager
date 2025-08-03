@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Xml.Linq;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 
 using RescueScoreManager.Services;
 
@@ -7,7 +9,7 @@ using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Data;
 
-public abstract partial class Licensee
+public abstract partial class Licensee : ObservableObject
 {
     #region Attributes
     [Key]

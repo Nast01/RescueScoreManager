@@ -1,10 +1,11 @@
-﻿<Application x:Class="RescueScoreManager.App"
+<Application x:Class="RescueScoreManager.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:home="clr-namespace:RescueScoreManager.Modules.Home"
              xmlns:local="clr-namespace:RescueScoreManager"
+             xmlns:home="clr-namespace:RescueScoreManager.Modules.Home"
              xmlns:login="clr-namespace:RescueScoreManager.Modules.Login"
              xmlns:selectNewComp="clr-namespace:RescueScoreManager.Modules.SelectNewCompetition"
+             xmlns:forfeit="clr-namespace:RescueScoreManager.Modules.Forfeit"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:system="clr-namespace:System;assembly=mscorlib" >
   <Application.Resources>
@@ -194,6 +195,9 @@
       </DataTemplate>
       <DataTemplate DataType="{x:Type selectNewComp:SelectNewCompetitionViewModel}">
         <selectNewComp:SelectNewCompetitionView />
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type forfeit:ForfeitViewModel}">
+        <forfeit:ForfeitView />
       </DataTemplate>
 
 

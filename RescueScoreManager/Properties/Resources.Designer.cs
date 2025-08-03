@@ -691,6 +691,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Connexion Réussie.
+        /// </summary>
+        internal static string LoginSuccessfull {
+            get {
+                return ResourceManager.GetString("LoginSuccessfull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à CONNEXION.
         /// </summary>
         internal static string LoginUpper {

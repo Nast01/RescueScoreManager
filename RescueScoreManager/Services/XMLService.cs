@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Security.Claims;
@@ -525,13 +526,27 @@ public class XMLService : IXMLService
 
     private void LoadTeams(XElement rootElement)
     {
-        var teamElements = rootElement.Descendants(Properties.Resources.Team_XMI);
+        var teamElements = rootElement.Descendants(Properties.Resources.IndividualTeam_XMI);
         foreach (var teamElement in teamElements)
         {
             try
             {
-                //var team = new Team(teamElement);
-                //_teams.Add(team);
+                var team = new IndividualTeam(teamElement,_athletes,_races,_categories);
+                _teams.Add(team);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load team from XML element");
+            }
+        }
+        teamElements = null;
+        teamElements = rootElement.Descendants(Properties.Resources.RelayTeam_XMI);
+        foreach (var teamElement in teamElements)
+        {
+            try
+            {
+                var team = new RelayTeam(teamElement, _athletes,_races,_categories);
+                _teams.Add(team);
             }
             catch (Exception ex)
             {

@@ -15,6 +15,8 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Threading;
+using RescueScoreManager.Modules;
+using RescueScoreManager.Modules.Forfeit;
 
 namespace RescueScoreManager;
 
@@ -82,6 +84,10 @@ public partial class App : Application
             // SelectNewCompetition components
             services.AddTransient<SelectNewCompetitionView>();
             services.AddTransient<SelectNewCompetitionViewModel>();
+
+            //Forfeit components
+            services.AddTransient<ForfeitView>();
+            services.AddTransient<ForfeitViewModel>();
 
             // Messaging
             services.AddSingleton<WeakReferenceMessenger>();

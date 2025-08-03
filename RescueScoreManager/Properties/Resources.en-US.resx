@@ -492,4 +492,7 @@
   <data name="FileLoadedSuccess" xml:space="preserve">
     <value>Success Loading File</value>
   </data>
+  <data name="LoginSuccessfull" xml:space="preserve">
+    <value>Login Successfull</value>
+  </data>
 </root>

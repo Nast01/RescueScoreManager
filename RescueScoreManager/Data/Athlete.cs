@@ -1,5 +1,8 @@
-﻿using System.Globalization;
+using System.Globalization;
+using System.Linq;
 using System.Xml.Linq;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 
 using Newtonsoft.Json.Linq;
 
@@ -17,6 +20,45 @@ public partial class Athlete : Licensee
 
     public ICollection<IndividualTeam> IndividualTeams { get; } = new List<IndividualTeam>();
     public ICollection<RelayTeam> RelayTeams { get; } = new List<RelayTeam>();
+    /// <summary>
+    /// Gets all teams (both Individual and Relay) that this athlete participates in.
+    /// This is a computed property that concatenates IndividualTeams and RelayTeams.
+    /// </summary>
+    public IEnumerable<Team> Teams
+    {
+        get
+        {
+            return IndividualTeams.Cast<Team>().Concat(RelayTeams.Cast<Team>());
+        }
+    }
+
+    /// <summary>
+    /// Gets the total number of teams this athlete participates in.
+    /// </summary>
+    public int TotalTeamsNumber => IndividualTeams.Count + RelayTeams.Count;
+
+    /// <summary>
+    /// Checks if the athlete participates in any teams.
+    /// </summary>
+    public bool HasTeams => IndividualTeams.Any() || RelayTeams.Any();
+    // Forfeit status indicators
+    public int ForfeitedTeamsNumber => Teams.Count(t => t.IsForfeit);
+    public int ActiveTeamsNumber => Teams.Count(t => !t.IsForfeit);
+
+    public bool HasForfeitedTeams => ForfeitedTeamsNumber > 0;
+    public bool HasAllTeamsForfeited => TotalTeamsNumber > 0 && ForfeitedTeamsNumber == TotalTeamsNumber;
+    public bool HasPartialForfeit => ForfeitedTeamsNumber > 0 && ForfeitedTeamsNumber < TotalTeamsNumber;
+
+    public string GetForfeitStatusText()
+    {
+            return TotalTeamsNumber switch
+            {
+                0 => "No teams",
+                _ when HasAllTeamsForfeited => "All teams forfeited",
+                _ when HasPartialForfeit => $"{ForfeitedTeamsNumber}/{TotalTeamsNumber} teams forfeited",
+                _ => "All teams active"
+            };
+    }
 
     #endregion Attributes
 

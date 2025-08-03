@@ -93,7 +93,7 @@
               <ListView.View>
                 <GridView>
                   <GridViewColumn DisplayMemberBinding="{Binding Name}" Header="Name" />
-                  <GridViewColumn DisplayMemberBinding="{Binding Count}" Header="Count" />
+                  <GridViewColumn DisplayMemberBinding="{Binding Athletes.Count}" Header="Count" />
                 </GridView>
               </ListView.View>
             </ListView>
