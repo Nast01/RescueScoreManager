@@ -119,7 +119,7 @@
         <!-- Search by Club -->
         <TextBox Grid.Column="2"
                      Text="{Binding SearchByClub, UpdateSourceTrigger=PropertyChanged}"
-                     Style="{StaticResource SearchTextBoxStyle}"
+                     Style="{StaticResource SearchTextBoxStyleCompact}"
                      materialDesign:HintAssist.Hint="{loc:Translate SearchByClubName}"/>
 
         <!-- Clear Filters -->
