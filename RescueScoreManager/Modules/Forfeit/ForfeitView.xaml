@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converter="clr-namespace:RescueScoreManager.Converter"
+             xmlns:loc="clr-namespace:RescueScoreManager.Localization"  
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
   <UserControl.Resources>
@@ -106,19 +107,19 @@
         <TextBox Grid.Column="0"
                      Text="{Binding SearchByName, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource SearchTextBoxStyle}"
-                     materialDesign:HintAssist.Hint="Search by athlete name"/>
+                     materialDesign:HintAssist.Hint="{loc:Translate SearchByAthleteName}"/>
 
         <!-- Search by Club -->
         <TextBox Grid.Column="2"
                      Text="{Binding SearchByClub, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource SearchTextBoxStyle}"
-                     materialDesign:HintAssist.Hint="Search by club name"/>
+                     materialDesign:HintAssist.Hint="{loc:Translate SearchByClubName}"/>
 
         <!-- Clear Filters -->
         <Button Grid.Column="4"
                     Command="{Binding ClearFiltersCommand}"
                     Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Content="Clear"
+                    Content="{loc:Translate Clear}"
                     Margin="0,8"
                     VerticalAlignment="Center"/>
       </Grid>
@@ -167,11 +168,11 @@
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignOutlinedButton}"
                                             Margin="0,4"
-                                            ToolTip="Forfeit this athlete from all their teams">
+                                            ToolTip="{loc:Translate ForfeitAll}">
                       <Button.Content>
                         <StackPanel Orientation="Horizontal">
                           <materialDesign:PackIcon Kind="AccountGroup" Margin="0,0,4,0"/>
-                          <TextBlock Text="Forfeit All"/>
+                          <TextBlock Text="{loc:Translate ForfeitAll}"/>
                         </StackPanel>
                       </Button.Content>
                     </Button>
@@ -181,11 +182,11 @@
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignOutlinedButton}"
                                             Margin="0,4"
-                                            ToolTip="Restore this athlete to all their teams">
+                                            ToolTip="{loc:Translate RestoreThisAthleteToAllTheirTeams}">
                       <Button.Content>
                         <StackPanel Orientation="Horizontal">
                           <materialDesign:PackIcon Kind="AccountCheck" Margin="0,0,4,0"/>
-                          <TextBlock Text="Restore All"/>
+                          <TextBlock Text="{loc:Translate RestoreAll}"/>
                         </StackPanel>
                       </Button.Content>
                     </Button>
@@ -197,7 +198,7 @@
                                           Visibility="{Binding HasTeams, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Expander.Header>
                       <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <TextBlock Text="Team Details" 
+                        <TextBlock Text="{loc:Translate TeamDetails}"
                                   Margin="0,0,12,0"
                                   VerticalAlignment="Center"
                                   Style="{StaticResource MaterialDesignBody2TextBlock}"/>
@@ -278,7 +279,7 @@
                                       Grid.Row="0"
                                       IsChecked="{Binding IsForfeit,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"
                                       Style="{StaticResource ForfeitCheckBoxStyle}"
-                                      ToolTip="Toggle team forfeit status"/>
+                                      ToolTip="{loc:Translate ToggleTeamForfeitStatus}"/>
 
                             <!-- Race and Category Info -->
                             <StackPanel Grid.Column="1" Grid.Row="0">
@@ -343,7 +344,7 @@
 
           <Button Command="{Binding SaveChangesCommand}"
                             Style="{StaticResource MaterialDesignRaisedButton}"
-                            Content="Save Changes"
+                            Content="{loc:Translate Save}"
                             IsEnabled="{Binding HasUnsavedChanges}"/>
         </StackPanel>
       </Grid>

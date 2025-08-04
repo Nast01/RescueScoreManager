@@ -495,4 +495,88 @@
   <data name="LoginSuccessfull" xml:space="preserve">
     <value>Login Successfull</value>
   </data>
+  <data name="LoadingAthletes" xml:space="preserve">
+    <value>Loading Athletes....</value>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="ErrorLoadingData" xml:space="preserve">
+    <value>Error Loading Data</value>
+  </data>
+  <data name="TeamForfeitToggledFor" xml:space="preserve">
+    <value>Team forfeit toggled for</value>
+  </data>
+  <data name="ErrorTogglingTeamForfeitForTeam" xml:space="preserve">
+    <value>Error toggling team forfeit for team</value>
+  </data>
+  <data name="ErrorUpdatingTeamForfeitStatus" xml:space="preserve">
+    <value>Error updating team forfeit status</value>
+  </data>
+  <data name="AllTeamsForfeitedFor" xml:space="preserve">
+    <value>All teams forfeited for</value>
+  </data>
+  <data name="AllTeamsForfeitedForAthlete" xml:space="preserve">
+    <value>All teams forfeited for athlete</value>
+  </data>
+  <data name="ErrorForfeitingAllTeams" xml:space="preserve">
+    <value>Error forfeiting all teams</value>
+  </data>
+  <data name="AllTeamsRestoredFor" xml:space="preserve">
+    <value>All teams restored for</value>
+  </data>
+  <data name="ErrorRestoringAllTeams" xml:space="preserve">
+    <value>Error restoring all teams</value>
+  </data>
+  <data name="SavingChanges" xml:space="preserve">
+    <value>Saving changes...</value>
+  </data>
+  <data name="ChangesSavedSuccessfully" xml:space="preserve">
+    <value>Changes saved successfully</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Error saving changes</value>
+  </data>
+  <data name="NoTeams" xml:space="preserve">
+    <value>No teams</value>
+  </data>
+  <data name="AllTeamsForfeited" xml:space="preserve">
+    <value>All teams forfeited</value>
+  </data>
+  <data name="TeamsForfeited" xml:space="preserve">
+    <value>teams forfeited</value>
+  </data>
+  <data name="AllTeamsActive" xml:space="preserve">
+    <value>All teams active</value>
+  </data>
+  <data name="SearchByAthleteName" xml:space="preserve">
+    <value>Search by athlete name</value>
+  </data>
+  <data name="SearchByClubName" xml:space="preserve">
+    <value>Search by club name</value>
+  </data>
+  <data name="ForfeitThisAthleteFromAllTheirTeams" xml:space="preserve">
+    <value>Forfeit this athlete from all their teams</value>
+  </data>
+  <data name="ForfeitAll" xml:space="preserve">
+    <value>Forfeit All</value>
+  </data>
+  <data name="RestoreThisAthleteToAllTheirTeams" xml:space="preserve">
+    <value>Restore this athlete to all their teams</value>
+  </data>
+  <data name="RestoreAll" xml:space="preserve">
+    <value>RestoreAll</value>
+  </data>
+  <data name="ToggleTeamForfeitStatus" xml:space="preserve">
+    <value>Toggle team forfeit status</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="TeamDetails" xml:space="preserve">
+    <value>Team Details</value>
+  </data>
 </root>

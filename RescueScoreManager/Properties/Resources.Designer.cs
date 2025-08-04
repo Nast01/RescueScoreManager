@@ -79,6 +79,51 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Aucun forfait.
+        /// </summary>
+        internal static string AllTeamsActive {
+            get {
+                return ResourceManager.GetString("AllTeamsActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Tous les engagements forfaits.
+        /// </summary>
+        internal static string AllTeamsForfeited {
+            get {
+                return ResourceManager.GetString("AllTeamsForfeited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Toutes les engagements sont forfaits pour.
+        /// </summary>
+        internal static string AllTeamsForfeitedFor {
+            get {
+                return ResourceManager.GetString("AllTeamsForfeitedFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Tous les engagements sont forfaits pour athlète.
+        /// </summary>
+        internal static string AllTeamsForfeitedForAthlete {
+            get {
+                return ResourceManager.GetString("AllTeamsForfeitedForAthlete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Annulation des forfaits pour tous les engagements.
+        /// </summary>
+        internal static string AllTeamsRestoredFor {
+            get {
+                return ResourceManager.GetString("AllTeamsRestoredFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Athlete.
         /// </summary>
         internal static string Athlete_XMI {
@@ -205,11 +250,29 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Modifications enregistrées.
+        /// </summary>
+        internal static string ChangesSavedSuccessfully {
+            get {
+                return ResourceManager.GetString("ChangesSavedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à ChronoType.
         /// </summary>
         internal static string ChronoType_XMI {
             get {
                 return ResourceManager.GetString("ChronoType_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Annulez.
+        /// </summary>
+        internal static string Clear {
+            get {
+                return ResourceManager.GetString("Clear", resourceCulture);
             }
         }
         
@@ -403,6 +466,60 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur lors du forfait de tous les engagements pour athlètes.
+        /// </summary>
+        internal static string ErrorForfeitingAllTeams {
+            get {
+                return ResourceManager.GetString("ErrorForfeitingAllTeams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur Chargement Données.
+        /// </summary>
+        internal static string ErrorLoadingData {
+            get {
+                return ResourceManager.GetString("ErrorLoadingData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur lors de l&apos;annulation de tous les forfaits.
+        /// </summary>
+        internal static string ErrorRestoringAllTeams {
+            get {
+                return ResourceManager.GetString("ErrorRestoringAllTeams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur lors de l&apos;enregistrement des modifications.
+        /// </summary>
+        internal static string ErrorSavingChanges {
+            get {
+                return ResourceManager.GetString("ErrorSavingChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur lors du changement de forfait pour l&apos;engagement.
+        /// </summary>
+        internal static string ErrorTogglingTeamForfeitForTeam {
+            get {
+                return ResourceManager.GetString("ErrorTogglingTeamForfeitForTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur mise à jour forfait pour engagement.
+        /// </summary>
+        internal static string ErrorUpdatingTeamForfeitStatus {
+            get {
+                return ResourceManager.GetString("ErrorUpdatingTeamForfeitStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Création du fichier.
         /// </summary>
         internal static string FileCreationInfo {
@@ -448,11 +565,29 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Forfait Global.
+        /// </summary>
+        internal static string ForfeitAll {
+            get {
+                return ResourceManager.GetString("ForfeitAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Forfaits.
         /// </summary>
         internal static string Forfeits {
             get {
                 return ResourceManager.GetString("Forfeits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Forfait de l&apos;athlète pour tous les engagements.
+        /// </summary>
+        internal static string ForfeitThisAthleteFromAllTheirTeams {
+            get {
+                return ResourceManager.GetString("ForfeitThisAthleteFromAllTheirTeams", resourceCulture);
             }
         }
         
@@ -655,6 +790,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Chargement des Athlètes....
+        /// </summary>
+        internal static string LoadingAthletes {
+            get {
+                return ResourceManager.GetString("LoadingAthletes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Erreur récupération de l&apos;image.
         /// </summary>
         internal static string LoadingImageError {
@@ -844,6 +988,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Aucun Engagement.
+        /// </summary>
+        internal static string NoTeams {
+            get {
+                return ResourceManager.GetString("NoTeams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Number.
         /// </summary>
         internal static string Number_XMI {
@@ -988,6 +1141,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Prêt.
+        /// </summary>
+        internal static string Ready {
+            get {
+                return ResourceManager.GetString("Ready", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Referee.
         /// </summary>
         internal static string Referee_XMI {
@@ -1024,6 +1186,24 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Restaurez tout.
+        /// </summary>
+        internal static string RestoreAll {
+            get {
+                return ResourceManager.GetString("RestoreAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Restaure tous les engagements.
+        /// </summary>
+        internal static string RestoreThisAthleteToAllTheirTeams {
+            get {
+                return ResourceManager.GetString("RestoreThisAthleteToAllTheirTeams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Erreur lors de la récupération.
         /// </summary>
         internal static string RetrieveFailedError {
@@ -1042,11 +1222,47 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegarde.
+        /// </summary>
+        internal static string Save {
+            get {
+                return ResourceManager.GetString("Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Erreur lors de la sauvegarde des données d&apos;authentification.
         /// </summary>
         internal static string SaveTokenError {
             get {
                 return ResourceManager.GetString("SaveTokenError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegarde ....
+        /// </summary>
+        internal static string SavingChanges {
+            get {
+                return ResourceManager.GetString("SavingChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Recherche par athlète.
+        /// </summary>
+        internal static string SearchByAthleteName {
+            get {
+                return ResourceManager.GetString("SearchByAthleteName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Recherche par club.
+        /// </summary>
+        internal static string SearchByClubName {
+            get {
+                return ResourceManager.GetString("SearchByClubName", resourceCulture);
             }
         }
         
@@ -1132,11 +1348,47 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Engagements.
+        /// </summary>
+        internal static string TeamDetails {
+            get {
+                return ResourceManager.GetString("TeamDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Forfait pour l&apos;engagement.
+        /// </summary>
+        internal static string TeamForfeitToggledFor {
+            get {
+                return ResourceManager.GetString("TeamForfeitToggledFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Teams.
         /// </summary>
         internal static string Teams_XMI {
             get {
                 return ResourceManager.GetString("Teams_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à engagements forfaits.
+        /// </summary>
+        internal static string TeamsForfeited {
+            get {
+                return ResourceManager.GetString("TeamsForfeited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Changement de statut du forfait.
+        /// </summary>
+        internal static string ToggleTeamForfeitStatus {
+            get {
+                return ResourceManager.GetString("ToggleTeamForfeitStatus", resourceCulture);
             }
         }
         

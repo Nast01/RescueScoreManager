@@ -26,6 +26,8 @@ namespace RescueScoreManager.Modules.Forfeit;
 public partial class ForfeitViewModel : ObservableObject
 {
     private readonly IXMLService _xmlService;
+    private readonly ILocalizationService _localizationService;
+
     private readonly ILogger<ForfeitViewModel> _logger;
 
     #region Observable Properties
@@ -70,9 +72,12 @@ public partial class ForfeitViewModel : ObservableObject
 
     public ForfeitViewModel(
         IXMLService xmlService,
+        ILocalizationService localizationService,
         ILogger<ForfeitViewModel> logger)
     {
         _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
+        _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
+
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Subscribe to property changes for filtering
@@ -95,14 +100,14 @@ public partial class ForfeitViewModel : ObservableObject
             //    return;
             //}
 
-            StatusText = "Loading athletes...";
+            StatusText = _localizationService.GetString("LoadingAthletes");
             await LoadDataAsync();
-            StatusText = "Ready";
+            StatusText = _localizationService.GetString("Ready");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error initializing athlete race participation view");
-            StatusText = "Error loading data";
+            StatusText = _localizationService.GetString("ErrorLoadingData");
         }
         finally
         {
@@ -122,7 +127,7 @@ public partial class ForfeitViewModel : ObservableObject
                 AllAthletes.Clear();
                 foreach (var athlete in athletes)
                 {
-                    AthleteViewModel athleteViewModel = new AthleteViewModel(athlete);
+                    AthleteViewModel athleteViewModel = new AthleteViewModel(athlete,_localizationService);
                     foreach (var team in athlete.Teams)
                     {
                         var teamViewModel = new TeamViewModel(team);
@@ -162,17 +167,17 @@ public partial class ForfeitViewModel : ObservableObject
             teamViewModel.IsForfeit = !teamViewModel.IsForfeit;
             HasUnsavedChanges = true;
 
-            StatusText = $"Team forfeit toggled for {teamViewModel.TeamLabel} - {teamViewModel.RaceName}";
+            StatusText = $"{_localizationService.GetString("TeamForfeitToggledFor")} {teamViewModel.TeamLabel} - {teamViewModel.RaceName}";
 
-            _logger.LogInformation("Team forfeit toggled for team {TeamId}: {Status}",
+            _logger.LogInformation("{TeamForfeitToggledFor} {TeamId}: {Status}", _localizationService.GetString("TeamForfeitToggledFor"),
                 teamViewModel.Id, teamViewModel.IsForfeit);
 
             _xmlService.Save();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error toggling team forfeit for team {TeamId}", teamViewModel.Id);
-            StatusText = "Error updating team forfeit status";
+            _logger.LogError(ex, "{ErrorTogglingTeamForfeitForTeam} {TeamId}", _localizationService.GetString("ErrorTogglingTeamForfeitForTeam"), teamViewModel.Id);
+            StatusText = _localizationService.GetString("ErrorUpdatingTeamForfeitStatus");
         }
     }
 
@@ -187,16 +192,16 @@ public partial class ForfeitViewModel : ObservableObject
             }
 
             HasUnsavedChanges = true;
-            StatusText = $"All teams forfeited for {athleteViewModel.FullName}";
+            StatusText = $"{_localizationService.GetString("AllTeamsForfeitedFor")} {athleteViewModel.FullName}";
 
-            _logger.LogInformation("All teams forfeited for athlete {AthleteId}", athleteViewModel.Id);
+            _logger.LogInformation("{AllTeamsForfeitedForAthlete} {AthleteId}", _localizationService.GetString("AllTeamsForfeitedForAthlete"), athleteViewModel.Id);
 
             _xmlService.Save();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error forfeiting all teams for athlete {AthleteId}", athleteViewModel.Id);
-            StatusText = "Error forfeiting all teams";
+            StatusText = _localizationService.GetString("ErrorForfeitingAllTeams");
         }
     }
 
@@ -211,7 +216,7 @@ public partial class ForfeitViewModel : ObservableObject
             }
 
             HasUnsavedChanges = true;
-            StatusText = $"All teams restored for {athleteViewModel.FullName}";
+            StatusText = $"{_localizationService.GetString("AllTeamsRestoredFor")} {athleteViewModel.FullName}";
 
             _logger.LogInformation("All teams restored for athlete {AthleteId}", athleteViewModel.Id);
 
@@ -220,7 +225,7 @@ public partial class ForfeitViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error restoring all teams for athlete {AthleteId}", athleteViewModel.Id);
-            StatusText = "Error restoring all teams";
+            StatusText = _localizationService.GetString("ErrorRestoringAllTeams");
         }
     }
 
@@ -229,7 +234,7 @@ public partial class ForfeitViewModel : ObservableObject
     {
         try
         {
-            StatusText = "Saving changes...";
+            StatusText = _localizationService.GetString("SavingChanges");
 
             // Here you would implement the actual save logic
             // This might involve calling a service to persist the changes
@@ -251,14 +256,14 @@ public partial class ForfeitViewModel : ObservableObject
 
             _xmlService.Save();
             HasUnsavedChanges = false;
-            StatusText = "Changes saved successfully";
+            StatusText = _localizationService.GetString("ChangesSavedSuccessfully");
 
             _logger.LogInformation("All changes saved successfully");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error saving changes");
-            StatusText = "Error saving changes";
+            StatusText = _localizationService.GetString("ErrorSavingChanges");
         }
     }
 
@@ -345,14 +350,17 @@ public partial class AthleteViewModel : ObservableObject
 
     public string ForfeitStatusText => TotalTeamsNumber switch
     {
-        0 => "No teams",
-        _ when HasAllTeamsForfeited => "All teams forfeited",
-        _ when HasPartialForfeit => $"{ForfeitedTeamsNumber}/{TotalTeamsNumber} teams forfeited",
-        _ => "All teams active"
+        0 => _localizationService.GetString("NoTeams"),
+        _ when HasAllTeamsForfeited => _localizationService.GetString("AllTeamsForfeited"),
+        _ when HasPartialForfeit => $"{ForfeitedTeamsNumber}/{TotalTeamsNumber} {_localizationService.GetString("TeamsForfeited")}",
+        _ => _localizationService.GetString("AllTeamsActive")
     };
 
 
-    public AthleteViewModel(Athlete athlete)
+    private readonly ILocalizationService _localizationService;
+
+
+    public AthleteViewModel(Athlete athlete, ILocalizationService localizationService)
     {
         //Athlete = athlete;
         Id = athlete.Id;
@@ -363,6 +371,7 @@ public partial class AthleteViewModel : ObservableObject
 
         // Subscribe to collection changes to update status
         Teams.CollectionChanged += (s, e) => UpdateForfeitStatus();
+        _localizationService = localizationService;
     }
 
     // Subscribe to team changes to update status

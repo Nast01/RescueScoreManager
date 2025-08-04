@@ -495,4 +495,88 @@
   <data name="LoginSuccessfull" xml:space="preserve">
     <value>Connexion Réussie</value>
   </data>
+  <data name="LoadingAthletes" xml:space="preserve">
+    <value>Chargement des Athlètes...</value>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="ErrorLoadingData" xml:space="preserve">
+    <value>Erreur Chargement Données</value>
+  </data>
+  <data name="TeamForfeitToggledFor" xml:space="preserve">
+    <value>Forfait pour l'engagement</value>
+  </data>
+  <data name="ErrorTogglingTeamForfeitForTeam" xml:space="preserve">
+    <value>Erreur lors du changement de forfait pour l'engagement</value>
+  </data>
+  <data name="ErrorUpdatingTeamForfeitStatus" xml:space="preserve">
+    <value>Erreur mise à jour forfait pour engagement</value>
+  </data>
+  <data name="AllTeamsForfeitedFor" xml:space="preserve">
+    <value>Toutes les engagements sont forfaits pour</value>
+  </data>
+  <data name="AllTeamsForfeitedForAthlete" xml:space="preserve">
+    <value>Tous les engagements sont forfaits pour athlète</value>
+  </data>
+  <data name="ErrorForfeitingAllTeams" xml:space="preserve">
+    <value>Erreur lors du forfait de tous les engagements pour athlètes</value>
+  </data>
+  <data name="AllTeamsRestoredFor" xml:space="preserve">
+    <value>Annulation des forfaits pour tous les engagements</value>
+  </data>
+  <data name="ErrorRestoringAllTeams" xml:space="preserve">
+    <value>Erreur lors de l'annulation de tous les forfaits</value>
+  </data>
+  <data name="SavingChanges" xml:space="preserve">
+    <value>Sauvegarde ...</value>
+  </data>
+  <data name="ChangesSavedSuccessfully" xml:space="preserve">
+    <value>Modifications enregistrées</value>
+  </data>
+  <data name="ErrorSavingChanges" xml:space="preserve">
+    <value>Erreur lors de l'enregistrement des modifications</value>
+  </data>
+  <data name="NoTeams" xml:space="preserve">
+    <value>Aucun Engagement</value>
+  </data>
+  <data name="AllTeamsForfeited" xml:space="preserve">
+    <value>Tous les engagements forfaits</value>
+  </data>
+  <data name="TeamsForfeited" xml:space="preserve">
+    <value>engagements forfaits</value>
+  </data>
+  <data name="AllTeamsActive" xml:space="preserve">
+    <value>Aucun forfait</value>
+  </data>
+  <data name="SearchByAthleteName" xml:space="preserve">
+    <value>Recherche par athlète</value>
+  </data>
+  <data name="SearchByClubName" xml:space="preserve">
+    <value>Recherche par club</value>
+  </data>
+  <data name="ForfeitThisAthleteFromAllTheirTeams" xml:space="preserve">
+    <value>Forfait de l'athlète pour tous les engagements</value>
+  </data>
+  <data name="ForfeitAll" xml:space="preserve">
+    <value>Forfait Global</value>
+  </data>
+  <data name="RestoreThisAthleteToAllTheirTeams" xml:space="preserve">
+    <value>Restaure tous les engagements</value>
+  </data>
+  <data name="RestoreAll" xml:space="preserve">
+    <value>Restaurez tout</value>
+  </data>
+  <data name="ToggleTeamForfeitStatus" xml:space="preserve">
+    <value>Changement de statut du forfait</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Sauvegarde</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Annulez</value>
+  </data>
+  <data name="TeamDetails" xml:space="preserve">
+    <value>Engagements</value>
+  </data>
 </root>

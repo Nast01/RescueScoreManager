@@ -225,15 +225,11 @@ public partial class MainWindowViewModel : ObservableObject,
     private void UpdateLogInfo()
     {
         IsLoggedIn = _authService.IsAuthenticated;
-        UserLabel = _authService.CurrentUser?.Label ?? GetLocalizedString("NotConnected");
+        UserLabel = _authService.CurrentUser?.Label ?? _localizationService.GetString("NotConnected");
         UserRole = _authService.CurrentUser?.Role ?? "";
         UserType = _authService.CurrentUser?.Type ?? "";
     }
 
-    private string GetLocalizedString(string key)
-    {
-        return ResourceManagerLocalizationService.Instance.GetString(key) ?? key;
-    }
     #endregion Private functions
 
     #region Message
@@ -243,7 +239,7 @@ public partial class MainWindowViewModel : ObservableObject,
     /// <param name="message"></param>
     public void Receive(LoginMessage message)
     {
-        UserLabel = _authService.IsAuthenticated ? _authService.CurrentUser.Label : $"{ResourceManagerLocalizationService.Instance.GetString("NotConnected")}";
+        UserLabel = _authService.IsAuthenticated ? _authService.CurrentUser.Label : $"{_localizationService.GetString("NotConnected")}";
         UserRole = _authService.IsAuthenticated ? _authService.CurrentUser.Role : "";
         UserType = _authService.IsAuthenticated ? _authService.CurrentUser.Type : "";
         IsLoggedIn = _authService.IsAuthenticated;
@@ -251,7 +247,7 @@ public partial class MainWindowViewModel : ObservableObject,
         UpdateLogInfo();
         if (message.IsConnected)
         {
-            SnackbarMessageQueue.Enqueue(GetLocalizedString("LoginSuccessful"));
+            SnackbarMessageQueue.Enqueue(_localizationService.GetString("LoginSuccessful"));
         }
     }
 

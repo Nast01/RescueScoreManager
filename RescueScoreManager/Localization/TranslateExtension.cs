@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -14,7 +14,7 @@ public class TranslateExtension : Binding
 {
     public TranslateExtension(string key) : base($"[{key}]")
     {
-        this.Source = new TranslationProxy();
-        this.Mode = BindingMode.OneWay;
+        Source = new TranslationProxy();
+        Mode = BindingMode.OneWay;
     }
 }

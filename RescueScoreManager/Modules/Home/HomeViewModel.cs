@@ -25,6 +25,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
     private readonly IAuthenticationService _authService;
     private readonly IXMLService _xmlService;
     private readonly IExcelService _excelService;
+    private readonly ILocalizationService _localizationService;
     private readonly IMessenger _messenger;
     private readonly ILogger<HomeViewModel> _logger;
 
@@ -48,6 +49,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         IAuthenticationService authService,
         IXMLService xmlService,
         IExcelService excelService,
+        ILocalizationService localizationService,
         IMessenger messenger,
         ILogger<HomeViewModel> logger)
     {
@@ -59,6 +61,8 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
         _excelService = excelService ?? throw new ArgumentNullException(nameof(excelService));
+        _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
+
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -73,18 +77,18 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
             var fileInfo = GetFile();
             if (fileInfo == null) { return; }
 
-            _messenger.Send(new IsBusyMessage(true, GetLocalizedString("FileLoadingInfo")));
+            _messenger.Send(new IsBusyMessage(true, _localizationService.GetString("FileLoadingInfo")));
 
             await LoadCompetitionFileAsync(fileInfo);
 
             _messenger.Send(new IsBusyMessage(false));
-            _messenger.Send(new SnackMessage(GetLocalizedString("FileLoadedSuccess")));
+            _messenger.Send(new SnackMessage(_localizationService.GetString("FileLoadedSuccess")));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading competition file");
             _messenger.Send(new IsBusyMessage(false));
-            _messenger.Send(new SnackMessage(GetLocalizedString("FileLoadError")));
+            _messenger.Send(new SnackMessage(_localizationService.GetString("FileLoadError")));
         }
     }
 
@@ -108,7 +112,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating new competition");
-            _messenger.Send(new SnackMessage(GetLocalizedString("NewCompetitionError")));
+            _messenger.Send(new SnackMessage(_localizationService.GetString("NewCompetitionError")));
         }
     }
 
@@ -118,7 +122,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
     {
         OpenFileDialog openFileDialog = new()
         {
-            Title = GetLocalizedString("OpenFileTitle"),
+            Title = _localizationService.GetString("OpenFileTitle"),
             Filter = "Competition Files (*.ffss)|*.ffss",
             CheckFileExists = true,
             CheckPathExists = true,
@@ -145,11 +149,11 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
     {
         try
         {
-            _messenger.Send(new IsBusyMessage(true, GetLocalizedString("DataLoadingInfo")));
+            _messenger.Send(new IsBusyMessage(true, _localizationService.GetString("DataLoadingInfo")));
             // TODO TO BE UPDATED
             await _apiService.LoadAsync(competition, _authService.AuthenticationInfo);
 
-            _messenger.Send(new IsBusyMessage(true, GetLocalizedString("FileCreationInfo")));
+            _messenger.Send(new IsBusyMessage(true, _localizationService.GetString("FileCreationInfo")));
 
             _xmlService.SetPath(competition.Name);
             _xmlService.Initialize(competition, _apiService.GetCategories(), _apiService.GetClubs(),
@@ -163,13 +167,13 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
             IsLoaded = true;
 
             _messenger.Send(new IsBusyMessage(false));
-            _messenger.Send(new SnackMessage(GetLocalizedString("DataLoadedSuccess")));
+            _messenger.Send(new SnackMessage(_localizationService.GetString("DataLoadedSuccess")));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing selected competition: {CompetitionName}", competition?.Name);
             _messenger.Send(new IsBusyMessage(false));
-            _messenger.Send(new SnackMessage(GetLocalizedString("DataLoadError")));
+            _messenger.Send(new SnackMessage(_localizationService.GetString("DataLoadError")));
         }
     }
 
@@ -190,11 +194,6 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
     {
         // Implementation for processing new competition
         await Task.Delay(100); // Placeholder
-    }
-
-    private string GetLocalizedString(string key)
-    {
-        return ResourceManagerLocalizationService.Instance.GetString(key) ?? key;
     }
 }
 
