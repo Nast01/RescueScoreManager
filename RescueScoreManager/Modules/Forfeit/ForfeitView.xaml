@@ -13,10 +13,17 @@
     <converter:PoolVisibilityConverter x:Key="PoolVisibilityConverter"/>
     <converter:ReverseBooleanToVisibilityConverter x:Key="ReverseBooleanToVisibilityConverter"/>
 
-    <Style x:Key="SearchTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+    <Style x:Key="SearchTextBoxStyleCompact" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
       <Setter Property="materialDesign:HintAssist.Hint" Value="Search athletes..."/>
       <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
-      <Setter Property="Margin" Value="0,8"/>
+      <Setter Property="materialDesign:HintAssist.Foreground" Value="DarkGray"/>
+      <Setter Property="materialDesign:HintAssist.Background" Value="Transparent"/>
+      <Setter Property="Margin" Value="0,4,0,0"/>
+      <!-- Reduced from 0,8 -->
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="materialDesign:HintAssist.HelperTextFontSize" Value="12"/>
+      <Setter Property="Height" Value="Auto"/>
+      <Setter Property="MinHeight" Value="48"/>
     </Style>
 
     <Style x:Key="AthleteCardStyle" TargetType="materialDesign:Card">
@@ -105,9 +112,9 @@
 
         <!-- Search by Name -->
         <TextBox Grid.Column="0"
-                     Text="{Binding SearchByName, UpdateSourceTrigger=PropertyChanged}"
-                     Style="{StaticResource SearchTextBoxStyle}"
-                     materialDesign:HintAssist.Hint="{loc:Translate SearchByAthleteName}"/>
+                Text="{Binding SearchByName, UpdateSourceTrigger=PropertyChanged}"
+                Style="{StaticResource SearchTextBoxStyleCompact}"
+                materialDesign:HintAssist.Hint="{loc:Translate SearchByAthleteName}"/>
 
         <!-- Search by Club -->
         <TextBox Grid.Column="2"
@@ -119,9 +126,13 @@
         <Button Grid.Column="4"
                     Command="{Binding ClearFiltersCommand}"
                     Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Content="{loc:Translate Clear}"
+                    ToolTip="{loc:Translate Clear}"
                     Margin="0,8"
-                    VerticalAlignment="Center"/>
+                    VerticalAlignment="Center">
+          <Button.Content>
+            <materialDesign:PackIcon Kind="Refresh" Margin="0,0,4,0"/>
+          </Button.Content>
+        </Button>
       </Grid>
     </Border>
     <!-- Athletes List -->
