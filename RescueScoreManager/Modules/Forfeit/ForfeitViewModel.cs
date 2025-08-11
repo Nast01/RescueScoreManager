@@ -45,6 +45,8 @@ public partial class ForfeitViewModel : ObservableObject
     private bool _isLoading = true;
     [ObservableProperty]
     private bool _hasUnsavedChanges;
+    private readonly System.Timers.Timer _filterTimer = new(300); // 300ms delay
+
 
     #endregion
 
@@ -80,8 +82,8 @@ public partial class ForfeitViewModel : ObservableObject
 
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        // Subscribe to property changes for filtering
-        PropertyChanged += OnPropertyChanged;
+        _filterTimer.Elapsed += OnFilterTimerElapsed;
+        _filterTimer.AutoReset = false;
     }
 
     #endregion
@@ -127,7 +129,7 @@ public partial class ForfeitViewModel : ObservableObject
                 AllAthletes.Clear();
                 foreach (var athlete in athletes)
                 {
-                    AthleteViewModel athleteViewModel = new AthleteViewModel(athlete,_localizationService);
+                    AthleteViewModel athleteViewModel = new AthleteViewModel(athlete, _localizationService);
                     foreach (var team in athlete.Teams)
                     {
                         var teamViewModel = new TeamViewModel(team);
@@ -146,6 +148,43 @@ public partial class ForfeitViewModel : ObservableObject
             });
 
         });
+
+        // Create ViewModels off the UI thread
+        //var athleteViewModels = await Task.Run(() =>
+        //{
+        //    var athletes = _xmlService.GetAthletes();
+        //    var viewModels = new List<AthleteViewModel>();
+
+        //    foreach (var athlete in athletes)
+        //    {
+        //        AthleteViewModel athleteViewModel = new AthleteViewModel(athlete, _localizationService);
+        //        foreach (var team in athlete.Teams)
+        //        {
+        //            var teamViewModel = new TeamViewModel(team);
+        //            athleteViewModel.Teams.Add(teamViewModel);
+        //        }
+        //        viewModels.Add(athleteViewModel);
+        //    }
+
+        //    return viewModels;
+        //});
+
+        //// Update UI thread in batches
+        //const int batchSize = 50;
+        //for (int i = 0; i < athleteViewModels.Count; i += batchSize)
+        //{
+        //    var batch = athleteViewModels.Skip(i).Take(batchSize);
+        //    App.Current.Dispatcher.Invoke(() =>
+        //    {
+        //        foreach (var athlete in batch)
+        //        {
+        //            AllAthletes.Add(athlete);
+        //        }
+        //    });
+
+        //    // Allow UI to refresh between batches
+        //    await Task.Delay(1);
+        //}
     }
 
     #endregion
@@ -157,6 +196,12 @@ public partial class ForfeitViewModel : ObservableObject
     {
         SearchByName = string.Empty;
         SearchByClub = string.Empty;
+
+        // Immediately refresh when clearing
+        FilteredAthletes.Refresh();
+        StatusText = _localizationService.GetString("Ready");
+
+        _logger.LogInformation("Search filters cleared");
     }
 
     [RelayCommand]
@@ -267,6 +312,28 @@ public partial class ForfeitViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void SearchFilters()
+    {
+        try
+        {
+            FilteredAthletes.Refresh();
+
+            int filteredCount = FilteredAthletes.Cast<object>().Count();
+            StatusText = string.IsNullOrWhiteSpace(SearchByName) && string.IsNullOrWhiteSpace(SearchByClub)
+                ? _localizationService.GetString("Ready")
+                : $"{filteredCount} {_localizationService.GetString("AthletesFound")}";
+
+            _logger.LogInformation("Search performed - Name: '{SearchName}', Club: '{SearchClub}', Results: {Count}",
+                SearchByName, SearchByClub, filteredCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error performing search");
+            StatusText = _localizationService.GetString("ErrorPerformingSearch");
+        }
+    }
+
     #endregion
 
     #region Filtering
@@ -312,13 +379,32 @@ public partial class ForfeitViewModel : ObservableObject
         return true;
     }
 
+    partial void OnSearchByNameChanged(string value)
+    {
+        _filterTimer.Stop();
+        _filterTimer.Start();
+    }
+
+    partial void OnSearchByClubChanged(string value)
+    {
+        _filterTimer.Stop();
+        _filterTimer.Start();
+    }
+
+    private void OnFilterTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        App.Current.Dispatcher.Invoke(() =>
+        {
+            FilteredAthletes.Refresh();
+        });
+    }
+
     #endregion
 
     #region Cleanup
 
     public void Dispose()
     {
-        PropertyChanged -= OnPropertyChanged;
     }
 
     #endregion

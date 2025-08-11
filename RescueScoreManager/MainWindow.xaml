@@ -26,7 +26,6 @@
     <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     <converter:ReverseBooleanToVisibilityConverter x:Key="ReverseBoolToVisConverter" />
     <converter:LocalizedFormatConverter x:Key="LocalizedFormat"/>
-
   </Window.Resources>
   <xctk:BusyIndicator BusyContent="{Binding BusyMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsBusy="{Binding IsBusy}">
     <Border Padding="20" Background="#F7F6F4">
@@ -80,6 +79,7 @@
                          Stroke="#ffffff" />
               <Button Background="#F7F6F4"
                       Foreground="#012b56"
+                      CommandParameter="Home"
                       Command="{Binding NavigateToHomeCommand}"
                       Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
@@ -104,7 +104,7 @@
                   <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Beach}" />
                 </StackPanel>
               </Button>
-              <Button Command="{Binding NavigateToForfeitCommand}" Style="{StaticResource menuButton}">
+              <Button Style="{StaticResource menuButton}" Command="{Binding NavigateToForfeitCommand}" CommandParameter="Forfeits">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="CheckboxesMarked" Style="{StaticResource menuButtonIcon}" />
                   <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Forfeits}" />

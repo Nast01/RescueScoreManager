@@ -579,4 +579,7 @@
   <data name="TeamDetails" xml:space="preserve">
     <value>Engagements</value>
   </data>
+  <data name="Search" xml:space="preserve">
+    <value>Rechercher</value>
+  </data>
 </root>
