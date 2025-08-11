@@ -214,6 +214,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à CanExceedMaxAlthleteAllowed.
+        /// </summary>
+        internal static string CanExceedMaxAlthleteAllowed_XMI {
+            get {
+                return ResourceManager.GetString("CanExceedMaxAlthleteAllowed_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à CapUrl.
         /// </summary>
         internal static string CapUrl_XMI {
@@ -691,6 +700,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à IsFinalBAllowed.
+        /// </summary>
+        internal static string IsFinalBAllowed_XMI {
+            get {
+                return ResourceManager.GetString("IsFinalBAllowed_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à IsForfeit.
         /// </summary>
         internal static string IsForfeit_XMI {
@@ -867,6 +885,15 @@ namespace RescueScoreManager.Properties {
         internal static string Logout {
             get {
                 return ResourceManager.GetString("Logout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à MaxAthleteAllowed.
+        /// </summary>
+        internal static string MaxAthleteAllowed_XMI {
+            get {
+                return ResourceManager.GetString("MaxAthleteAllowed_XMI", resourceCulture);
             }
         }
         

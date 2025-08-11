@@ -768,16 +768,16 @@ public class ApiService : IApiService, IDisposable
                 }
 
 
-                if (jData.Count == _teams.Count)
-                {
-                    _logger.LogDebug("Loaded {TeamsCount} teams", _teams.Count);
-                }
-                else
-                {
-                    int missingTeamsCount = jData.Count - _teams.Count;
-                    _logger.LogError("Not all teams loaded, missing { missingTeamsCount}", missingTeamsCount);
-                    throw new Exception($"Not all teams loaded, missing {missingTeamsCount}");
-                }
+                //if (jData.Count == _teams.Count)
+                //{
+                //    _logger.LogDebug("Loaded {TeamsCount} teams", _teams.Count);
+                //}
+                //else
+                //{
+                //    int missingTeamsCount = jData.Count - _teams.Count;
+                //    _logger.LogError("Not all teams loaded, missing { missingTeamsCount}", missingTeamsCount);
+                //    throw new Exception($"Not all teams loaded, missing {missingTeamsCount}");
+                //}
             }
         }
         catch (Exception ex)

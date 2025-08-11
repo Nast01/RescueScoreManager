@@ -582,4 +582,13 @@
   <data name="Search" xml:space="preserve">
     <value>Search</value>
   </data>
+  <data name="MaxAthleteAllowed_XMI" xml:space="preserve">
+    <value>MaxAthleteAllowed</value>
+  </data>
+  <data name="CanExceedMaxAlthleteAllowed_XMI" xml:space="preserve">
+    <value>CanExceedMaxAlthleteAllowed</value>
+  </data>
+  <data name="IsFinalBAllowed_XMI" xml:space="preserve">
+    <value>IsFinalBAllowed</value>
+  </data>
 </root>

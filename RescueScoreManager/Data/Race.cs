@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Security.AccessControl;
 using System.Security.Cryptography.X509Certificates;
@@ -37,6 +37,11 @@ public class Race
     public string IntervalLabel => TimeHelper.ConvertCentisecondInString(Interval);
     public bool IsRelay { get; set; }
     public bool IsEligibleToNationalRecord { get; set; }
+
+    public int MaxAthleteAllowed { get; set; }
+    public bool CanExceedMaxAlthleteAllowed { get; set; }
+    public bool IsFinalBAllowed { get; set; }
+
     //one-to-many relationship to Competition
     public int CompetitionId { get; set; } // Required foreign key property
     public Competition Competition { get; set; } = null!; // Required reference navigation to principal
@@ -62,6 +67,62 @@ public class Race
         IsRelay = NumberByTeam > 1;
         Distance = Speciality == Speciality.EauPlate ? jData["discipline"]["Distance"].Value<int>() : 0;
 
+        //public static List<string> single16FinalRaces = new List<string>() { };//{ "E1-Beach Flags", "E2-Beach Flags" };//
+        //public static List<string> double10FinalRaces = new List<string>() { "E1-Beach Flags", "E2-Beach Flags" }; //
+
+        switch (Discipline)
+        {
+            // final A max 16 Exceeding
+            case 1://R.Planche
+            case 3://surfski
+            case 4://Course - Nage - Course
+            case 7://oceanwoman - oceanman
+            case 13://paddle board
+            case 27:// R Combiné
+            case 34://Mini Combiné
+            case 44://Relais Surfski
+                MaxAthleteAllowed = 16;
+                CanExceedMaxAlthleteAllowed = true;
+                IsFinalBAllowed = false;
+                break;
+            // final A max 32 Exceeding
+            case 5://Nage
+            case 43://Relais Nage
+                MaxAthleteAllowed = 32;
+                CanExceedMaxAlthleteAllowed = true;
+                IsFinalBAllowed = false;
+                break;
+            // final A B max 9 No Exceeding
+            case 26://Relais Sauvetage tube
+            case 41://Relais Sauvetage Planche
+                MaxAthleteAllowed = 9;
+                CanExceedMaxAlthleteAllowed = false;
+                IsFinalBAllowed = true;
+                break;
+            // final A B max 10 Exceeding
+            case 2://Relais Sprint
+            case 9://90m Sprint
+                MaxAthleteAllowed = 10;
+                CanExceedMaxAlthleteAllowed = true;
+                IsFinalBAllowed = true;
+                break;
+            // final A B max 10 Exceeding
+            case 8://Beach Flags
+                MaxAthleteAllowed = 16;
+                CanExceedMaxAlthleteAllowed = true;
+                IsFinalBAllowed = true;
+                break;
+            // final A max 40 Exceeding
+            case 6://2km Sprint
+            case 35://1km Sprint
+                MaxAthleteAllowed = 40;
+                CanExceedMaxAlthleteAllowed = true;
+                IsFinalBAllowed = false;
+                break;
+            default:
+                break;
+        }
+
         JArray JCategories = jData["categories"] as JArray;
         foreach (var jCat in JCategories.Children())
         {
@@ -82,6 +143,10 @@ public class Race
         Interval = int.Parse(xElement.Attribute(Properties.Resources.Interval_XMI).Value);
         IsRelay = bool.Parse(xElement.Attribute(Properties.Resources.IsRelay_XMI).Value);
         IsEligibleToNationalRecord = bool.Parse(xElement.Attribute(Properties.Resources.IsEligibleToNationalRecord_XMI).Value);
+
+        MaxAthleteAllowed = int.Parse(xElement.Attribute(Properties.Resources.MaxAthleteAllowed_XMI).Value);
+        CanExceedMaxAlthleteAllowed = bool.Parse(xElement.Attribute(Properties.Resources.CanExceedMaxAlthleteAllowed_XMI).Value);
+        IsFinalBAllowed = bool.Parse(xElement.Attribute(Properties.Resources.IsFinalBAllowed_XMI).Value);
 
         string[] catIds = xElement.Attribute(Properties.Resources.Categories_XMI).Value.Split(" ");
         foreach (string catId in catIds)
@@ -131,6 +196,9 @@ public class Race
                             new XAttribute(Properties.Resources.Interval_XMI, Interval),
                             new XAttribute(Properties.Resources.IsRelay_XMI, IsRelay),
                             new XAttribute(Properties.Resources.IsEligibleToNationalRecord_XMI, IsEligibleToNationalRecord),
+                            new XAttribute(Properties.Resources.MaxAthleteAllowed_XMI, MaxAthleteAllowed),
+                            new XAttribute(Properties.Resources.CanExceedMaxAlthleteAllowed_XMI, CanExceedMaxAlthleteAllowed),
+                            new XAttribute(Properties.Resources.IsFinalBAllowed_XMI, IsFinalBAllowed),
                             new XAttribute(Properties.Resources.Categories_XMI, catIds)
                             //new XAttribute(Properties.Resources.MeetingElements_XMI, MeetingElements.GetXmiIds()),
                             //new XAttribute(Properties.Resources.AresStyleId_XMI, AresStyleId)
