@@ -925,11 +925,29 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Classement Final.
+        /// </summary>
+        internal static string IsRankingByFinal {
+            get {
+                return ResourceManager.GetString("IsRankingByFinal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à IsRankingByFinal.
         /// </summary>
         internal static string IsRankingByFinal_XMI {
             get {
                 return ResourceManager.GetString("IsRankingByFinal_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Classement Temps.
+        /// </summary>
+        internal static string IsRankingByTime {
+            get {
+                return ResourceManager.GetString("IsRankingByTime", resourceCulture);
             }
         }
         

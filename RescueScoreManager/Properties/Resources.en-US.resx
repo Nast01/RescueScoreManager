@@ -759,4 +759,10 @@
   <data name="Configuration" xml:space="preserve">
     <value>Configuration</value>
   </data>
+  <data name="IsRankingByTime" xml:space="preserve">
+    <value>Is ranking by time</value>
+  </data>
+  <data name="IsRankingByFinal" xml:space="preserve">
+    <value>Is ranking by final</value>
+  </data>
 </root>

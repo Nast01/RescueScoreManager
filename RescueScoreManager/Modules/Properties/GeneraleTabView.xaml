@@ -67,11 +67,11 @@
 
           <StackPanel Orientation="Horizontal" Margin="0,4">
             
-              <RadioButton Content="{Binding IsRankingByTime, StringFormat='Par temps: {0}'}" 
+              <RadioButton Content="{loc:Translate IsRankingByTime, StringFormat='Par temps: {0}'}"
                                    Command="{Binding SelectRankingByTimeCommand}" GroupName="RankingType"
                                     FontSize="12"/>
 
-              <RadioButton Content="{Binding IsRankingByFinal, StringFormat='Par finale: {0}'}" 
+            <RadioButton Content="{loc:Translate IsRankingByFinal, StringFormat='Par finale: {0}'}"
                                    Command="{Binding SelectRankingByFinalCommand}" GroupName="RankingType"
                                     FontSize="12"/>
           </StackPanel>
