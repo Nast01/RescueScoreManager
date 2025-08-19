@@ -93,6 +93,10 @@ public partial class App : Application
             //Properties components
             services.AddTransient<PropertiesView>();
             services.AddTransient<PropertiesViewModel>();
+            services.AddTransient<GeneraleTabView>();
+            services.AddTransient<GeneraleTabViewModel>();
+            services.AddTransient<ConfigurationTabView>();
+            services.AddTransient<ConfigurationTabViewModel>();
 
             // Messaging
             services.AddSingleton<WeakReferenceMessenger>();

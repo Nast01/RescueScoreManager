@@ -31,6 +31,7 @@ public class XMLService : IXMLService
     private readonly List<Race> _races = new();
     private readonly List<Team> _teams = new();
     private readonly List<RaceFormatConfiguration> _raceFormatConfigurations = new();
+    private AppSetting _setting = new();
 
     public bool IsLoaded { get; private set; }
 
@@ -68,6 +69,7 @@ public class XMLService : IXMLService
     public IReadOnlyList<Race> GetRaces() => _races.AsReadOnly();
     public IReadOnlyList<Team> GetTeams() => _teams.AsReadOnly();
     public IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations() => _raceFormatConfigurations.AsReadOnly();
+    public AppSetting? GetSetting() => _setting;
     #endregion
 
     #region Path Management
@@ -272,8 +274,11 @@ public class XMLService : IXMLService
             // Load teams
             LoadTeams(rootElement);
 
-            // Load race format configurations
+            // Load race format configurations and details
             LoadRaceFormatConfigurations(rootElement);
+
+            // Load settings
+            LoadSetting(rootElement);
 
             IsLoaded = true;
             _logger.LogInformation("XML loaded successfully from: {FilePath}", filePath);
@@ -313,6 +318,12 @@ public class XMLService : IXMLService
             if (competitionElement != null)
             {
                 rootElement.Add(competitionElement);
+            }
+            // Save settings
+            var settingElement = _setting.WriteXml();
+            if (settingElement != null)
+            {
+                rootElement.Add(settingElement);
             }
 
             // Save categories
@@ -587,6 +598,15 @@ public class XMLService : IXMLService
         
 
         _logger.LogDebug("Loaded {Count} teams", _teams.Count);
+    }
+    private void LoadSetting(XElement rootElement)
+    {
+        var settingElement = rootElement.Element(Properties.Resources.AppSetting_XMI);
+        if (settingElement != null)
+        {
+            _setting = new AppSetting(settingElement);
+            _logger.LogDebug("Setting loaded");
+        }
     }
 
     #endregion

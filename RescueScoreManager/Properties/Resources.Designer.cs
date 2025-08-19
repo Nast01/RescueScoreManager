@@ -124,6 +124,24 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à AppSetting.
+        /// </summary>
+        internal static string AppSetting_XMI {
+            get {
+                return ResourceManager.GetString("AppSetting_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à ARES.
+        /// </summary>
+        internal static string ARES {
+            get {
+                return ResourceManager.GetString("ARES", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Athlete.
         /// </summary>
         internal static string Athlete_XMI {
@@ -147,6 +165,15 @@ namespace RescueScoreManager.Properties {
         internal static string Athletes_XMI {
             get {
                 return ResourceManager.GetString("Athletes_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Athlètes/club.
+        /// </summary>
+        internal static string AthletesPerClub {
+            get {
+                return ResourceManager.GetString("AthletesPerClub", resourceCulture);
             }
         }
         
@@ -201,6 +228,24 @@ namespace RescueScoreManager.Properties {
         internal static string BirthYear_XMI {
             get {
                 return ResourceManager.GetString("BirthYear_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Par finale.
+        /// </summary>
+        internal static string ByFinal {
+            get {
+                return ResourceManager.GetString("ByFinal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Par temps.
+        /// </summary>
+        internal static string ByTime {
+            get {
+                return ResourceManager.GetString("ByTime", resourceCulture);
             }
         }
         
@@ -268,6 +313,24 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Chemin chronométrage.
+        /// </summary>
+        internal static string ChronoPath {
+            get {
+                return ResourceManager.GetString("ChronoPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à ChronoPath.
+        /// </summary>
+        internal static string ChronoPath_XMI {
+            get {
+                return ResourceManager.GetString("ChronoPath_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à ChronoType.
         /// </summary>
         internal static string ChronoType_XMI {
@@ -322,7 +385,7 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à Competition.
+        ///   Recherche une chaîne localisée semblable à Compétition.
         /// </summary>
         internal static string Competition {
             get {
@@ -354,6 +417,24 @@ namespace RescueScoreManager.Properties {
         internal static string CompetitionLoadedInfo {
             get {
                 return ResourceManager.GetString("CompetitionLoadedInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Configuration.
+        /// </summary>
+        internal static string Configuration {
+            get {
+                return ResourceManager.GetString("Configuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Configurations.
+        /// </summary>
+        internal static string Configurations {
+            get {
+                return ResourceManager.GetString("Configurations", resourceCulture);
             }
         }
         
@@ -399,6 +480,24 @@ namespace RescueScoreManager.Properties {
         internal static string Description_XMI {
             get {
                 return ResourceManager.GetString("Description_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Détails.
+        /// </summary>
+        internal static string Details {
+            get {
+                return ResourceManager.GetString("Details", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Discipline.
+        /// </summary>
+        internal static string Discipline {
+            get {
+                return ResourceManager.GetString("Discipline", resourceCulture);
             }
         }
         
@@ -565,11 +664,38 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Paramètres de Finale.
+        /// </summary>
+        internal static string FinalSettings {
+            get {
+                return ResourceManager.GetString("FinalSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à FirstName.
         /// </summary>
         internal static string FirstName_XMI {
             get {
                 return ResourceManager.GetString("FirstName_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Étrangers en finale.
+        /// </summary>
+        internal static string ForeignAthletesInFinal {
+            get {
+                return ResourceManager.GetString("ForeignAthletesInFinal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Points étrangers.
+        /// </summary>
+        internal static string ForeignPoints {
+            get {
+                return ResourceManager.GetString("ForeignPoints", resourceCulture);
             }
         }
         
@@ -601,6 +727,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Libellé Complet.
+        /// </summary>
+        internal static string FullLabel {
+            get {
+                return ResourceManager.GetString("FullLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à FullLabel.
         /// </summary>
         internal static string FullLabel_XMI {
@@ -610,11 +745,47 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Genre.
+        /// </summary>
+        internal static string Gender {
+            get {
+                return ResourceManager.GetString("Gender", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Gender.
         /// </summary>
         internal static string Gender_XMI {
             get {
                 return ResourceManager.GetString("Gender_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Générale.
+        /// </summary>
+        internal static string General {
+            get {
+                return ResourceManager.GetString("General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à HasAres.
+        /// </summary>
+        internal static string HasAres_XMI {
+            get {
+                return ResourceManager.GetString("HasAres_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à HasPointForeignAthlete.
+        /// </summary>
+        internal static string HasPointForeignAthlete_XMI {
+            get {
+                return ResourceManager.GetString("HasPointForeignAthlete_XMI", resourceCulture);
             }
         }
         
@@ -754,11 +925,38 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à IsRankingByFinal.
+        /// </summary>
+        internal static string IsRankingByFinal_XMI {
+            get {
+                return ResourceManager.GetString("IsRankingByFinal_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à IsRankingByTime.
+        /// </summary>
+        internal static string IsRankingByTime_XMI {
+            get {
+                return ResourceManager.GetString("IsRankingByTime_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à IsRelay.
         /// </summary>
         internal static string IsRelay_XMI {
             get {
                 return ResourceManager.GetString("IsRelay_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à IsRelayByHeatFinal.
+        /// </summary>
+        internal static string IsRelayByHeatFinal_XMI {
+            get {
+                return ResourceManager.GetString("IsRelayByHeatFinal_XMI", resourceCulture);
             }
         }
         
@@ -772,6 +970,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Libellé.
+        /// </summary>
+        internal static string Label {
+            get {
+                return ResourceManager.GetString("Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Label.
         /// </summary>
         internal static string Label_XMI {
@@ -781,11 +988,29 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Couloirs.
+        /// </summary>
+        internal static string Lanes {
+            get {
+                return ResourceManager.GetString("Lanes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à LastName.
         /// </summary>
         internal static string LastName_XMI {
             get {
                 return ResourceManager.GetString("LastName_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Niveau.
+        /// </summary>
+        internal static string Level {
+            get {
+                return ResourceManager.GetString("Level", resourceCulture);
             }
         }
         
@@ -943,6 +1168,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Min par série.
+        /// </summary>
+        internal static string MinPerHeat {
+            get {
+                return ResourceManager.GetString("MinPerHeat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Procès Verbal.
         /// </summary>
         internal static string Minutes {
@@ -1069,11 +1303,74 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à NumberMinOfAthleteInFinalByHeat.
+        /// </summary>
+        internal static string NumberMinOfAthleteInFinalByHeat_XMI {
+            get {
+                return ResourceManager.GetString("NumberMinOfAthleteInFinalByHeat_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à NumberOfAthleteComputedByClub.
+        /// </summary>
+        internal static string NumberOfAthleteComputedByClub_XMI {
+            get {
+                return ResourceManager.GetString("NumberOfAthleteComputedByClub_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à NumberOfAthleteInFinal.
+        /// </summary>
+        internal static string NumberOfAthleteInFinal_XMI {
+            get {
+                return ResourceManager.GetString("NumberOfAthleteInFinal_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à NumberOfForeignAthleteInFinal.
+        /// </summary>
+        internal static string NumberOfForeignAthleteInFinal_XMI {
+            get {
+                return ResourceManager.GetString("NumberOfForeignAthleteInFinal_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à NumberOfLanes.
+        /// </summary>
+        internal static string NumberOfLanes_XMI {
+            get {
+                return ResourceManager.GetString("NumberOfLanes_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à NumberOfRelayComputedByClub.
+        /// </summary>
+        internal static string NumberOfRelayComputedByClub_XMI {
+            get {
+                return ResourceManager.GetString("NumberOfRelayComputedByClub_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à NumberOfRun.
         /// </summary>
         internal static string NumberOfRun_XMI {
             get {
                 return ResourceManager.GetString("NumberOfRun_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Nombre de Courses.
+        /// </summary>
+        internal static string NumberOfRuns {
+            get {
+                return ResourceManager.GetString("NumberOfRuns", resourceCulture);
             }
         }
         
@@ -1092,6 +1389,15 @@ namespace RescueScoreManager.Properties {
         internal static string OpenFileError {
             get {
                 return ResourceManager.GetString("OpenFileError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Ordre.
+        /// </summary>
+        internal static string Order {
+            get {
+                return ResourceManager.GetString("Order", resourceCulture);
             }
         }
         
@@ -1119,6 +1425,15 @@ namespace RescueScoreManager.Properties {
         internal static string Organizer_XMI {
             get {
                 return ResourceManager.GetString("Organizer_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Participation.
+        /// </summary>
+        internal static string Participation {
+            get {
+                return ResourceManager.GetString("Participation", resourceCulture);
             }
         }
         
@@ -1186,6 +1501,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Places Qualifiantes.
+        /// </summary>
+        internal static string QualifyingSpots {
+            get {
+                return ResourceManager.GetString("QualifyingSpots", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à QualifyingSpots.
         /// </summary>
         internal static string QualifyingSpots_XMI {
@@ -1222,6 +1546,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Configuration des Formats d&apos;Epreuves.
+        /// </summary>
+        internal static string RaceFormatConfigurations {
+            get {
+                return ResourceManager.GetString("RaceFormatConfigurations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à RaceFormatConfigurations.
         /// </summary>
         internal static string RaceFormatConfigurations_XMI {
@@ -1240,6 +1573,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Détails du Format.
+        /// </summary>
+        internal static string RaceFormatDetails {
+            get {
+                return ResourceManager.GetString("RaceFormatDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Epreuves.
         /// </summary>
         internal static string Races {
@@ -1254,6 +1596,15 @@ namespace RescueScoreManager.Properties {
         internal static string Races_XMI {
             get {
                 return ResourceManager.GetString("Races_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Classement.
+        /// </summary>
+        internal static string Ranking {
+            get {
+                return ResourceManager.GetString("Ranking", resourceCulture);
             }
         }
         
@@ -1299,6 +1650,24 @@ namespace RescueScoreManager.Properties {
         internal static string RefreshCompetitionList {
             get {
                 return ResourceManager.GetString("RefreshCompetitionList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Relais par séries finales.
+        /// </summary>
+        internal static string RelayByHeatFinals {
+            get {
+                return ResourceManager.GetString("RelayByHeatFinals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Relais/club.
+        /// </summary>
+        internal static string RelaysPerClub {
+            get {
+                return ResourceManager.GetString("RelaysPerClub", resourceCulture);
             }
         }
         
@@ -1411,6 +1780,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sélectionnez une configuration pour voir les détails.
+        /// </summary>
+        internal static string SelectConfigurationToViewDetails {
+            get {
+                return ResourceManager.GetString("SelectConfigurationToViewDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Propriétés.
         /// </summary>
         internal static string Settings {
@@ -1483,6 +1861,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Système.
+        /// </summary>
+        internal static string System {
+            get {
+                return ResourceManager.GetString("System", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Team.
         /// </summary>
         internal static string Team_XMI {
@@ -1542,6 +1929,15 @@ namespace RescueScoreManager.Properties {
         internal static string TokenError {
             get {
                 return ResourceManager.GetString("TokenError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Total en finale.
+        /// </summary>
+        internal static string TotalInFinal {
+            get {
+                return ResourceManager.GetString("TotalInFinal", resourceCulture);
             }
         }
         

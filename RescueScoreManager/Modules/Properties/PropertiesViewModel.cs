@@ -1,66 +1,42 @@
-using System.Collections.ObjectModel;
-
 using CommunityToolkit.Mvvm.ComponentModel;
-
 using Microsoft.Extensions.Logging;
-
-using RescueScoreManager.Data;
-using RescueScoreManager.Modules.Forfeit;
-using RescueScoreManager.Services;
 
 namespace RescueScoreManager.Modules.Properties;
 
 public partial class PropertiesViewModel : ObservableObject
 {
     private readonly ILogger<PropertiesViewModel> _logger;
-    private readonly IXMLService _xmlService;
 
     [ObservableProperty]
-    private ObservableCollection<RaceFormatConfiguration> _raceFormatConfigurations = new();
+    private GeneraleTabViewModel _generaleTabViewModel;
 
     [ObservableProperty]
-    private RaceFormatConfiguration? _selectedRaceFormatConfiguration;
+    private ConfigurationTabViewModel _configurationTabViewModel;
 
     public PropertiesViewModel(
         ILogger<PropertiesViewModel> logger,
-        IXMLService xmlService)
+        GeneraleTabViewModel generaleTabViewModel,
+        ConfigurationTabViewModel configurationTabViewModel)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
-
-        var configurations = _xmlService.GetRaceFormatConfigurations();
-        _raceFormatConfigurations = new ObservableCollection<RaceFormatConfiguration>(configurations);
+        _generaleTabViewModel = generaleTabViewModel ?? throw new ArgumentNullException(nameof(generaleTabViewModel));
+        _configurationTabViewModel = configurationTabViewModel ?? throw new ArgumentNullException(nameof(configurationTabViewModel));
     }
 
-    #region Public Method
+    #region Public Methods
     public async Task InitializeAsync()
     {
         try
         {
-            await LoadDataAsync();
+            await Task.WhenAll(
+                GeneraleTabViewModel.InitializeAsync(),
+                ConfigurationTabViewModel.InitializeAsync()
+            );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error initializing race format configuration view");
+            _logger.LogError(ex, "Error initializing properties view");
         }
     }
-    #endregion Public Method
-
-    #region Private Methods
-    private async Task LoadDataAsync()
-    {
-        await Task.Run(() =>
-        {
-            App.Current.Dispatcher.Invoke(() =>
-            {
-                RaceFormatConfigurations.Clear();
-                var raceConfigurations = _xmlService.GetRaceFormatConfigurations();
-                foreach (var raceConfig in raceConfigurations)
-                {
-                    RaceFormatConfigurations.Add(raceConfig);
-                }
-            });
-        });
-    }
-    #endregion Private Methods
+    #endregion
 }

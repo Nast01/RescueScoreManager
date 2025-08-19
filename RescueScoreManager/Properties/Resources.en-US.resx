@@ -666,4 +666,97 @@
   <data name="SelectConfigurationToViewDetails" xml:space="preserve">
     <value>Select a configuration to view details</value>
   </data>
+  <data name="NumberOfLanes_XMI" xml:space="preserve">
+    <value>NumberOfLanes</value>
+  </data>
+  <data name="IsRankingByTime_XMI" xml:space="preserve">
+    <value>IsRankingByTime</value>
+  </data>
+  <data name="IsRankingByFinal_XMI" xml:space="preserve">
+    <value>IsRankingByFinal</value>
+  </data>
+  <data name="NumberOfAthleteComputedByClub_XMI" xml:space="preserve">
+    <value>NumberOfAthleteComputedByClub</value>
+  </data>
+  <data name="NumberOfRelayComputedByClub_XMI" xml:space="preserve">
+    <value>NumberOfRelayComputedByClub</value>
+  </data>
+  <data name="HasAres_XMI" xml:space="preserve">
+    <value>HasAres</value>
+  </data>
+  <data name="ChronoPath_XMI" xml:space="preserve">
+    <value>ChronoPath</value>
+  </data>
+  <data name="IsRelayByHeatFinal_XMI" xml:space="preserve">
+    <value>IsRelayByHeatFinal</value>
+  </data>
+  <data name="NumberOfForeignAthleteInFinal_XMI" xml:space="preserve">
+    <value>NumberOfForeignAthleteInFinal</value>
+  </data>
+  <data name="NumberOfAthleteInFinal_XMI" xml:space="preserve">
+    <value>NumberOfAthleteInFinal</value>
+  </data>
+  <data name="NumberMinOfAthleteInFinalByHeat_XMI" xml:space="preserve">
+    <value>NumberMinOfAthleteInFinalByHeat</value>
+  </data>
+  <data name="HasPointForeignAthlete_XMI" xml:space="preserve">
+    <value>HasPointForeignAthlete</value>
+  </data>
+  <data name="AppSetting_XMI" xml:space="preserve">
+    <value>AppSetting</value>
+  </data>
+  <data name="Lanes" xml:space="preserve">
+    <value>Lanes</value>
+  </data>
+  <data name="Ranking" xml:space="preserve">
+    <value>Ranking</value>
+  </data>
+  <data name="ByTime" xml:space="preserve">
+    <value>By Time</value>
+  </data>
+  <data name="ByFinal" xml:space="preserve">
+    <value>By Final</value>
+  </data>
+  <data name="RelayByHeatFinals" xml:space="preserve">
+    <value>Relay by heat finals</value>
+  </data>
+  <data name="Participation" xml:space="preserve">
+    <value>Participation</value>
+  </data>
+  <data name="AthletesPerClub" xml:space="preserve">
+    <value>Athletes/club</value>
+  </data>
+  <data name="RelaysPerClub" xml:space="preserve">
+    <value>Relays per club</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ARES" xml:space="preserve">
+    <value>ARES</value>
+  </data>
+  <data name="ChronoPath" xml:space="preserve">
+    <value>AresPath</value>
+  </data>
+  <data name="FinalSettings" xml:space="preserve">
+    <value>Final Settings</value>
+  </data>
+  <data name="ForeignAthletesInFinal" xml:space="preserve">
+    <value>Foreign athletes in final</value>
+  </data>
+  <data name="TotalInFinal" xml:space="preserve">
+    <value>Total in final</value>
+  </data>
+  <data name="MinPerHeat" xml:space="preserve">
+    <value>Min per heat</value>
+  </data>
+  <data name="ForeignPoints" xml:space="preserve">
+    <value>Foreign points</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Configuration" xml:space="preserve">
+    <value>Configuration</value>
+  </data>
 </root>

@@ -31,4 +31,5 @@ public interface IXMLService
     IReadOnlyList<Race> GetRaces();
     IReadOnlyList<Team> GetTeams();
     IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations();
+    AppSetting? GetSetting();
 }
