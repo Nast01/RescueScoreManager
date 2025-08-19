@@ -68,11 +68,13 @@
           <StackPanel Orientation="Horizontal" Margin="0,4">
             
               <RadioButton Content="{loc:Translate IsRankingByTime, StringFormat='Par temps: {0}'}"
-                                   Command="{Binding SelectRankingByTimeCommand}" GroupName="RankingType"
+                           Style="{StaticResource MaterialDesignLightRadioButton}"
+                           IsChecked="{Binding IsRankingByTime,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" GroupName="RankingType"
                                     FontSize="12"/>
 
             <RadioButton Content="{loc:Translate IsRankingByFinal, StringFormat='Par finale: {0}'}"
-                                   Command="{Binding SelectRankingByFinalCommand}" GroupName="RankingType"
+                         Style="{StaticResource MaterialDesignLightRadioButton}"
+                           IsChecked="{Binding IsRankingByFinal,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" GroupName="RankingType"
                                     FontSize="12"/>
           </StackPanel>
 
