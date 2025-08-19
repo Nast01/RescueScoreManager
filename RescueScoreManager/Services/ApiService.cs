@@ -5,11 +5,14 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
 
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
 using RescueScoreManager.Data;
 
 namespace RescueScoreManager.Services;
@@ -32,6 +35,7 @@ public class ApiService : IApiService, IDisposable
     private List<Club> _clubs { get; set; } = new();
     private List<Race> _races { get; set; } = new();
     private List<Team> _teams { get; set; } = new();
+    private List<RaceFormatConfiguration> _raceFormatConfigurations { get; set; } = new();
 
     public ApiService(ILogger<ApiService> logger)
     {
@@ -220,6 +224,7 @@ public class ApiService : IApiService, IDisposable
             await LoadLicenseesAsync(competition, authenticationInfo, cancellationToken);
             await LoadRacesAsync(competition, authenticationInfo, cancellationToken);
             await LoadTeamsAsync(competition, authenticationInfo, cancellationToken);
+            await LoadRaceFormatConfigurationsAsync(competition, authenticationInfo, cancellationToken);
 
             _isLoaded = true;
             _logger.LogInformation("Data load completed successfully for competition: {CompetitionName}", competition.Name);
@@ -787,6 +792,59 @@ public class ApiService : IApiService, IDisposable
         }
     }
 
+    private async Task LoadRaceFormatConfigurationsAsync(Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken)
+    {
+        string endpoint = $"/competition/{competition.Id}/deroulement";
+        var queryParameters = new Dictionary<string, string>();
+
+        if (authenticationInfo.IsTokenValid)
+        {
+            queryParameters.Add("token", authenticationInfo.Token!);
+        }
+
+        try
+        {
+            _logger.LogDebug("Loading RaceFormatConfigurations for competition: {CompetitionId}", competition.Id);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            string apiUrl = string.IsNullOrEmpty(queryString) ? endpoint : $"{_version}{endpoint}?{queryString}";
+
+            using var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+            if (jResponse?["success"]?.Value<bool>() == true && jResponse["data"] is JArray jData)
+            {
+                _raceFormatConfigurations.Clear();
+                foreach (var raceFormatConfigurationData in jData.Children())
+                {
+                    try
+                    {
+                        // Create a new RaceFormatConfiguration instance and RaceFormatDetail instances
+                        var raceFormatConfiguration = new RaceFormatConfiguration(raceFormatConfigurationData,_categories);
+                        _raceFormatConfigurations.Add(raceFormatConfiguration);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse raceFormatConfiguration data: {RaceFormatConfigurationData}", raceFormatConfigurationData);
+                    }
+                }
+                _logger.LogDebug("Loaded {raceFormatConfigurationCount} raceFormatConfigurations", _raceFormatConfigurations.Count);
+            }
+            else
+            {
+                _logger.LogWarning("Categories API returned unsuccessful response");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading raceFormatConfigurations for competition: {CompetitionId}", competition.Id);
+            throw;
+        }
+    }
+
     #endregion
 
     #region Data Access Methods
@@ -799,6 +857,7 @@ public class ApiService : IApiService, IDisposable
     public IReadOnlyList<Club> GetClubs() => _clubs.AsReadOnly();
     public IReadOnlyList<Race> GetRaces() => _races.AsReadOnly();
     public IReadOnlyList<Team> GetTeams() => _teams.AsReadOnly();
+    public IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations() => _raceFormatConfigurations.AsReadOnly();
     public Competition? GetCompetition() => _competition;
     public void SetCompetition(Competition competition) => _competition = competition ?? throw new ArgumentNullException(nameof(competition));
 

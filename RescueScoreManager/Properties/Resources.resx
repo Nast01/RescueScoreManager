@@ -591,4 +591,40 @@
   <data name="IsFinalBAllowed_XMI" xml:space="preserve">
     <value>IsFinalBAllowed</value>
   </data>
+  <data name="Label_XMI" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="FullLabel_XMI" xml:space="preserve">
+    <value>FullLabel</value>
+  </data>
+  <data name="Order_XMI" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="LevelLabel_XMI" xml:space="preserve">
+    <value>LevelLabel</value>
+  </data>
+  <data name="NumberOfRun_XMI" xml:space="preserve">
+    <value>NumberOfRun</value>
+  </data>
+  <data name="QualificationMethod_XMI" xml:space="preserve">
+    <value>QualificationMethod</value>
+  </data>
+  <data name="QualificationMethodLabel_XMI" xml:space="preserve">
+    <value>QualificationMethodLabel</value>
+  </data>
+  <data name="SpotsPerRace_XMI" xml:space="preserve">
+    <value>SpotsPerRace</value>
+  </data>
+  <data name="QualifyingSpots_XMI" xml:space="preserve">
+    <value>QualifyingSpots</value>
+  </data>
+  <data name="RaceFormatConfigurations_XMI" xml:space="preserve">
+    <value>RaceFormatConfigurations</value>
+  </data>
+  <data name="RaceFormatDetail_XMI" xml:space="preserve">
+    <value>RaceFormatDetail</value>
+  </data>
+  <data name="RaceFormatConfiguration_XMI" xml:space="preserve">
+    <value>RaceFormatConfiguration</value>
+  </data>
 </root>

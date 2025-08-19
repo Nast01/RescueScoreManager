@@ -1,4 +1,4 @@
-﻿using RescueScoreManager.Data;
+using RescueScoreManager.Data;
 
 namespace RescueScoreManager.Services;
 
@@ -21,6 +21,7 @@ public interface IApiService
     IReadOnlyList<Club> GetClubs();
     IReadOnlyList<Race> GetRaces();
     IReadOnlyList<Team> GetTeams();
+    IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations();
     Competition? GetCompetition();
     void SetCompetition(Competition competition);
 

@@ -30,6 +30,7 @@ public class XMLService : IXMLService
     private readonly List<Referee> _referees = new();
     private readonly List<Race> _races = new();
     private readonly List<Team> _teams = new();
+    private readonly List<RaceFormatConfiguration> _raceFormatConfigurations = new();
 
     public bool IsLoaded { get; private set; }
 
@@ -66,6 +67,7 @@ public class XMLService : IXMLService
     public IReadOnlyList<Referee> GetReferees() => _referees.AsReadOnly();
     public IReadOnlyList<Race> GetRaces() => _races.AsReadOnly();
     public IReadOnlyList<Team> GetTeams() => _teams.AsReadOnly();
+    public IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations() => _raceFormatConfigurations.AsReadOnly();
     #endregion
 
     #region Path Management
@@ -119,7 +121,7 @@ public class XMLService : IXMLService
 
     #region Data Initialization
     public void Initialize(Competition competition, IEnumerable<Category> categories, IEnumerable<Club> clubs,
-                          IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams)
+                          IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams, IEnumerable<RaceFormatConfiguration> raceFormatConfigurations)
     {
         if (competition == null)
         {
@@ -180,8 +182,13 @@ public class XMLService : IXMLService
                 _teams.AddRange(teams);
             }
 
-            _logger.LogInformation("XML service initialized successfully with {CategoriesCount} categories, {ClubsCount} clubs, {AthletesCount} athletes, {RefereesCount} referees, {RacesCount} races, {TeamsCount} teams",
-                _categories.Count, _clubs.Count, _athletes.Count, _referees.Count, _races.Count, _teams.Count);
+            if(raceFormatConfigurations != null)
+            {
+                _raceFormatConfigurations.AddRange(raceFormatConfigurations);
+            }
+
+                _logger.LogInformation("XML service initialized successfully with {CategoriesCount} categories, {ClubsCount} clubs, {AthletesCount} athletes, {RefereesCount} referees, {RacesCount} races, {TeamsCount} teams, {RaceFormatConfiguration} raceFormatConfiguration",
+                _categories.Count, _clubs.Count, _athletes.Count, _referees.Count, _races.Count, _teams.Count,_raceFormatConfigurations.Count);
         }
         catch (Exception ex)
         {
@@ -202,6 +209,7 @@ public class XMLService : IXMLService
         _referees.Clear();
         _races.Clear();
         _teams.Clear();
+        _raceFormatConfigurations.Clear();
         IsLoaded = false;
     }
     #endregion
@@ -263,6 +271,9 @@ public class XMLService : IXMLService
 
             // Load teams
             LoadTeams(rootElement);
+
+            // Load race format configurations
+            LoadRaceFormatConfigurations(rootElement);
 
             IsLoaded = true;
             _logger.LogInformation("XML loaded successfully from: {FilePath}", filePath);
@@ -328,19 +339,7 @@ public class XMLService : IXMLService
             }
             rootElement.Add(clubsElement);
 
-            // Save licensees
-            //var licenseesElement = new XElement(Properties.Resources.Licensees_XMI);
-            //foreach (var licensee in _licensees)
-            //{
-            //    var licenseeElement = licensee.WriteXml();
-            //    if (licenseeElement != null)
-            //    {
-            //        licenseesElement.Add(licenseeElement);
-            //    }
-            //}
-            //rootElement.Add(licenseesElement);
-
-            // Save races
+            // Save races & teams
             var racesElement = new XElement(Properties.Resources.Races_XMI);
             foreach (var race in _races)
             {
@@ -352,17 +351,18 @@ public class XMLService : IXMLService
             }
             rootElement.Add(racesElement);
 
-            // Save teams
-            //var teamsElement = new XElement(Properties.Resources.IndividualTeam_XMI);
-            //foreach (var team in _teams)
-            //{
-            //    var teamElement = team.WriteXml();
-            //    if (teamElement != null)
-            //    {
-            //        teamsElement.Add(teamElement);
-            //    }
-            //}
-            //rootElement.Add(teamsElement);
+            // Save race format configuration & race format details
+            var racesFormatConfigurationElement = new XElement(Properties.Resources.RaceFormatConfigurations_XMI);
+            foreach (var raceFormatConfiguration in _raceFormatConfigurations)
+            {
+                var raceFormatConfigurationElement = raceFormatConfiguration.WriteXml();
+                if (raceFormatConfigurationElement != null)
+                {
+                    racesFormatConfigurationElement.Add(raceFormatConfigurationElement);
+                }
+            }
+            rootElement.Add(racesFormatConfigurationElement);
+
 
             xDoc.Add(rootElement);
 
@@ -556,6 +556,31 @@ public class XMLService : IXMLService
 
         _logger.LogDebug("Loaded {Count} teams", _teams.Count);
     }
+
+    private void LoadRaceFormatConfigurations(XElement rootElement)
+    {
+        var raceFormatConfigurationElements = rootElement.Descendants(Properties.Resources.RaceFormatConfiguration_XMI);
+        foreach (var raceFormatConfigurationElement in raceFormatConfigurationElements)
+        {
+            try
+            {
+                var raceFormatConfiguration = new RaceFormatConfiguration(raceFormatConfigurationElement,_categories);
+                _raceFormatConfigurations.Add(raceFormatConfiguration);
+
+                var raceFormatDetailElements = raceFormatConfigurationElement.Descendants(Properties.Resources.RaceFormatDetail_XMI);
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load team from XML element");
+            }
+        }
+        
+
+        _logger.LogDebug("Loaded {Count} teams", _teams.Count);
+    }
+
     #endregion
 
 }

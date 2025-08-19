@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace RescueScoreManager.Data;
 
@@ -79,6 +79,19 @@ public class EnumRSM
         QuarterFinal,
         SemiFinal,
         Final,
+    }
+
+    public enum HeatLevel
+    {
+        Heat,
+        Quarter,
+        Semi,
+        Final,
+    }
+    public enum QualificationType
+    {
+        Course,
+        Partie,
     }
 
     public enum ExcelType

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 
 using RescueScoreManager.Data;
 
@@ -18,7 +18,7 @@ public interface IXMLService
 
     // Data management
     void Initialize(Competition competition, IEnumerable<Category> categories, IEnumerable<Club> clubs,
-                   IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams);
+                   IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams, IEnumerable<RaceFormatConfiguration> raceFormatConfigurations);
     void Reset();
 
     // Data access - using IReadOnlyList to fix CA1002
@@ -30,4 +30,5 @@ public interface IXMLService
     IReadOnlyList<Referee> GetReferees();
     IReadOnlyList<Race> GetRaces();
     IReadOnlyList<Team> GetTeams();
+    IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations();
 }

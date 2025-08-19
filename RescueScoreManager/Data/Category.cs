@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
 
 using Newtonsoft.Json.Linq;
 
@@ -16,6 +16,8 @@ public class Category
     public ICollection<Race> Races { get; } = new List<Race>(); // Many to many relation
     public ICollection<MeetingElement> MeetingElements { get; } = new List<MeetingElement>(); // Many to many relation
     public ICollection<Round> Rounds { get; } = new List<Round>();//one-to-many relationship
+
+    public ICollection<RaceFormatConfiguration> RaceFormatConfigurations { get; } = new List<RaceFormatConfiguration>(); // Many to many relation
     #endregion Attributes
 
     public Category()

@@ -1,4 +1,4 @@
-﻿using static RescueScoreManager.Data.EnumRSM;
+using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Helper;
 
@@ -7,11 +7,11 @@ public static class JsonHelper
     public static Gender GetGenderFromJsonValue(string genderValue)
     {
         Gender gender = Gender.Mixte;
-        if (genderValue.CompareTo("H") == 0)
+        if (genderValue.CompareTo("H") == 0 || genderValue.CompareTo("Homme") == 0)
         {
             gender = Gender.Men;
         }
-        else if (genderValue.CompareTo("F") == 0)
+        else if (genderValue.CompareTo("F") == 0 || genderValue.CompareTo("Femme") == 0)
         {
             gender = Gender.Woman;
         }
@@ -93,6 +93,36 @@ public static class JsonHelper
         }
 
         return chronoType;
+    }
+
+    public static HeatLevel GetHeatLevelFromJsonValue(string heatLevel)
+    {
+        HeatLevel heatL = HeatLevel.Heat;
+        if (string.Compare(heatLevel, "quarter") == 0)
+        {
+            heatL = HeatLevel.Quarter;
+        }
+        else if (string.Compare(heatLevel, "semi") == 0)
+        {
+            heatL = HeatLevel.Semi;
+        }
+        else if (string.Compare(heatLevel, "final") == 0)
+        {
+            heatL = HeatLevel.Final;
+        }
+
+        return heatL;
+    }
+
+
+    public static QualificationType GetQualificationTypeFromJsonValue(string qualificationType)
+    {
+        QualificationType qualType = QualificationType.Course;
+        if (string.Compare(qualificationType, "partie") == 0)
+        {
+            qualType = QualificationType.Partie;
+        }
+        return qualType;
     }
 
 }

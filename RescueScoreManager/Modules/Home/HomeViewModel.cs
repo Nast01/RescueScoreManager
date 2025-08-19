@@ -157,7 +157,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
 
             _xmlService.SetPath(competition.Name);
             _xmlService.Initialize(competition, _apiService.GetCategories(), _apiService.GetClubs(),
-                                _apiService.GetLicensees(), _apiService.GetRaces(), _apiService.GetTeams());
+                                _apiService.GetLicensees(), _apiService.GetRaces(), _apiService.GetTeams(),_apiService.GetRaceFormatConfigurations());
             _xmlService.Save();
             _xmlService.Reset();
             _xmlService.Load();
