@@ -17,6 +17,7 @@ using RescueScoreManager.Modules.SelectNewCompetition;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using RescueScoreManager.Modules.Forfeit;
+using RescueScoreManager.Modules.Properties;
 
 namespace RescueScoreManager;
 
@@ -38,6 +39,7 @@ public partial class MainWindowViewModel : ObservableObject,
 
     // ViewModels cache
     private ForfeitViewModel? _forfeitViewModel;
+    private PropertiesViewModel? _propertiesViewModel;
 
     [ObservableProperty]
     private ObservableObject? _currentViewModel;
@@ -193,6 +195,27 @@ public partial class MainWindowViewModel : ObservableObject,
         {
             _logger.LogError(ex, "Error navigating to Forfeit view");
             _messenger.Send(new SnackMessage("Error navigating to Forfeit management"));
+        }
+    }
+    [RelayCommand]
+    private async Task NavigateToProperties()
+    {
+        try
+        {
+            // Create or get cached ViewModel
+            //if (_propertiesViewModel == null)
+            //{
+                _propertiesViewModel = _serviceProvider.GetRequiredService<PropertiesViewModel>();
+                await _propertiesViewModel.InitializeAsync();
+            //}
+
+            CurrentViewModel = _propertiesViewModel;
+            _logger.LogInformation("Navigated to Properties view");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error navigating to Properties view");
+            _messenger.Send(new SnackMessage("Error navigating to Properties"));
         }
     }
     #endregion Navigation Commands

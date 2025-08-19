@@ -116,7 +116,7 @@
                   <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Rankings}" />
                 </StackPanel>
               </Button>
-              <Button Style="{StaticResource menuButton}">
+              <Button Style="{StaticResource menuButton}" Command="{Binding NavigateToPropertiesCommand}" CommandParameter="Properties">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="Settings" Style="{StaticResource menuButtonIcon}" />
                   <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Settings}" />

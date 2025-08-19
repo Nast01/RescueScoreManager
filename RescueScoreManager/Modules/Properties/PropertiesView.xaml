@@ -1,0 +1,165 @@
+<UserControl x:Class="RescueScoreManager.Modules.Properties.PropertiesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RescueScoreManager.Modules.Properties"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:loc="clr-namespace:RescueScoreManager.Localization"
+             xmlns:converter="clr-namespace:RescueScoreManager.Converter"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converter:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <materialDesign:Card Grid.Row="0" Margin="10" Padding="20">
+            <StackPanel>
+                <TextBlock Text="{loc:Translate Settings}" 
+                          Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,10"/>
+                <TextBlock Text="{loc:Translate RaceFormatConfigurations}" 
+                          Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                          HorizontalAlignment="Center"/>
+            </StackPanel>
+        </materialDesign:Card>
+        
+        <!-- Content -->
+        <materialDesign:Card Grid.Row="1" Margin="10" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Race Format Configurations List -->
+                <Border Grid.Column="0" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,1,0" Padding="0,0,10,0">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Translate Configurations}" 
+                                  Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                  Margin="0,0,0,10"/>
+                        <ListBox ItemsSource="{Binding RaceFormatConfigurations}"
+                                SelectedItem="{Binding SelectedRaceFormatConfiguration}"
+                                Style="{StaticResource MaterialDesignListBox}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="5">
+                                        <TextBlock Text="{Binding Label}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding FullLabel}" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding GenderLabel}" FontSize="12" Opacity="0.5"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Details Panel -->
+                <ScrollViewer Grid.Column="1" Padding="20,0,0,0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel DataContext="{Binding SelectedRaceFormatConfiguration}">
+                        <TextBlock Text="{loc:Translate Details}" 
+                                  Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                  Margin="0,0,0,20"/>
+                        
+                        <Grid Visibility="{Binding Converter={StaticResource NullToVisibilityConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- ID -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="ID:" FontWeight="Bold" Margin="0,5,10,5"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Id}" Margin="0,5"/>
+                            
+                            <!-- Label -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Translate Label}" FontWeight="Bold" Margin="0,5,10,5"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Label}" Margin="0,5"/>
+                            
+                            <!-- Full Label -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Translate FullLabel}" FontWeight="Bold" Margin="0,5,10,5"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FullLabel}" Margin="0,5" TextWrapping="Wrap"/>
+                            
+                            <!-- Gender -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Translate Gender}" FontWeight="Bold" Margin="0,5,10,5"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding GenderLabel}" Margin="0,5"/>
+                                                        
+                            <!-- Categories -->
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Translate Categories}" FontWeight="Bold" Margin="0,5,10,5" VerticalAlignment="Top"/>
+                            <ItemsControl Grid.Row="5" Grid.Column="1" ItemsSource="{Binding Categories}" Margin="0,5">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" Margin="0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                            <!-- Race Format Details -->
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="{loc:Translate RaceFormatDetails}" FontWeight="Bold" Margin="0,15,10,5" VerticalAlignment="Top"/>
+                            <ItemsControl Grid.Row="6" Grid.Column="1" ItemsSource="{Binding RaceFormatDetails}" Margin="0,15,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="1" Margin="0,5" Padding="10">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Translate Order}" FontWeight="Bold" Margin="0,2,10,2"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Order}" Margin="0,2"/>
+                                                
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Translate Label}" FontWeight="Bold" Margin="0,2,10,2"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Label}" Margin="0,2"/>
+                                                
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Translate Level}" FontWeight="Bold" Margin="0,2,10,2"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LevelLabel}" Margin="0,2"/>
+                                                
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Translate NumberOfRuns}" FontWeight="Bold" Margin="0,2,10,2"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NumberOfRun}" Margin="0,2"/>
+                                                
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Translate QualifyingSpots}" FontWeight="Bold" Margin="0,2,10,2"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding QualifyingSpots}" Margin="0,2"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                        
+                        <!-- No Selection Message -->
+                        <TextBlock Text="{loc:Translate SelectConfigurationToViewDetails}" 
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Opacity="0.6"
+                                  Visibility="{Binding SelectedRaceFormatConfiguration, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=inverse}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>

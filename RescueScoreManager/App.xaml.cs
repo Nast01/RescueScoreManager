@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Threading;
 using RescueScoreManager.Modules;
 using RescueScoreManager.Modules.Forfeit;
+using RescueScoreManager.Modules.Properties;
 
 namespace RescueScoreManager;
 
@@ -88,6 +89,10 @@ public partial class App : Application
             //Forfeit components
             services.AddTransient<ForfeitView>();
             services.AddTransient<ForfeitViewModel>();
+
+            //Properties components
+            services.AddTransient<PropertiesView>();
+            services.AddTransient<PropertiesViewModel>();
 
             // Messaging
             services.AddSingleton<WeakReferenceMessenger>();

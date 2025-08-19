@@ -627,4 +627,43 @@
   <data name="RaceFormatConfiguration_XMI" xml:space="preserve">
     <value>RaceFormatConfiguration</value>
   </data>
+  <data name="RaceFormatConfigurations" xml:space="preserve">
+    <value>Race Format Configurations</value>
+  </data>
+  <data name="Configurations" xml:space="preserve">
+    <value>Configurations</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="FullLabel" xml:space="preserve">
+    <value>Full Label</value>
+  </data>
+  <data name="Gender" xml:space="preserve">
+    <value>Gender</value>
+  </data>
+  <data name="Discipline" xml:space="preserve">
+    <value>Discipline</value>
+  </data>
+  <data name="RaceFormatDetails" xml:space="preserve">
+    <value>Race Format Details</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="NumberOfRuns" xml:space="preserve">
+    <value>Number of Runs</value>
+  </data>
+  <data name="QualifyingSpots" xml:space="preserve">
+    <value>Qualifying Spots</value>
+  </data>
+  <data name="SelectConfigurationToViewDetails" xml:space="preserve">
+    <value>Select a configuration to view details</value>
+  </data>
 </root>

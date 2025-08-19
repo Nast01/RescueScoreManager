@@ -6,6 +6,7 @@
              xmlns:login="clr-namespace:RescueScoreManager.Modules.Login"
              xmlns:selectNewComp="clr-namespace:RescueScoreManager.Modules.SelectNewCompetition"
              xmlns:forfeit="clr-namespace:RescueScoreManager.Modules.Forfeit"
+             xmlns:properties="clr-namespace:RescueScoreManager.Modules.Properties"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:system="clr-namespace:System;assembly=mscorlib" >
   <Application.Resources>
@@ -198,6 +199,9 @@
       </DataTemplate>
       <DataTemplate DataType="{x:Type forfeit:ForfeitViewModel}">
         <forfeit:ForfeitView />
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type properties:PropertiesViewModel}">
+        <properties:PropertiesView />
       </DataTemplate>
 
 

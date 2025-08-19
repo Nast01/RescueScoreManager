@@ -627,4 +627,43 @@
   <data name="RaceFormatConfiguration_XMI" xml:space="preserve">
     <value>RaceFormatConfiguration</value>
   </data>
+  <data name="RaceFormatConfigurations" xml:space="preserve">
+    <value>Configuration des Formats d'Epreuves</value>
+  </data>
+  <data name="Configurations" xml:space="preserve">
+    <value>Configurations</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Détails</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Libellé</value>
+  </data>
+  <data name="FullLabel" xml:space="preserve">
+    <value>Libellé Complet</value>
+  </data>
+  <data name="Gender" xml:space="preserve">
+    <value>Genre</value>
+  </data>
+  <data name="Discipline" xml:space="preserve">
+    <value>Discipline</value>
+  </data>
+  <data name="RaceFormatDetails" xml:space="preserve">
+    <value>Détails du Format</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Ordre</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Niveau</value>
+  </data>
+  <data name="NumberOfRuns" xml:space="preserve">
+    <value>Nombre de Courses</value>
+  </data>
+  <data name="QualifyingSpots" xml:space="preserve">
+    <value>Places Qualifiantes</value>
+  </data>
+  <data name="SelectConfigurationToViewDetails" xml:space="preserve">
+    <value>Sélectionnez une configuration pour voir les détails</value>
+  </data>
 </root>

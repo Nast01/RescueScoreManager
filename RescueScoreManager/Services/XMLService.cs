@@ -565,15 +565,23 @@ public class XMLService : IXMLService
             try
             {
                 var raceFormatConfiguration = new RaceFormatConfiguration(raceFormatConfigurationElement,_categories);
-                _raceFormatConfigurations.Add(raceFormatConfiguration);
 
                 var raceFormatDetailElements = raceFormatConfigurationElement.Descendants(Properties.Resources.RaceFormatDetail_XMI);
 
+                raceFormatConfiguration.RaceFormatDetails.Clear();
+                foreach (var raceFormatDetailElement in raceFormatDetailElements)
+                {
+                    var raceFormatDetail = new RaceFormatDetail(raceFormatDetailElement);
 
+                    raceFormatDetail.RaceFormatConfiguration = raceFormatConfiguration;
+                    raceFormatConfiguration.RaceFormatDetails.Add(raceFormatDetail);
+                }
+
+                    _raceFormatConfigurations.Add(raceFormatConfiguration);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to load team from XML element");
+                _logger.LogWarning(ex, "Failed to load RaceFormatConfiguration from XML element");
             }
         }
         

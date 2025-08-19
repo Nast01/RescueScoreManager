@@ -40,10 +40,9 @@ public class RaceFormatDetail
         QualifyingSpots = jData["nbPlaceQualificative"].Value<int>();
 
         RaceFormatConfiguration = raceFormatConfiguration;
-        raceFormatConfiguration.RaceFormatDetails.Add(this);
     }
 
-    public RaceFormatDetail(XElement xElement, RaceFormatConfiguration raceFormatConfiguration)
+    public RaceFormatDetail(XElement xElement)
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
         Order = int.Parse(xElement.Attribute(Properties.Resources.Order_XMI).Value);
@@ -57,8 +56,6 @@ public class RaceFormatDetail
         SpotsPerRace = int.Parse(xElement.Attribute(Properties.Resources.SpotsPerRace_XMI).Value);
         QualifyingSpots = int.Parse(xElement.Attribute(Properties.Resources.QualifyingSpots_XMI).Value);
 
-        RaceFormatConfiguration = raceFormatConfiguration;
-        RaceFormatConfiguration.RaceFormatDetails.Add(this);
     }
 
     #region Public Method
@@ -70,6 +67,7 @@ public class RaceFormatDetail
                             new XAttribute(Properties.Resources.Label_XMI, Label),
                             new XAttribute(Properties.Resources.FullLabel_XMI, FullLabel),
                             new XAttribute(Properties.Resources.LevelLabel_XMI, LevelLabel.ToString()),
+                            new XAttribute(Properties.Resources.Level_XMI, Level.ToString()),
                             new XAttribute(Properties.Resources.NumberOfRun_XMI, NumberOfRun),
                             new XAttribute(Properties.Resources.QualificationMethod_XMI, QualificationMethod.ToString()),
                             new XAttribute(Properties.Resources.QualificationMethodLabel_XMI, QualificationMethodLabel),
