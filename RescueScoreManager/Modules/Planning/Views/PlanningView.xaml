@@ -1,0 +1,224 @@
+<UserControl x:Class="RescueScoreManager.Modules.Planning.Views.PlanningView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:loc="clr-namespace:RescueScoreManager.Localization" 
+             xmlns:converter="clr-namespace:RescueScoreManager.Converter"
+             xmlns:viewModels="clr-namespace:RescueScoreManager.Modules.Planning.ViewModels"
+             xmlns:views="clr-namespace:RescueScoreManager.Modules.Planning.Views">
+  <UserControl.Resources>
+        <converter:LocalizedFormatConverter x:Key="LocalizedFormat"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <Style x:Key="StepButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2E3A59" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="15,10" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="Center"
+                                            Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3A4660" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        
+        <!-- Left Navigation Panel -->
+        <Border Grid.Column="0" Background="#1E2A3A" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="15,15,15,20">
+                    <Rectangle Fill="#4A90E2" Width="20" Height="20" RadiusX="3" RadiusY="3" Margin="0,0,10,0" />
+                    <TextBlock Text="{Binding Title}" Foreground="White" FontSize="16" FontWeight="SemiBold" />
+                </StackPanel>
+                
+                <!-- Steps -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Steps}" Margin="15,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.StepSelectedCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource StepButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                    <Setter Property="Background" Value="#27AE60" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsCurrentStep}" Value="True">
+                                                    <Setter Property="Background" Value="#4A90E2" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Background="#27AE60" Width="20" Height="20" CornerRadius="10" 
+                                                Margin="0,0,10,0" Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="✓" Foreground="White" HorizontalAlignment="Center" 
+                                                     VerticalAlignment="Center" FontSize="12" FontWeight="Bold" />
+                                        </Border>
+                                        <Border Background="Transparent" Width="20" Height="20" CornerRadius="10" 
+                                                BorderBrush="White" BorderThickness="1" Margin="0,0,10,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding StepNumber}" Foreground="White" HorizontalAlignment="Center" 
+                                                     VerticalAlignment="Center" FontSize="12" FontWeight="Bold" />
+                                        </Border>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding Subtitle}" Foreground="#B0BEC5" FontSize="11" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <!-- Progress -->
+                <StackPanel Grid.Row="2" Margin="15,20">
+                    <TextBlock Text="{loc:Translate OverallProgress}" Foreground="#B0BEC5" FontSize="12" Margin="0,0,0,5" />
+                    <ProgressBar Value="{Binding CurrentStep}" Maximum="{Binding TotalSteps}" Height="4" 
+                                 Background="#2E3A59" Foreground="#27AE60" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Main Content Area -->
+        <Grid Grid.Column="1" Background="#F5F5F5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            
+            <!-- Top Bar -->
+            <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="20,15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="{loc:Translate PlanningStructureCompetition}" FontSize="24" FontWeight="SemiBold" Foreground="#2C3E50" />
+                        <TextBlock Text="{loc:Translate PlanningConfigurePhases}" FontSize="14" Foreground="#7F8C8D" Margin="0,2,0,0" />
+                        
+                        <!-- Statistics -->
+                        <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
+                            <Border Background="#E3F2FD" CornerRadius="20" Padding="12,6" Margin="0,0,15,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding TotalRaces}" FontSize="18" FontWeight="Bold" Foreground="#1976D2" />
+                                    <TextBlock Text="{loc:Translate Events}" FontSize="12" Foreground="#1976D2" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                            
+                            <Border Background="#E8F5E8" CornerRadius="20" Padding="12,6" Margin="0,0,15,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding ConfiguredRaces}" FontSize="18" FontWeight="Bold" Foreground="#388E3C" />
+                                    <TextBlock Text="{loc:Translate Configured}" FontSize="12" Foreground="#388E3C" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                            
+                            <Border Background="#FFF3E0" CornerRadius="20" Padding="12,6">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding TotalAthletes}" FontSize="18" FontWeight="Bold" Foreground="#F57C00" />
+                                    <TextBlock Text="{loc:Translate Participants}" FontSize="12" Foreground="#F57C00" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <Button Grid.Column="1" Content="{loc:Translate Generate}" Background="#27AE60" Foreground="White" 
+                            BorderThickness="0" Padding="20,10" FontSize="14" FontWeight="SemiBold"
+                            Command="{Binding GenerateCommand}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+            
+            <!-- Content Area -->
+            <ContentControl Grid.Row="1" x:Name="ContentArea" Margin="20">
+                <views:PlanningStructureCompetitionView />
+            </ContentControl>
+            
+            <!-- Bottom Navigation -->
+            <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="20,15">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button Content="{loc:Translate Previous}" Background="Transparent" Foreground="#7F8C8D" 
+                                BorderThickness="1" BorderBrush="#E0E0E0" Padding="15,8" FontSize="14"
+                                Command="{Binding PreviousCommand}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" 
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding CurrentStep}" FontSize="14" Foreground="#7F8C8D" VerticalAlignment="Center" />
+                        <TextBlock Text="{loc:Translate Of}" FontSize="14" Foreground="#7F8C8D" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding TotalSteps}" FontSize="14" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,15,0" />
+                        
+                        <Button Content="{loc:Translate Planning}" Background="#4A90E2" Foreground="White" 
+                                BorderThickness="0" Padding="15,8" FontSize="14" FontWeight="SemiBold"
+                                Command="{Binding PlanificationCommand}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

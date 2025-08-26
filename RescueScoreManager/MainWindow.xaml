@@ -92,6 +92,15 @@
               </Button>
               <Button HorizontalContentAlignment="Center"
                       VerticalContentAlignment="Center"
+                      Command="{Binding NavigateToPlanningCommand}"
+                      Style="{StaticResource menuButton}">
+                <StackPanel Orientation="Horizontal">
+                  <materialDesign:PackIcon Kind="CalendarAuto" Style="{StaticResource menuButtonIcon}" />
+                  <TextBlock Style="{StaticResource menuButtonText}" Text="{loc:Translate Planning}" />
+                </StackPanel>
+              </Button>
+              <Button HorizontalContentAlignment="Center"
+                      VerticalContentAlignment="Center"
                       Style="{StaticResource menuButton}">
                 <StackPanel Orientation="Horizontal">
                   <materialDesign:PackIcon Kind="Swim" Style="{StaticResource menuButtonIcon}" />

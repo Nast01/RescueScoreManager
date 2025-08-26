@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows.Data;
 
 using RescueScoreManager.Services;
@@ -20,7 +20,9 @@ public class LocalizedFormatConverter : IMultiValueConverter
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
         if (parameter is not string key || values == null)
+        {
             return string.Empty;
+        }
 
         return _localizationService.GetString(key, values);
     }

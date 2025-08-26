@@ -1465,6 +1465,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Planning.
+        /// </summary>
+        internal static string Planning {
+            get {
+                return ResourceManager.GetString("Planning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Eau Plate.
         /// </summary>
         internal static string Pool {

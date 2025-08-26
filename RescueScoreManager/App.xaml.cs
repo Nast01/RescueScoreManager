@@ -18,6 +18,8 @@ using System.Windows.Threading;
 using RescueScoreManager.Modules;
 using RescueScoreManager.Modules.Forfeit;
 using RescueScoreManager.Modules.Properties;
+using RescueScoreManager.Modules.Planning.ViewModels;
+using RescueScoreManager.Modules.Planning.Views;
 
 namespace RescueScoreManager;
 
@@ -97,6 +99,11 @@ public partial class App : Application
             services.AddTransient<GeneraleTabViewModel>();
             services.AddTransient<ConfigurationTabView>();
             services.AddTransient<ConfigurationTabViewModel>();
+
+            //Planning components
+            services.AddTransient<PlanningView>();
+            services.AddTransient<PlanningViewModel>();
+            services.AddTransient<PlanningStepViewModel>();
 
             // Messaging
             services.AddSingleton<WeakReferenceMessenger>();

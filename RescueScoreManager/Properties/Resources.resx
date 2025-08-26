@@ -765,4 +765,157 @@
   <data name="IsRankingByFinal" xml:space="preserve">
     <value>Classement Final</value>
   </data>
+  <data name="Planning" xml:space="preserve">
+    <value>Planning</value>
+  </data>
+  <data name="PlanningStructureCompetition" xml:space="preserve">
+    <value>Structurer la compétition</value>
+  </data>
+  <data name="PlanningConfigurePhases" xml:space="preserve">
+    <value>Configurez les phases de chaque épreuve</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Épreuves</value>
+  </data>
+  <data name="Configured" xml:space="preserve">
+    <value>Configurées</value>
+  </data>
+  <data name="Participants" xml:space="preserve">
+    <value>Participants</value>
+  </data>
+  <data name="Generate" xml:space="preserve">
+    <value>Générer</value>
+  </data>
+  <data name="OverallProgress" xml:space="preserve">
+    <value>Progression globale</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>← Précédent</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value> sur </value>
+  </data>
+  <data name="PlanningTitle" xml:space="preserve">
+    <value>Planificateur de Compétition</value>
+  </data>
+  <data name="DefineEvents" xml:space="preserve">
+    <value>Définir les épreuves</value>
+  </data>
+  <data name="BaseStructure" xml:space="preserve">
+    <value>Structure de base</value>
+  </data>
+  <data name="StructureCompetition" xml:space="preserve">
+    <value>Structurer la compétition</value>
+  </data>
+  <data name="SeriesPhases" xml:space="preserve">
+    <value>Séries et phases</value>
+  </data>
+  <data name="PlanSchedules" xml:space="preserve">
+    <value>Planifier les horaires</value>
+  </data>
+  <data name="DatesTimes" xml:space="preserve">
+    <value>Dates et heures</value>
+  </data>
+  <data name="AssignVenues" xml:space="preserve">
+    <value>Assigner les lieux</value>
+  </data>
+  <data name="PoolsSpaces" xml:space="preserve">
+    <value>Bassins et espaces</value>
+  </data>
+  <data name="FinalValidation" xml:space="preserve">
+    <value>Validation finale</value>
+  </data>
+  <data name="ReviewExport" xml:space="preserve">
+    <value>Révision et export</value>
+  </data>
+  <data name="AddPlanningStructure" xml:space="preserve">
+    <value>Ajouter Structure de Planification</value>
+  </data>
+  <data name="Race" xml:space="preserve">
+    <value>Épreuve</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Catégorie</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Créer</value>
+  </data>
+  <data name="PleaseSelectRace" xml:space="preserve">
+    <value>Veuillez sélectionner une épreuve</value>
+  </data>
+  <data name="PleaseSelectGender" xml:space="preserve">
+    <value>Veuillez sélectionner un genre</value>
+  </data>
+  <data name="PleaseSelectCategory" xml:space="preserve">
+    <value>Veuillez sélectionner une catégorie</value>
+  </data>
+  <data name="ErrorCreatingPlanningStructure" xml:space="preserve">
+    <value>Erreur lors de la création de la structure de planification</value>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>Succès</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Erreur</value>
+  </data>
+  <data name="PlanningStructureCreatedSuccessfully" xml:space="preserve">
+    <value>Structure de planification créée avec succès</value>
+  </data>
+  <data name="NotConfigured" xml:space="preserve">
+    <value>Non configuré</value>
+  </data>
+  <data name="IndividualEvents" xml:space="preserve">
+    <value>Épreuves individuelles</value>
+  </data>
+  <data name="EventsConfigurationStatus" xml:space="preserve">
+    <value>2/3 configurés</value>
+  </data>
+  <data name="ParticipantsSeparator" xml:space="preserve">
+    <value> participants • </value>
+  </data>
+  <data name="Configure" xml:space="preserve">
+    <value>Configurer</value>
+  </data>
+  <data name="PhaseConfiguration" xml:space="preserve">
+    <value>Configuration des phases</value>
+  </data>
+  <data name="GlobalConfiguration" xml:space="preserve">
+    <value>Configuration globale</value>
+  </data>
+  <data name="ByCategories" xml:space="preserve">
+    <value>Par catégories</value>
+  </data>
+  <data name="Senior" xml:space="preserve">
+    <value>Senior</value>
+  </data>
+  <data name="Junior" xml:space="preserve">
+    <value>Junior</value>
+  </data>
+  <data name="ParticipantsLabel" xml:space="preserve">
+    <value>Participants:</value>
+  </data>
+  <data name="AgeLabel" xml:space="preserve">
+    <value>Âge:</value>
+  </data>
+  <data name="Series" xml:space="preserve">
+    <value>Séries</value>
+  </data>
+  <data name="Semifinals" xml:space="preserve">
+    <value>Demi-finales</value>
+  </data>
+  <data name="Finals" xml:space="preserve">
+    <value>Finale</value>
+  </data>
+  <data name="PerSeries" xml:space="preserve">
+    <value>Par série</value>
+  </data>
+  <data name="QualifiedSF" xml:space="preserve">
+    <value>Qualifiés DF</value>
+  </data>
+  <data name="Finalists" xml:space="preserve">
+    <value>Finalistes</value>
+  </data>
+  <data name="SemifinalsNotNecessaryWarning" xml:space="preserve">
+    <value>Avec 6 participants, les demi-finales ne sont pas nécessaires</value>
+  </data>
 </root>
