@@ -4,8 +4,10 @@ using System.Windows.Input;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 using RescueScoreManager.Data;
+using RescueScoreManager.Messages;
 using RescueScoreManager.Services;
 
 namespace RescueScoreManager.Modules.Planning.ViewModels
@@ -14,6 +16,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
     {
         private readonly ILocalizationService _localizationService;
         private readonly IXMLService _xmlService;
+        private readonly IMessenger _messenger;
 
         [ObservableProperty]
         private int _selectedCategoryIndex;
@@ -23,10 +26,14 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public ICommand AddPhaseCommand { get; }
         public ICommand SaveCommand { get; }
 
-        public RaceConfigurationDialogViewModel(ILocalizationService localizationService, IXMLService xmlService, List<Race> races)
+        public RaceConfigurationDialogViewModel(ILocalizationService localizationService,
+                                                IXMLService xmlService,
+                                                IMessenger messenger,
+                                                List<Race> races)
         {
             _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
             _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
+            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
 
             CategoryConfigurations = new ObservableCollection<CategoryConfigurationViewModel>();
             AddPhaseCommand = new RelayCommand<CategoryConfigurationViewModel>(OnAddPhase);
@@ -37,13 +44,13 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
         private void InitializeFromRaces(List<Race> races)
         {
-            var existingConfigs = _xmlService.GetRaceFormatConfigurations();
+            IReadOnlyList<RaceFormatConfiguration> existingConfigs = _xmlService.GetRaceFormatConfigurations();
 
-            foreach (var race in races)
+            foreach (Race race in races)
             {
-                foreach (var category in race.Categories)
+                foreach (Category category in race.Categories)
                 {
-                    CategoryConfigurationViewModel categoryViewModel = null;
+                    CategoryConfigurationViewModel? categoryViewModel = null;
                     // Check if a configuration already exists
                     RaceFormatConfiguration ? raceFormatConfiguration = existingConfigs.ToList().Find(cfg => cfg.Categories.Any(cat => cat.Id == category.Id) && cfg.Discipline == race.Discipline && cfg.Gender == race.Gender);
                     if (raceFormatConfiguration != null)
@@ -96,6 +103,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             }
         }
 
+        #region Commands
         private void OnAddPhase(CategoryConfigurationViewModel? category)
         {
             if (category == null)
@@ -109,7 +117,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             if (category != null)
             {
-                var newPhase = new PhaseViewModel
+                PhaseViewModel newPhase = new PhaseViewModel
                 {
                     Order = category.Phases.Count + 1,
                     Name = _localizationService.GetString("Series") ?? "Series",
@@ -129,7 +137,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         {
             if (phase != null)
             {
-                var category = CategoryConfigurations.FirstOrDefault(c => c.Phases.Contains(phase));
+                CategoryConfigurationViewModel? category = CategoryConfigurations.FirstOrDefault(c => c.Phases.Contains(phase));
                 if (category != null)
                 {
                     category.Phases.Remove(phase);
@@ -147,17 +155,19 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         {
             try
             {
-                var raceFormatConfigurations = new List<RaceFormatConfiguration>();
+                List<RaceFormatConfiguration> raceFormatConfigurations = new List<RaceFormatConfiguration>();
 
-                foreach (var categoryConfig in CategoryConfigurations)
+                foreach (CategoryConfigurationViewModel categoryConfig in CategoryConfigurations)
                 {
-                    var raceFormatConfig = ConvertToRaceFormatConfiguration(categoryConfig);
+                    RaceFormatConfiguration raceFormatConfig = ConvertToRaceFormatConfiguration(categoryConfig);
                     raceFormatConfigurations.Add(raceFormatConfig);
                 }
 
                 // Update XML service with new configurations
                 _xmlService.UpdateRaceFormatConfigurations(raceFormatConfigurations);
                 _xmlService.Save();
+
+                _messenger.Send(new SnackMessage(_localizationService.GetString("ConfigurationSaved")));
             }
             catch (Exception ex)
             {
@@ -166,31 +176,36 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             }
         }
 
+        #endregion Commands
+
+        #region Private Methods
         private RaceFormatConfiguration ConvertToRaceFormatConfiguration(CategoryConfigurationViewModel categoryConfig)
         {
-            var race = categoryConfig.Race;
+            Race race = categoryConfig.Race;
 
             // Create the RaceFormatConfiguration manually since it doesn't have a parameterless constructor
-            var raceFormatConfig = new RaceFormatConfiguration();
-            raceFormatConfig.Id = 0; // Always 0 as specified
-            raceFormatConfig.Label = $"{race.Name} - {race.Gender}";
-            raceFormatConfig.FullLabel = $"{race.Name} - {race.Gender} - {categoryConfig.Name}";
-            raceFormatConfig.Gender = race.Gender;
-            raceFormatConfig.Discipline = race.Discipline;
-            raceFormatConfig.Categories = new List<Category>(race.Categories);
-            raceFormatConfig.RaceFormatDetails = new List<RaceFormatDetail>();
+            RaceFormatConfiguration raceFormatConfig = new RaceFormatConfiguration
+            {
+                Id = 0, // Always 0 as specified
+                Label = $"{race.Name} - {race.Gender}",
+                FullLabel = $"{race.Name} - {race.Gender} - {categoryConfig.Name}",
+                Gender = race.Gender,
+                Discipline = race.Discipline,
+                Categories = new List<Category>(race.Categories),
+                RaceFormatDetails = new List<RaceFormatDetail>()
+            };
 
             // Convert phases to RaceFormatDetails
-            foreach (var phase in categoryConfig.Phases)
+            foreach (PhaseViewModel phase in categoryConfig.Phases)
             {
-                var raceFormatDetail = ConvertToRaceFormatDetail(phase, race, raceFormatConfig);
+                RaceFormatDetail raceFormatDetail = ConvertToRaceFormatDetail(phase, race, raceFormatConfig);
                 raceFormatConfig.RaceFormatDetails.Add(raceFormatDetail);
             }
 
             return raceFormatConfig;
         }
 
-        private RaceFormatDetail ConvertToRaceFormatDetail(PhaseViewModel phase, Race race, RaceFormatConfiguration parentConfig)
+        private static RaceFormatDetail ConvertToRaceFormatDetail(PhaseViewModel phase, Race race, RaceFormatConfiguration parentConfig)
         {
             // Get the display name for the level
             string levelDisplayName = PhaseViewModel.HeatLevelOptions.FirstOrDefault(h => h.Value == phase.Level)?.DisplayName ?? phase.Level.ToString();
@@ -214,8 +229,11 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 RaceFormatConfiguration = parentConfig
             };
         }
+        #endregion Private Methods
+
     }
 
+    #region Local ViewModels
     public partial class CategoryConfigurationViewModel : ObservableObject
     {
         [ObservableProperty]
@@ -263,7 +281,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         partial void OnLevelChanged(EnumRSM.HeatLevel value)
         {
             // Update the Name property to match the selected level's display name
-            var selectedOption = HeatLevelOptions.FirstOrDefault(option => option.Value == value);
+            HeatLevelOption? selectedOption = HeatLevelOptions.FirstOrDefault(option => option.Value == value);
             if (selectedOption != null)
             {
                 Name = selectedOption.DisplayName;
@@ -296,4 +314,5 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public EnumRSM.QualificationType Value { get; set; }
         public string DisplayName { get; set; } = string.Empty;
     }
+    #endregion Local ViewModels
 }

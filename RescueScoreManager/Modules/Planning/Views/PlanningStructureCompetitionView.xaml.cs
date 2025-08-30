@@ -14,17 +14,26 @@ namespace RescueScoreManager.Modules.Planning.Views
 
         private void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            // Always set the correct ViewModel (in case DataContext was inherited from parent)
-            if (DataContext == null || DataContext.GetType().Name != nameof(PlanningStructureCompetitionViewModel))
+            try
             {
-                // Get the ViewModel from DI container
-                DataContext = App.ServiceProvider?.GetService<PlanningStructureCompetitionViewModel>();
+                // Always set the correct ViewModel (in case DataContext was inherited from parent)
+                if (DataContext == null || DataContext.GetType().Name != nameof(PlanningStructureCompetitionViewModel))
+                {
+                    // Get the ViewModel from DI container
+                    var viewModel = App.ServiceProvider?.GetService<PlanningStructureCompetitionViewModel>();
+                    DataContext = viewModel;
+                }
+                
+                // Refresh data when view is loaded
+                if (DataContext is PlanningStructureCompetitionViewModel vm)
+                {
+                    vm.RefreshData();
+                }
             }
-            
-            // Refresh data when view is loaded
-            if (DataContext is PlanningStructureCompetitionViewModel viewModel)
+            catch (Exception ex)
             {
-                viewModel.RefreshData();
+                // Log error but don't crash the UI
+                System.Diagnostics.Debug.WriteLine($"Error loading PlanningStructureCompetitionView: {ex.Message}");
             }
         }
     }

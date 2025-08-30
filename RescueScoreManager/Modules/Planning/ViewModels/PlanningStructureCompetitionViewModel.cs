@@ -36,7 +36,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public ObservableCollection<RaceCardViewModel> RaceCards { get; }
 
         public ICommand NouvelleEpreuveCommand { get; }
-        public ICommand SauvegarderCommand { get; }
+        public ICommand SaveCommand { get; }
         public ICommand OpenRaceConfigurationCommand { get; }
 
         public PlanningStructureCompetitionViewModel(
@@ -53,7 +53,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             RaceCards = new ObservableCollection<RaceCardViewModel>();
             
             NouvelleEpreuveCommand = new RelayCommand(OnNouvelleEpreuve);
-            SauvegarderCommand = new RelayCommand(OnSauvegarder);
+            SaveCommand = new RelayCommand(OnSave);
             OpenRaceConfigurationCommand = new RelayCommand<RaceCardViewModel>(OnOpenRaceConfiguration);
 
             Initialize();
@@ -65,31 +65,32 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             try
             {
-                var races = _xmlService.GetRaces();
-                
+                IReadOnlyList<Race> races = _xmlService.GetRaces();
+
                 // Create dictionary with DisciplineLabel as key and List<Race> as value
-                var racesByDiscipline = new Dictionary<string, List<Race>>();
+                Dictionary<string, List<Race>> racesByDiscipline = new Dictionary<string, List<Race>>();
                 
-                foreach (var race in races)
+                foreach (Race race in races)
                 {
                     string disciplineLabel = race.DisciplineLabel;
                     
-                    if (!racesByDiscipline.ContainsKey(disciplineLabel))
+                    if (!racesByDiscipline.TryGetValue(disciplineLabel, out List<Race>? value))
                     {
-                        racesByDiscipline[disciplineLabel] = new List<Race>();
+                        value = new List<Race>();
+                        racesByDiscipline[disciplineLabel] = value;
                     }
-                    
-                    racesByDiscipline[disciplineLabel].Add(race);
+
+                    value.Add(race);
                 }
 
                 // Create RaceCardViewModel for each dictionary entry (one per discipline)
-                foreach (var kvp in racesByDiscipline.OrderBy(x => x.Key))
+                foreach (KeyValuePair<string, List<Race>> kvp in racesByDiscipline.OrderBy(x => x.Key))
                 {
                     string disciplineLabel = kvp.Key;
-                    var racesInDiscipline = kvp.Value;
-                    
+                    List<Race> racesInDiscipline = kvp.Value;
+
                     // Create a combined RaceCardViewModel representing all races in this discipline
-                    var raceCard = CreateDisciplineRaceCardViewModel(disciplineLabel, racesInDiscipline);
+                    RaceCardViewModel raceCard = CreateDisciplineRaceCardViewModel(disciplineLabel, racesInDiscipline);
                     RaceCards.Add(raceCard);
                 }
 
@@ -105,7 +106,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private RaceCardViewModel CreateDisciplineRaceCardViewModel(string disciplineLabel, List<Race> races)
         {
             // Use the first race to determine common properties for the discipline
-            var firstRace = races.First();
+            Race firstRace = races.First();
             
             // Determine icon and color based on speciality
             string icon = firstRace.Speciality switch
@@ -124,7 +125,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             };
 
             // Create list of distinct categories from all races in this discipline
-            var categories = races
+            List<Category> categories = races
                 .SelectMany(r => r.Categories)
                 .GroupBy(c => c.Id)
                 .Select(g => g.First())
@@ -133,7 +134,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             // Calculate aggregate statistics for all races in this discipline
             int totalTeams = races.Sum(r => r.Teams.Count);
-            int configuredRaces = races.Count(r => r.Teams.Any());
+            int configuredRaces = races.Count(r => r.Teams.Count != 0);
             double progress = races.Count > 0 ? (configuredRaces * 100.0 / races.Count) : 0;
 
             // Determine status based on configuration level
@@ -178,7 +179,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
         private string GetDisciplineTypeDescription(List<Race> races)
         {
-            var firstRace = races.First();
+            Race firstRace = races.First();
             string specialityText = firstRace.Speciality switch
             {
                 EnumRSM.Speciality.EauPlate => _localizationService.GetString("EauPlate") ?? "Swimming",
@@ -191,30 +192,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             bool hasRelay = races.Any(r => r.IsRelay);
             bool hasIndividual = races.Any(r => !r.IsRelay);
 
-            if (hasRelay)
-            {
-                return $"{specialityText} - {_localizationService.GetString("EpreuveParEquipes") ?? "Team Event"}";
-            }
-            else
-            {
-                return $"{specialityText} - {_localizationService.GetString("EpreuveIndividuelle") ?? "Individual Event"}";
-            }
-        }
-
-        private string GetDisciplineCategoryDescription(List<Race> races)
-        {
-            // Get all unique categories from all races in this discipline
-            var allCategories = races
-                .SelectMany(r => r.Categories)
-                .Select(c => c.Name)
-                .Distinct()
-                .OrderBy(name => name);
-
-            if (allCategories.Any())
-            {
-                return string.Join(", ", allCategories);
-            }
-            return _localizationService.GetString("ADefinir") ?? "To be defined";
+            return hasRelay
+                ? $"{specialityText} - {_localizationService.GetString("EpreuveParEquipes") ?? "Team Event"}"
+                : $"{specialityText} - {_localizationService.GetString("EpreuveIndividuelle") ?? "Individual Event"}";
         }
 
         private void UpdateStatistics()
@@ -232,95 +212,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             Initialize();
         }
 
-        //private void InitializeSampleData()
-        //{
-        //    // Sample data based on the image
-        //    Events.Clear();
-            
-        //    Events.Add(new EpreuveCardViewModel
-        //    {
-        //        Name = "100m Nage Libre H",
-        //        Type = _localizationService.GetString("EpreuveIndividuelle"),
-        //        Icon = "🏊",
-        //        IconColor = "#3B82F6",
-        //        StatusText = _localizationService.GetString("Configure"),
-        //        StatusColor = "#10B981",
-        //        Progress = 100,
-        //        ProgressText = "100%",
-        //        Schedule = _localizationService.GetString("Samedi") + " 10h00",
-        //        Category = _localizationService.GetString("BassinA"),
-        //        ParticipantCount = 32
-        //    });
-
-        //    Events.Add(new EpreuveCardViewModel
-        //    {
-        //        Name = "200m SM Dames",
-        //        Type = _localizationService.GetString("SauvetageAquatique"),
-        //        Icon = "🏊",
-        //        IconColor = "#8B5CF6",
-        //        StatusText = _localizationService.GetString("Configure"),
-        //        StatusColor = "#10B981",
-        //        Progress = 85,
-        //        ProgressText = "85%",
-        //        Schedule = _localizationService.GetString("Samedi") + " 14h30",
-        //        Category = _localizationService.GetString("Plage"),
-        //        ParticipantCount = 16
-        //    });
-
-        //    Events.Add(new EpreuveCardViewModel
-        //    {
-        //        Name = "90m Sprint Messieurs",
-        //        Type = _localizationService.GetString("Sprint") + " " + _localizationService.GetString("Ocean"),
-        //        Icon = "🏃",
-        //        IconColor = "#F59E0B",
-        //        StatusText = _localizationService.GetString("EnCours"),
-        //        StatusColor = "#F59E0B",
-        //        Progress = 60,
-        //        ProgressText = "60%",
-        //        Schedule = _localizationService.GetString("Dimanche") + " 09h00",
-        //        Category = _localizationService.GetString("Plage"),
-        //        ParticipantCount = 18
-        //    });
-
-        //    Events.Add(new EpreuveCardViewModel
-        //    {
-        //        Name = "Paddle Board H",
-        //        Type = _localizationService.GetString("EpreuveTechnique"),
-        //        Icon = "🏄",
-        //        IconColor = "#10B981",
-        //        StatusText = _localizationService.GetString("Configure"),
-        //        StatusColor = "#10B981",
-        //        Progress = 50,
-        //        ProgressText = "50%",
-        //        Schedule = _localizationService.GetString("Dimanche") + " 11h30",
-        //        Category = _localizationService.GetString("Plage") + " - " + _localizationService.GetString("Zone") + " B",
-        //        ParticipantCount = 12
-        //    });
-
-        //    Events.Add(new EpreuveCardViewModel
-        //    {
-        //        Name = "4x50m Relais Mixte",
-        //        Type = _localizationService.GetString("EpreuveParEquipes"),
-        //        Icon = "👥",
-        //        IconColor = "#EC4899",
-        //        StatusText = _localizationService.GetString("AConfigurer"),
-        //        StatusColor = "#6B7280",
-        //        Progress = 25,
-        //        ProgressText = "25%",
-        //        Schedule = _localizationService.GetString("NonPlanifie"),
-        //        Category = _localizationService.GetString("ADefinir"),
-        //        ParticipantCount = 8
-        //    });
-
-        //    // Update statistics
-        //    TotalRaces = Events.Count;
-        //    ConfiguredEvents = Events.Count(e => e.Progress >= 100);
-        //    TotalParticipants = Events.Sum(e => e.ParticipantCount);
-            
-        //    var totalProgress = Events.Average(e => e.Progress);
-        //    ProgressionPercentage = $"{totalProgress:F0}%";
-        //}
-
         private void OnNouvelleEpreuve()
         {
             try
@@ -337,7 +228,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             }
         }
 
-        private void OnSauvegarder()
+        private void OnSave()
         {
             try
             {
@@ -359,12 +250,13 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             {
                 if (raceCard != null)
                 {
-                    _logger.LogInformation($"Opening race configuration for: {raceCard.Name}");
+                    string message = $"Opening race configuration for: {raceCard.Name}";
+                    _logger.LogInformation(message);
                     
                     string dialogTitle = _localizationService.GetString("ConfigurationPhasesTitle") ?? "Configuration des phases";
                     string fullTitle = $"{dialogTitle} - {raceCard.Name}";
-                    
-                    var dialog = new RaceConfigurationDialog(fullTitle, raceCard.Races);
+
+                    RaceConfigurationDialog dialog = new RaceConfigurationDialog(fullTitle, raceCard.Races);
                     bool? result = dialog.ShowDialog();
                     dialog.Close();
                 }

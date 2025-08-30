@@ -475,7 +475,7 @@
     <value>Messieurs</value>
   </data>
   <data name="Athletes" xml:space="preserve">
-    <value>Athlètes</value>
+    <value>athlètes</value>
   </data>
   <data name="Races" xml:space="preserve">
     <value>Epreuves</value>
@@ -805,7 +805,7 @@
     <value>Structure de base</value>
   </data>
   <data name="StructureCompetition" xml:space="preserve">
-    <value>Structurer la compétition</value>
+    <value>Structure de Compétition</value>
   </data>
   <data name="SeriesPhases" xml:space="preserve">
     <value>Séries et phases</value>
@@ -874,7 +874,7 @@
     <value> participants • </value>
   </data>
   <data name="Configure" xml:space="preserve">
-    <value>Configurer</value>
+    <value>CONFIGURÉ</value>
   </data>
   <data name="PhaseConfiguration" xml:space="preserve">
     <value>Configuration des phases</value>
@@ -948,12 +948,6 @@
   <data name="Progression" xml:space="preserve">
     <value>PROGRESSION</value>
   </data>
-  <data name="Configuration" xml:space="preserve">
-    <value>Configuration</value>
-  </data>
-  <data name="Athletes" xml:space="preserve">
-    <value>athlètes</value>
-  </data>
   <data name="CliquerPourCreerNouvelleEpreuve" xml:space="preserve">
     <value>Cliquer pour créer une nouvelle épreuve</value>
   </data>
@@ -974,9 +968,6 @@
   </data>
   <data name="EpreuveParEquipes" xml:space="preserve">
     <value>Épreuve par équipes</value>
-  </data>
-  <data name="Configure" xml:space="preserve">
-    <value>CONFIGURÉ</value>
   </data>
   <data name="EnCours" xml:space="preserve">
     <value>EN COURS</value>
@@ -1032,26 +1023,14 @@
   <data name="PlanningModule" xml:space="preserve">
     <value>Module de Planification</value>
   </data>
-  <data name="StructureCompetition" xml:space="preserve">
-    <value>Structure de Compétition</value>
-  </data>
   <data name="VueGlobale" xml:space="preserve">
     <value>Vue Globale</value>
-  </data>
-  <data name="Recapitulatif" xml:space="preserve">
-    <value>Récapitulatif</value>
   </data>
   <data name="ConfigurationPhasesTitle" xml:space="preserve">
     <value>Configuration des phases</value>
   </data>
   <data name="Cadet" xml:space="preserve">
     <value>Cadet</value>
-  </data>
-  <data name="Junior" xml:space="preserve">
-    <value>Junior</value>
-  </data>
-  <data name="Senior" xml:space="preserve">
-    <value>Senior</value>
   </data>
   <data name="ConfigurationCategorie" xml:space="preserve">
     <value>Configuration - Catégorie</value>
@@ -1064,9 +1043,6 @@
   </data>
   <data name="AjouterPhase" xml:space="preserve">
     <value>Ajouter une phase</value>
-  </data>
-  <data name="Series" xml:space="preserve">
-    <value>Séries</value>
   </data>
   <data name="Finale" xml:space="preserve">
     <value>Finale</value>
@@ -1109,5 +1085,8 @@
   </data>
   <data name="Optionnel" xml:space="preserve">
     <value>OPTIONNEL</value>
+  </data>
+  <data name="ConfigurationSaved" xml:space="preserve">
+    <value>Configuration Sauvegardée</value>
   </data>
 </root>

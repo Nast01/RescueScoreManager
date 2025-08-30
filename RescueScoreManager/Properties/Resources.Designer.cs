@@ -583,6 +583,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Configuration Sauvegardée.
+        /// </summary>
+        internal static string ConfigurationSaved {
+            get {
+                return ResourceManager.GetString("ConfigurationSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à CONFIGURÉ.
         /// </summary>
         internal static string Configure {
@@ -1920,6 +1929,15 @@ namespace RescueScoreManager.Properties {
         internal static string OpenFileError {
             get {
                 return ResourceManager.GetString("OpenFileError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à OPTIONNEL.
+        /// </summary>
+        internal static string Optionnel {
+            get {
+                return ResourceManager.GetString("Optionnel", resourceCulture);
             }
         }
         

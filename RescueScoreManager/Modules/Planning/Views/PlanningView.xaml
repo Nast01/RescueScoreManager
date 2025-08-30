@@ -3,20 +3,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="clr-namespace:RescueScoreManager.Modules.Planning.Views"
              xmlns:loc="clr-namespace:RescueScoreManager.Localization">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
     
-    <StackPanel>
-        <TextBlock Text="{loc:Translate PlanningModule}" FontSize="24" FontWeight="Bold" Margin="20,20,20,10" HorizontalAlignment="Center"/>
-        <TabControl Margin="20,0,20,20">
-            <TabItem Header="{loc:Translate StructureCompetition}">
-                <views:PlanningStructureCompetitionView />
-            </TabItem>
-            <TabItem Header="{loc:Translate VueGlobale}">
-                <views:PlanningGlobalView />
-            </TabItem>
-            <TabItem Header="{loc:Translate Recapitulatif}">
-                <views:RecapitulatifView />
-            </TabItem>
-        </TabControl>
-    </StackPanel>
-    
+    <TextBlock Grid.Row="0" Text="{loc:Translate PlanningModule}" FontSize="24" FontWeight="Bold" Margin="20,20,20,10" HorizontalAlignment="Center"/>
+    <TabControl Grid.Row="1" Margin="20,0,20,20">
+      <TabItem Header="{loc:Translate StructureCompetition}">
+        <views:PlanningStructureCompetitionView />
+      </TabItem>
+      <TabItem Header="{loc:Translate VueGlobale}">
+        <views:PlanningGlobalView />
+      </TabItem>
+      <TabItem Header="{loc:Translate Recapitulatif}">
+        <views:RecapitulatifView />
+      </TabItem>
+    </TabControl>
+  </Grid>
+
 </UserControl>

@@ -4,6 +4,8 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 
+using CommunityToolkit.Mvvm.Messaging;
+
 using Microsoft.Extensions.DependencyInjection;
 
 using RescueScoreManager.Data;
@@ -37,10 +39,11 @@ namespace RescueScoreManager.Modules.Planning.Views
                 var serviceProvider = App.ServiceProvider;
                 var localizationService = serviceProvider?.GetService<ILocalizationService>();
                 var xmlService = serviceProvider?.GetService<IXMLService>();
+                var messenger = serviceProvider?.GetService<IMessenger>();
 
-                if (localizationService != null && xmlService != null)
+                if (localizationService != null && xmlService != null && messenger != null)
                 {
-                    RaceConfigurationDialogViewModel viewModel = new RaceConfigurationDialogViewModel(localizationService, xmlService, races);
+                    RaceConfigurationDialogViewModel viewModel = new RaceConfigurationDialogViewModel(localizationService, xmlService, messenger, races);
 
                     DataContext = viewModel;
                 }

@@ -128,7 +128,7 @@ public partial class MainWindowViewModel : ObservableObject,
         try
         {
             // Create LoginViewModel through DI to get proper logger injection
-            var loginViewModel = _serviceProvider.GetRequiredService<LoginViewModel>();
+            LoginViewModel loginViewModel = _serviceProvider.GetRequiredService<LoginViewModel>();
 
             // Use the specific ShowLoginView method instead of generic ShowDialog
             bool? result = _dialogService.ShowLoginView(loginViewModel);
@@ -323,7 +323,7 @@ public partial class MainWindowViewModel : ObservableObject,
                                             actionArgument: null,
                                             promote: false,
                                             neverConsiderToBeDuplicate: true,
-                                            durationOverride: TimeSpan.FromSeconds(3));
+                                            durationOverride: TimeSpan.FromSeconds(duration));
     } 
     #endregion Message
 }
