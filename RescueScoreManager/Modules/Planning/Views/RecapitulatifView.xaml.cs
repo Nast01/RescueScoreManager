@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace RescueScoreManager.Modules.Planning.Views
 {
-    public partial class PlanningSchedule : UserControl
+    public partial class RecapitulatifView : UserControl
     {
-        public PlanningSchedule()
+        public RecapitulatifView()
         {
             InitializeComponent();
         }

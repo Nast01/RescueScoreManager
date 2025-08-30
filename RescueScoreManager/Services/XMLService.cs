@@ -214,6 +214,40 @@ public class XMLService : IXMLService
         _raceFormatConfigurations.Clear();
         IsLoaded = false;
     }
+
+    public void UpdateRaceFormatConfigurations(IEnumerable<RaceFormatConfiguration> raceFormatConfigurations)
+    {
+        foreach (var newConfig in raceFormatConfigurations)
+        {
+            // Find existing configuration with matching discipline, categories, and gender
+            var existingConfig = _raceFormatConfigurations.FirstOrDefault(existing => 
+                existing.Discipline == newConfig.Discipline &&
+                existing.Gender == newConfig.Gender &&
+                existing.Categories.Count == newConfig.Categories.Count &&
+                existing.Categories.All(existingCat => 
+                    newConfig.Categories.Any(newCat => newCat.Id == existingCat.Id)));
+
+            if (existingConfig != null)
+            {
+                // Update the existing configuration
+                existingConfig.Label = newConfig.Label;
+                existingConfig.FullLabel = newConfig.FullLabel;
+                existingConfig.RaceFormatDetails.Clear();
+                existingConfig.RaceFormatDetails.AddRange(newConfig.RaceFormatDetails);
+                
+                // Update parent references in RaceFormatDetails
+                foreach (var detail in existingConfig.RaceFormatDetails)
+                {
+                    detail.RaceFormatConfiguration = existingConfig;
+                }
+            }
+            else
+            {
+                // Add new configuration if it doesn't exist
+                _raceFormatConfigurations.Add(newConfig);
+            }
+        }
+    }
     #endregion
 
     #region File Operations

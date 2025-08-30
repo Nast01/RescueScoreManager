@@ -28,11 +28,16 @@ namespace RescueScoreManager;
 /// </summary>
 public partial class App : Application
 {
+    public static IServiceProvider? ServiceProvider { get; private set; }
+
     [STAThread]
     public static void Main(string[] args)
     {
         using IHost host = CreateHostBuilder(args).Build();
         host.Start();
+
+        // Store service provider for access by views
+        ServiceProvider = host.Services;
 
         App app = new();
         app.InitializeComponent();
@@ -103,7 +108,8 @@ public partial class App : Application
             //Planning components
             services.AddTransient<PlanningView>();
             services.AddTransient<PlanningViewModel>();
-            services.AddTransient<PlanningStepViewModel>();
+            services.AddTransient<PlanningStructureCompetitionView>();
+            services.AddTransient<PlanningStructureCompetitionViewModel>();
 
             // Messaging
             services.AddSingleton<WeakReferenceMessenger>();

@@ -22,6 +22,11 @@ public class RaceFormatConfiguration
     public string DisciplineLabel { get; set; }
     public List<RaceFormatDetail> RaceFormatDetails { get; set; } = new List<RaceFormatDetail>();
 
+    public RaceFormatConfiguration()
+    {
+        // Parameterless constructor for manual creation
+    }
+
     public RaceFormatConfiguration(JToken jData, List<Category> categories)
     {
         Id = jData["Id"].Value<int>();

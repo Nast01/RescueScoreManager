@@ -32,4 +32,7 @@ public interface IXMLService
     IReadOnlyList<Team> GetTeams();
     IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations();
     AppSetting? GetSetting();
+
+    // Update methods
+    void UpdateRaceFormatConfigurations(IEnumerable<RaceFormatConfiguration> raceFormatConfigurations);
 }

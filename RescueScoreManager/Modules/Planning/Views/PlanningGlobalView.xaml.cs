@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace RescueScoreManager.Modules.Planning.Views
 {
-    public partial class PlanningFinalValidation : UserControl
+    public partial class PlanningGlobalView : UserControl
     {
-        public PlanningFinalValidation()
+        public PlanningGlobalView()
         {
             InitializeComponent();
         }

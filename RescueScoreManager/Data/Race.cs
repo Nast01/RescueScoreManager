@@ -31,6 +31,8 @@ public class Race
     };
     public Speciality Speciality { get; set; }
     public int Discipline { get; set; }
+    public string DisciplineLabel => $"{Name} {GenderLabel}";
+
     public int NumberByTeam { get; set; }
     public int? Distance { get; set; } = null;
     public int Interval { get; set; } = 9000;
