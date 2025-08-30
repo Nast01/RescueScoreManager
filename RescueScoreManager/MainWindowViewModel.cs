@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using RescueScoreManager.Modules.Forfeit;
 using RescueScoreManager.Modules.Properties;
+using RescueScoreManager.Modules.Planning.ViewModels;
 
 namespace RescueScoreManager;
 
@@ -40,6 +41,7 @@ public partial class MainWindowViewModel : ObservableObject,
     // ViewModels cache
     private ForfeitViewModel? _forfeitViewModel;
     private PropertiesViewModel? _propertiesViewModel;
+    private PlanningViewModel? _planningViewModel;
 
     [ObservableProperty]
     private ObservableObject? _currentViewModel;
@@ -218,6 +220,29 @@ public partial class MainWindowViewModel : ObservableObject,
             _messenger.Send(new SnackMessage("Error navigating to Properties"));
         }
     }
+    [RelayCommand]
+    private async Task NavigateToPlanning()
+    {
+        try
+        {
+            // Create or get cached ViewModel
+            _planningViewModel = null;
+            if (_planningViewModel == null)
+            {
+                _planningViewModel = _serviceProvider.GetRequiredService<PlanningViewModel>();
+                await _planningViewModel.InitializeAsync();
+            }
+
+            CurrentViewModel = _planningViewModel;
+            _logger.LogInformation("Navigated to Planning view");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error navigating to Planning view");
+            _messenger.Send(new SnackMessage("Error navigating to Planning"));
+        }
+    }
+
     #endregion Navigation Commands
 
 

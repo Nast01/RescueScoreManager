@@ -25,6 +25,11 @@ public class RaceFormatDetail
     public int QualifyingSpots { get; set; }
     public RaceFormatConfiguration RaceFormatConfiguration { get; set; }
 
+    public RaceFormatDetail()
+    {
+        // Parameterless constructor for manual creation
+    }
+
     public RaceFormatDetail(JToken jData, RaceFormatConfiguration raceFormatConfiguration)
     {
         Id = jData["id"].Value<int>();

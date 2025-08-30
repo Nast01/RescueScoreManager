@@ -7,6 +7,8 @@
              xmlns:selectNewComp="clr-namespace:RescueScoreManager.Modules.SelectNewCompetition"
              xmlns:forfeit="clr-namespace:RescueScoreManager.Modules.Forfeit"
              xmlns:properties="clr-namespace:RescueScoreManager.Modules.Properties"
+             xmlns:planningView="clr-namespace:RescueScoreManager.Modules.Planning.Views"
+             xmlns:planningVM="clr-namespace:RescueScoreManager.Modules.Planning.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:system="clr-namespace:System;assembly=mscorlib" >
   <Application.Resources>
@@ -202,6 +204,12 @@
       </DataTemplate>
       <DataTemplate DataType="{x:Type properties:PropertiesViewModel}">
         <properties:PropertiesView />
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type planningVM:PlanningViewModel}">
+        <planningView:PlanningView />
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type planningVM:PlanningStructureCompetitionViewModel}">
+        <planningView:PlanningStructureCompetitionView />
       </DataTemplate>
 
 
