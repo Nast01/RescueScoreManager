@@ -1089,4 +1089,34 @@
   <data name="ConfigurationSaved" xml:space="preserve">
     <value>Configuration Sauvegardée</value>
   </data>
+  <data name="Program_XMI" xml:space="preserve">
+    <value>Program</value>
+  </data>
+  <data name="ProgramMeeting_XMI" xml:space="preserve">
+    <value>ProgramMeeting</value>
+  </data>
+  <data name="ProgramDate_XMI" xml:space="preserve">
+    <value>ProgramDate</value>
+  </data>
+  <data name="BeginHour_XMI" xml:space="preserve">
+    <value>BeginHour</value>
+  </data>
+  <data name="EndHour_XMI" xml:space="preserve">
+    <value>EndHour</value>
+  </data>
+  <data name="ProgramSlot_XMI" xml:space="preserve">
+    <value>ProgramSlot</value>
+  </data>
+  <data name="RaceFormatDetailId_XMI" xml:space="preserve">
+    <value>RaceFormatDetailId</value>
+  </data>
+  <data name="ProgramRun_XMI" xml:space="preserve">
+    <value>ProgramRun</value>
+  </data>
+  <data name="Site_XMI" xml:space="preserve">
+    <value>Site</value>
+  </data>
+  <data name="HeatId_XMI" xml:space="preserve">
+    <value>HeatId</value>
+  </data>
 </root>

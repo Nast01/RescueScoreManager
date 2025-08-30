@@ -98,4 +98,16 @@ public class EnumRSM
     {
         STARTLIST
     }
+
+    public enum ProgramStatus
+    {
+        [Description("En attente")]
+        Pending = 0,
+        [Description("Marshaling")]
+        Marshaling = 1,
+        [Description("En cours")]
+        InProgress = 2,
+        [Description("Terminé")]
+        Finished = 3
+    }
 }

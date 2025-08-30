@@ -304,6 +304,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à BeginHour.
+        /// </summary>
+        internal static string BeginHour_XMI {
+            get {
+                return ResourceManager.GetString("BeginHour_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à BirthYear.
         /// </summary>
         internal static string BirthYear_XMI {
@@ -772,6 +781,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à EndHour.
+        /// </summary>
+        internal static string EndHour_XMI {
+            get {
+                return ResourceManager.GetString("EndHour_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Fin du chargement.
         /// </summary>
         internal static string EndLoadingInfo {
@@ -1191,6 +1209,15 @@ namespace RescueScoreManager.Properties {
         internal static string HeadReferee_XMI {
             get {
                 return ResourceManager.GetString("HeadReferee_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à HeatId.
+        /// </summary>
+        internal static string HeatId_XMI {
+            get {
+                return ResourceManager.GetString("HeatId_XMI", resourceCulture);
             }
         }
         
@@ -2275,6 +2302,51 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Program.
+        /// </summary>
+        internal static string Program_XMI {
+            get {
+                return ResourceManager.GetString("Program_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à ProgramDate.
+        /// </summary>
+        internal static string ProgramDate_XMI {
+            get {
+                return ResourceManager.GetString("ProgramDate_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à ProgramMeeting.
+        /// </summary>
+        internal static string ProgramMeeting_XMI {
+            get {
+                return ResourceManager.GetString("ProgramMeeting_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à ProgramRun.
+        /// </summary>
+        internal static string ProgramRun_XMI {
+            get {
+                return ResourceManager.GetString("ProgramRun_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à ProgramSlot.
+        /// </summary>
+        internal static string ProgramSlot_XMI {
+            get {
+                return ResourceManager.GetString("ProgramSlot_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à PROGRESSION.
         /// </summary>
         internal static string Progression {
@@ -2388,6 +2460,15 @@ namespace RescueScoreManager.Properties {
         internal static string RaceFormatDetail_XMI {
             get {
                 return ResourceManager.GetString("RaceFormatDetail_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à RaceFormatDetailId.
+        /// </summary>
+        internal static string RaceFormatDetailId_XMI {
+            get {
+                return ResourceManager.GetString("RaceFormatDetailId_XMI", resourceCulture);
             }
         }
         
@@ -2739,6 +2820,15 @@ namespace RescueScoreManager.Properties {
         internal static string Settings {
             get {
                 return ResourceManager.GetString("Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Site.
+        /// </summary>
+        internal static string Site_XMI {
+            get {
+                return ResourceManager.GetString("Site_XMI", resourceCulture);
             }
         }
         
