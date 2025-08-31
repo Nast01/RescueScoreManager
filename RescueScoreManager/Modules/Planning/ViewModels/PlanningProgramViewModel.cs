@@ -47,6 +47,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public ICommand AutoPlanCommand { get; }
         public ICommand AddSiteCommand { get; }
         public ICommand RemoveSiteCommand { get; }
+        public ICommand CreateManualTimeSlotCommand { get; }
 
         public PlanningProgramViewModel(
             IXMLService xmlService,
@@ -70,6 +71,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             AutoPlanCommand = new RelayCommand(OnAutoPlan);
             AddSiteCommand = new RelayCommand(OnAddSite);
             RemoveSiteCommand = new RelayCommand<SiteViewModel>(OnRemoveSite);
+            CreateManualTimeSlotCommand = new RelayCommand(OnCreateManualTimeSlot);
 
             Initialize();
         }
@@ -583,6 +585,50 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             {
                 _logger.LogError(ex, "Error removing site");
                 _dialogService.ShowMessage("Erreur", "Erreur lors de la suppression du site");
+            }
+        }
+
+        private void OnCreateManualTimeSlot()
+        {
+            try
+            {
+                var dialog = new ManualTimeSlotDialog();
+                var dialogViewModel = new ManualTimeSlotDialogViewModel(_xmlService, CurrentDate);
+                dialog.DataContext = dialogViewModel;
+
+                bool? result = dialog.ShowDialog();
+
+                if (result == true && dialogViewModel.CreatedEvent != null)
+                {
+                    var selectedSites = dialogViewModel.GetSelectedSites();
+                    var selectedDateTime = dialogViewModel.GetSelectedDateTime();
+
+                    foreach (var selectedSite in selectedSites)
+                    {
+                        // Find the corresponding site for the selected date
+                        var targetSite = Sites.FirstOrDefault(s => s.Id == selectedSite.Id && s.Date.Date == selectedDateTime.Date);
+                        if (targetSite != null)
+                        {
+                            // Find the appropriate timeslot
+                            var targetTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
+                                ts.DateTime.TimeOfDay <= selectedDateTime.TimeOfDay &&
+                                ts.DateTime.TimeOfDay.Add(TimeSpan.FromMinutes(15)) > selectedDateTime.TimeOfDay);
+
+                            if (targetTimeSlot != null)
+                            {
+                                targetTimeSlot.Events.Add(dialogViewModel.CreatedEvent);
+                            }
+                        }
+                    }
+
+                    UpdateStatistics();
+                    _logger.LogInformation($"Manual timeslot created: {dialogViewModel.CreatedEvent.Title}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating manual timeslot");
+                _dialogService.ShowMessage("Erreur", "Erreur lors de la création du créneau manuel");
             }
         }
     }

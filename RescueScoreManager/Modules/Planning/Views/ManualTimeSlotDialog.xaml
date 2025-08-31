@@ -1,0 +1,76 @@
+<Window x:Class="RescueScoreManager.Modules.Planning.Views.ManualTimeSlotDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Créer un créneau manuel" Height="580" Width="600"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0" Text="Créer un créneau manuel" FontSize="20" FontWeight="Bold" 
+                   Foreground="#1F2937" Margin="0,0,0,20"/>
+
+        <!-- Name Field -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,15">
+            <TextBlock Text="Nom de l'événement" FontWeight="Bold" Margin="0,0,0,5"/>
+            <TextBox Text="{Binding Name}" Height="32" Padding="8" BorderBrush="#D1D5DB"/>
+        </StackPanel>
+
+        <!-- Sites Selection -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,15">
+            <TextBlock Text="Sites" FontWeight="Bold" Margin="0,0,0,5"/>
+            <Border BorderBrush="#D1D5DB" BorderThickness="1" MaxHeight="120">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding AvailableSites}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" 
+                                          Margin="8,4" FontSize="12"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+
+        <!-- Date Selection -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,15">
+            <TextBlock Text="Date" FontWeight="Bold" Margin="0,0,0,5"/>
+            <ComboBox ItemsSource="{Binding AvailableDates}" SelectedItem="{Binding SelectedDate}" 
+                      Height="32" DisplayMemberPath="DisplayText" SelectedValuePath="Date"/>
+        </StackPanel>
+
+        <!-- Begin Time Selection -->
+        <StackPanel Grid.Row="4" Margin="0,0,0,15">
+            <TextBlock Text="Heure de début" FontWeight="Bold" Margin="0,0,0,5"/>
+            <ComboBox ItemsSource="{Binding AvailableTimeSlots}" SelectedItem="{Binding SelectedBeginTimeSlot}" 
+                      Height="32" DisplayMemberPath="Time"/>
+        </StackPanel>
+
+        <!-- Duration -->
+        <StackPanel Grid.Row="5" Margin="0,0,0,15">
+            <TextBlock Text="Durée (minutes)" FontWeight="Bold" Margin="0,0,0,5"/>
+            <TextBox Text="{Binding Duration}" Height="32" Padding="8" BorderBrush="#D1D5DB"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Annuler" Width="100" Height="32" Margin="0,0,10,0" 
+                    Background="#6B7280" Foreground="White" BorderThickness="0" 
+                    Click="OnCancel"/>
+      <Button Content="Créer" Width="100" Height="32" 
+                    Background="#059669" Foreground="White" BorderThickness="0" 
+                    Click="OnCreate"/>
+        </StackPanel>
+    </Grid>
+</Window>

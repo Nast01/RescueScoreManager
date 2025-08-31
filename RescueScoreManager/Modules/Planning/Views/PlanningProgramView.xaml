@@ -227,6 +227,15 @@
                                            Foreground="White"/>
               </Border>
             </StackPanel>
+            <Border Background="#3B82F6" CornerRadius="6" Padding="8,6" Margin="5,0,0,10" Cursor="Hand" Width="120" HorizontalAlignment="Left">
+              <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding CreateManualTimeSlotCommand}"/>
+              </Border.InputBindings>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="➕" FontSize="10" Margin="0,0,5,0" Foreground="White"/>
+                <TextBlock Text="Créneau manuel" FontSize="10" Foreground="White"/>
+              </StackPanel>
+            </Border>
           </StackPanel>
 
           <!-- Events List -->
