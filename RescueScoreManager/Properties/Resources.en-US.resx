@@ -1119,4 +1119,10 @@
   <data name="HeatId_XMI" xml:space="preserve">
     <value>HeatId</value>
   </data>
+  <data name="Sites_XMI" xml:space="preserve">
+    <value>Sites</value>
+  </data>
+  <data name="Icon_XMI" xml:space="preserve">
+    <value>Icon</value>
+  </data>
 </root>

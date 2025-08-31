@@ -94,29 +94,50 @@ public class DialogService : IDialogService
         where TView : class
         where TViewModel : class
     {
-        if (view is not FrameworkElement frameworkElement)
+        Window dialog;
+
+        if (view is Window windowView)
         {
-            _logger.LogError("View {ViewType} is not a FrameworkElement", typeof(TView).Name);
-            return false;
+            // If the view is already a Window, use it directly
+            dialog = windowView;
+            dialog.DataContext = viewModel;
+            dialog.Owner = Application.Current.MainWindow;
+            
+            // Set the dialog window as a parameter for commands that need it
+            dialog.Tag = dialog;
+            
+            // If the view model has a DialogWindow property, set it
+            if (viewModel?.GetType().GetProperty("DialogWindow") != null)
+            {
+                viewModel.GetType().GetProperty("DialogWindow")?.SetValue(viewModel, dialog);
+            }
         }
-
-        var dialog = new Window
+        else if (view is FrameworkElement frameworkElement)
         {
-            Title = dialogTitle,
-            Content = frameworkElement,
-            DataContext = viewModel,
-            SizeToContent = SizeToContent.WidthAndHeight,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Owner = Application.Current.MainWindow,
-            ShowInTaskbar = false,
-            ResizeMode = ResizeMode.NoResize,
-            WindowStyle = windowStyle
-        };
+            // If the view is not a Window, wrap it in a new Window
+            dialog = new Window
+            {
+                Title = dialogTitle,
+                Content = frameworkElement,
+                DataContext = viewModel,
+                SizeToContent = SizeToContent.WidthAndHeight,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Application.Current.MainWindow,
+                ShowInTaskbar = false,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStyle = windowStyle
+            };
 
-        // Set the dialog window as a parameter for commands that need it
-        if (frameworkElement is UserControl userControl)
+            // Set the dialog window as a parameter for commands that need it
+            if (frameworkElement is UserControl userControl)
+            {
+                userControl.Tag = dialog;
+            }
+        }
+        else
         {
-            userControl.Tag = dialog;
+            _logger.LogError("View {ViewType} is not a FrameworkElement or Window", typeof(TView).Name);
+            return false;
         }
 
         _logger.LogInformation("Showing {DialogTitle} dialog (Modal: {IsModal})", dialogTitle, isModal);

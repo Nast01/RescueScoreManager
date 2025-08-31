@@ -110,6 +110,8 @@ public partial class App : Application
             services.AddTransient<PlanningViewModel>();
             services.AddTransient<PlanningStructureCompetitionView>();
             services.AddTransient<PlanningStructureCompetitionViewModel>();
+            services.AddTransient<PlanningProgramView>();
+            services.AddTransient<PlanningProgramViewModel>();
 
             // Messaging
             services.AddSingleton<WeakReferenceMessenger>();

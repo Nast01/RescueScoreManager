@@ -217,8 +217,8 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             {
                 Id = 0, // Always 0 as specified
                 Order = phase.Order,
-                Label = $"{levelDisplayName} - {race.Gender}",
-                FullLabel = $"{race.Name} - {race.Gender} - {levelDisplayName} - {race.Gender}",
+                Label = $"{race.Name} - {race.Gender} - {levelDisplayName} - {string.Join(", ", race.Categories.Select(c => c.Name))}",
+                FullLabel = $"{race.Name} - {race.Gender} - {levelDisplayName} - {string.Join(", ", race.Categories.Select(c => c.Name))}",
                 LevelLabel = levelDisplayName,
                 Level = phase.Level,
                 NumberOfRun = phase.NumberOfRaces,

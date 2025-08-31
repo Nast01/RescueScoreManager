@@ -1249,6 +1249,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Icon.
+        /// </summary>
+        internal static string Icon_XMI {
+            get {
+                return ResourceManager.GetString("Icon_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Id.
         /// </summary>
         internal static string Id_XMI {
@@ -2829,6 +2838,15 @@ namespace RescueScoreManager.Properties {
         internal static string Site_XMI {
             get {
                 return ResourceManager.GetString("Site_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sites.
+        /// </summary>
+        internal static string Sites_XMI {
+            get {
+                return ResourceManager.GetString("Sites_XMI", resourceCulture);
             }
         }
         

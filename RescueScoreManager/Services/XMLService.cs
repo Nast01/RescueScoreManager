@@ -32,6 +32,7 @@ public class XMLService : IXMLService
     private readonly List<Team> _teams = new();
     private readonly List<RaceFormatConfiguration> _raceFormatConfigurations = new();
     private readonly List<ProgramMeeting> _programMeetings = new();
+    private readonly List<Site> _sites = new();
     private AppSetting _setting = new();
 
     public bool IsLoaded { get; private set; }
@@ -71,6 +72,7 @@ public class XMLService : IXMLService
     public IReadOnlyList<Team> GetTeams() => _teams.AsReadOnly();
     public IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations() => _raceFormatConfigurations.AsReadOnly();
     public IReadOnlyList<ProgramMeeting> GetProgramMeetings() => _programMeetings.AsReadOnly();
+    public IReadOnlyList<Site> GetSites() => _sites.AsReadOnly();
     public AppSetting? GetSetting() => _setting;
     #endregion
 
@@ -125,7 +127,8 @@ public class XMLService : IXMLService
 
     #region Data Initialization
     public void Initialize(Competition competition, IEnumerable<Category> categories, IEnumerable<Club> clubs,
-                          IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams, IEnumerable<RaceFormatConfiguration> raceFormatConfigurations)
+                          IEnumerable<Licensee> licensees, IEnumerable<Race> races, IEnumerable<Team> teams,
+                          IEnumerable<RaceFormatConfiguration> raceFormatConfigurations)
     {
         if (competition == null)
         {
@@ -214,6 +217,8 @@ public class XMLService : IXMLService
         _races.Clear();
         _teams.Clear();
         _raceFormatConfigurations.Clear();
+        _programMeetings.Clear();
+        _sites.Clear();
         IsLoaded = false;
     }
 
@@ -315,6 +320,9 @@ public class XMLService : IXMLService
 
             // Load program
             LoadProgram(rootElement);
+
+            // Load sites
+            LoadSites(rootElement);
 
             // Load settings
             LoadSetting(rootElement);
@@ -425,6 +433,18 @@ public class XMLService : IXMLService
             }
             rootElement.Add(programElement);
 
+
+            // Save sites information
+            var sitesElement = new XElement(Properties.Resources.Sites_XMI);
+            foreach (var site in _sites)
+            {
+                var siteElement = site.WriteXml();
+                if (siteElement != null)
+                {
+                    sitesElement.Add(siteElement);
+                }
+            }
+            rootElement.Add(sitesElement);
 
             xDoc.Add(rootElement);
 
@@ -647,7 +667,7 @@ public class XMLService : IXMLService
         }
 
 
-        _logger.LogDebug("Loaded {Count} teams", _teams.Count);
+        _logger.LogDebug("Loaded {Count} race configuration", _raceFormatConfigurations.Count);
     }
 
     private void LoadProgram(XElement rootElement)
@@ -670,8 +690,32 @@ public class XMLService : IXMLService
         }
 
 
-        _logger.LogDebug("Loaded {Count} teams", _teams.Count);
+        _logger.LogDebug("Loaded {Count} program", _programMeetings.Count);
     }
+
+    private void LoadSites(XElement rootElement)
+    {
+        var sitesElement = rootElement.Element(Properties.Resources.Sites_XMI);
+        if (sitesElement != null)
+        {
+            var siteElements = sitesElement.Elements(Properties.Resources.Site_XMI);
+            foreach (XElement siteElement in siteElements)
+            {
+                try
+                {
+                    Site site = new Site(siteElement);
+                    _sites.Add(site);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load Site from XML element");
+                }
+            }
+        }
+
+        _logger.LogDebug("Loaded {Count} site", _sites.Count);
+    }
+
     private void LoadSetting(XElement rootElement)
     {
         var settingElement = rootElement.Element(Properties.Resources.AppSetting_XMI);
@@ -684,4 +728,12 @@ public class XMLService : IXMLService
 
     #endregion
 
+    #region Update Methods
+    public void UpdateSites(IEnumerable<Site> sites)
+    {
+        _sites.Clear();
+        _sites.AddRange(sites);
+        _logger.LogDebug("Updated {Count} sites", _sites.Count);
+    }
+    #endregion
 }
