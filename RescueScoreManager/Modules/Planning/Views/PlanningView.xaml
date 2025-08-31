@@ -16,7 +16,7 @@
         <views:PlanningStructureCompetitionView />
       </TabItem>
       <TabItem Header="{loc:Translate VueGlobale}">
-        <views:PlanningGlobalView />
+        <views:PlanningProgramView />
       </TabItem>
       <TabItem Header="{loc:Translate Recapitulatif}">
         <views:RecapitulatifView />
