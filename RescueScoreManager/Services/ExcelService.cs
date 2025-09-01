@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 
 using ClosedXML.Excel;
@@ -11,65 +11,65 @@ namespace RescueScoreManager.Services;
 public class ExcelService : IExcelService
 {
     #region CONST VALUE
-    const string CLUBS = "Clubs";
-    const string POSITION = "Position";
-    const string POINTS = "Points";
-    const string GENERAL = "General";
-    const string DETAIL = "Detail";
-    const string RESULTS = "Resultats";
-    const string COEFFICIENT = "Coefficient";
-    const string STARTLIST = "StartList";
-    const string NUMBER = "Numéro";
-    const string LASTFIRSTNAME = "Nom Prénom";
-    const string CATEGORY = "Catégorie";
-    const string CLUB = "Club";
-    const string TIME = "Temps";
-    const string PROGRAM = "Programme";
-    const string LANE = "Couloir";
-    const string FINALES = "Finales";
-    const string CHRONO = "Chrono";
-    const string PASSAGEORDER = "Ordre de passage";
-    const string REFEREE = "JUGE ";
-    const string SCOREOUTOF10 = "Note sur 10";
-    const string COEFF = "Coeff";
-    const string TOTALUPPER = "TOTAL";
-    const string REFEREENAMES = "Nom des Officiel";
-    const string COMMENTS = "Commentaires";
-    const string RACESHEATS = "Epreuves - Séries";
-    const string TIME1 = "Temps 1";
-    const string TIME2 = "Temps 2";
-    const string TIME3 = "Temps 3";
-    const string TIMETOTAL = "Temps Total";
-    const string FINISH = "Arrivées";
-    const string RACESHEATSPOSITIONS = "Epreuve - Séries / Positions";
-    const string DQ = "DQ";
-    const string FORFEIT = "Forfait";
-    const string FA = "FA";
-    const string FB = "FB";
-    const string FORFEITFINAL = "Forfait final";
-    const string NATIONALITY = "Nationalité";
-    const string PROGRAMBEACHHEATS = "Programme séries côtieres";
-    const string RACES = "Epreuves";
-    const string PARTICIPANTS = "Participants";
-    const string MAXGRADE = "Note Max";
-    const string DIXPERCENTRESULTS = "Resultats 10 pourcent";
-    const string ENTRYTIME = "Temps engagement";
-    const string TENPERCENT = "10 %";
-    const string DISQUALIFICATION = "Disqualification";
-    const string DQCODE = "Code DQ";
-    const string HOUR = "Heure";
-    const string NAME = "Nom";
-    const string FIRSTNAME = "Prénom";
-    const string REFEREERACE = "Déclaration des arbitres";
-    const string GENDER = "Sexe";
-    const string LEVEL = "Niveau";
-    const string AVAILABILITIES = "Disponibilités";
+    private const string CLUBS = "Clubs";
+    private const string POSITION = "Position";
+    private const string POINTS = "Points";
+    private const string GENERAL = "General";
+    private const string DETAIL = "Detail";
+    private const string RESULTS = "Resultats";
+    private const string COEFFICIENT = "Coefficient";
+    private const string STARTLIST = "StartList";
+    private const string NUMBER = "Numéro";
+    private const string LASTFIRSTNAME = "Nom Prénom";
+    private const string CATEGORY = "Catégorie";
+    private const string CLUB = "Club";
+    private const string TIME = "Temps";
+    private const string PROGRAM = "Programme";
+    private const string LANE = "Couloir";
+    private const string FINALES = "Finales";
+    private const string CHRONO = "Chrono";
+    private const string PASSAGEORDER = "Ordre de passage";
+    private const string REFEREE = "JUGE ";
+    private const string SCOREOUTOF10 = "Note sur 10";
+    private const string COEFF = "Coeff";
+    private const string TOTALUPPER = "TOTAL";
+    private const string REFEREENAMES = "Nom des Officiel";
+    private const string COMMENTS = "Commentaires";
+    private const string RACESHEATS = "Epreuves - Séries";
+    private const string TIME1 = "Temps 1";
+    private const string TIME2 = "Temps 2";
+    private const string TIME3 = "Temps 3";
+    private const string TIMETOTAL = "Temps Total";
+    private const string FINISH = "Arrivées";
+    private const string RACESHEATSPOSITIONS = "Epreuve - Séries / Positions";
+    private const string DQ = "DQ";
+    private const string FORFEIT = "Forfait";
+    private const string FA = "FA";
+    private const string FB = "FB";
+    private const string FORFEITFINAL = "Forfait final";
+    private const string NATIONALITY = "Nationalité";
+    private const string PROGRAMBEACHHEATS = "Programme séries côtieres";
+    private const string RACES = "Epreuves";
+    private const string PARTICIPANTS = "Participants";
+    private const string MAXGRADE = "Note Max";
+    private const string DIXPERCENTRESULTS = "Resultats 10 pourcent";
+    private const string ENTRYTIME = "Temps engagement";
+    private const string TENPERCENT = "10 %";
+    private const string DISQUALIFICATION = "Disqualification";
+    private const string DQCODE = "Code DQ";
+    private const string HOUR = "Heure";
+    private const string NAME = "Nom";
+    private const string FIRSTNAME = "Prénom";
+    private const string REFEREERACE = "Déclaration des arbitres";
+    private const string GENDER = "Sexe";
+    private const string LEVEL = "Niveau";
+    private const string AVAILABILITIES = "Disponibilités";
 
-    const int VERYBIGSIZE = 20;
-    const int BIGSIZE = 16;
-    const int MEDIUMSIZE = 14;
-    const int NORMALSIZE = 12;
-    const int SMALLSIZE = 10;
+    private const int VERYBIGSIZE = 20;
+    private const int BIGSIZE = 16;
+    private const int MEDIUMSIZE = 14;
+    private const int NORMALSIZE = 12;
+    private const int SMALLSIZE = 10;
     #endregion
 
     public bool IsFileExist(EnumRSM.ExcelType excelType, string name)
@@ -94,7 +94,7 @@ public class ExcelService : IExcelService
 
         return fi;
     }
-    public string GenerateStartList(Competition competition, List<Race> races,List<Referee> referees)
+    public string GenerateStartList(Competition competition, IReadOnlyList<Race> races, IReadOnlyList<Referee> referees)
     {
         var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add(STARTLIST);
@@ -168,7 +168,7 @@ public class ExcelService : IExcelService
         rangeHeader.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
 
         ++row;
-        referees.Sort(new RefereeNameLevelComparer());
+        referees.ToList().Sort(new RefereeNameLevelComparer());
         foreach (Referee referee in referees)
         {
             column = 2;
@@ -197,7 +197,7 @@ public class ExcelService : IExcelService
 
         #region Athletes
         ++row;
-        races.Sort(new RaceNameAndGenderComparer());
+        races.ToList().Sort(new RaceNameAndGenderComparer());
         foreach (Race race in races)
         {
             column = 1;

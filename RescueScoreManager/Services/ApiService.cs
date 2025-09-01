@@ -42,7 +42,7 @@ public class ApiService : IApiService, IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Set base address based on environment
-        _baseAddress = Debugger.IsAttached ? "https://qual.ffss.fr/" : "https://ffss.fr/";
+        _baseAddress = "https://ffss.fr/";//Debugger.IsAttached ? "https://qual.ffss.fr/" : 
         _version = "api/v1.0";
 
         // Create and configure HttpClient

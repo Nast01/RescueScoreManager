@@ -116,6 +116,35 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         }
     }
 
+    [RelayCommand]
+    private void OpenStartListFile()
+    {
+        try
+        {
+            if (Competition == null)
+            {
+                _messenger.Send(new SnackMessage(_localizationService.GetString("NoCompetitionLoaded")));
+                return;
+            }
+
+            IReadOnlyList<Race> races = _xmlService.GetRaces();
+            IReadOnlyList<Referee> referees = _xmlService.GetReferees();
+            
+            string filePath = _excelService.GenerateStartList(Competition, races, referees);
+            
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = filePath,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating start list");
+            _messenger.Send(new SnackMessage(_localizationService.GetString("StartListGenerationError")));
+        }
+    }
+
     private bool CanExecuteFileCommands() => !IsLoaded;
 
     private FileInfo? GetFile()
@@ -183,6 +212,7 @@ public partial class HomeViewModel : ObservableObject, IRecipient<SelectNewCompe
         await Task.Run(() =>
         {
             _xmlService.LoadFromFile(fileInfo.FullName);
+            Competition = _xmlService.GetCompetition();
             CurrentViewModel = _homeInformationsViewModel;
             _homeInformationsViewModel.Update();
         });

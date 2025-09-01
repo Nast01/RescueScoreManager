@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -35,6 +36,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private int _plannedEventsCount;
 
         public ObservableCollection<PlanningEventViewModel> EventsToplan { get; }
+        public ObservableCollection<PlanningEventViewModel> FilteredEventsToplan { get; }
         public ObservableCollection<SiteViewModel> Sites { get; }
         public ObservableCollection<RaceFormatDetail> RaceFormatDetails { get; }
         
@@ -61,6 +63,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             EventsToplan = new ObservableCollection<PlanningEventViewModel>();
+            FilteredEventsToplan = new ObservableCollection<PlanningEventViewModel>();
             Sites = new ObservableCollection<SiteViewModel>();
             RaceFormatDetails = new ObservableCollection<RaceFormatDetail>();
 
@@ -74,6 +77,11 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             CreateManualTimeSlotCommand = new RelayCommand(OnCreateManualTimeSlot);
 
             Initialize();
+        }
+        
+        partial void OnSearchTextChanged(string value)
+        {
+            FilterEvents();
         }
 
         private void Initialize()
@@ -93,6 +101,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             LoadSites();
             LoadRaceFormatDetails();
             UpdateStatistics();
+            FilterEvents();
         }
 
         private void UpdateCurrentDateDisplay()
@@ -171,11 +180,40 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 {
                     EventsToplan.Add(evt);
                 }
+                
+                FilterEvents();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading events to plan");
             }
+        }
+        
+        private void FilterEvents()
+        {
+            FilteredEventsToplan.Clear();
+            
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                foreach (var evt in EventsToplan)
+                {
+                    FilteredEventsToplan.Add(evt);
+                }
+            }
+            else
+            {
+                var filtered = EventsToplan.Where(e => 
+                    e.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    e.ConfigurationLabel.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+                
+                foreach (var evt in filtered)
+                {
+                    FilteredEventsToplan.Add(evt);
+                }
+            }
+            
+            EventsToplanCount = FilteredEventsToplan.Count;
         }
 
         private void LoadSites()
@@ -312,7 +350,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
         private void UpdateStatistics()
         {
-            EventsToplanCount = EventsToplan.Count;
             PlannedEventsCount = Sites.SelectMany(s => s.TimeSlots).SelectMany(ts => ts.Events).Count();
         }
 
@@ -340,6 +377,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
                 timeSlot.Events.Add(plannedEvent);
                 EventsToplan.Remove(planningEvent);
+                FilterEvents();
 
                 UpdateStatistics();
                 
@@ -401,6 +439,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                         EventsToplan.Add(evt);
                     }
 
+                    FilterEvents();
                     UpdateStatistics();
                     _logger.LogInformation($"Removed event {plannedEvent.Title} from time slot and restored to planning list");
                 }

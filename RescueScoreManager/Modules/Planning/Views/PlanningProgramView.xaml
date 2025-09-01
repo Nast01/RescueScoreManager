@@ -161,7 +161,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Search -->
-        <TextBox Grid.Column="0" Text="{Binding SearchText}" Width="200" Height="32" 
+        <TextBox Grid.Column="0" Text="{Binding SearchText,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" Width="200" Height="32" 
                          Background="White" BorderBrush="#D1D5DB" BorderThickness="1" 
                          Padding="10,8" Margin="0,0,15,0">
           <TextBox.Style>
@@ -240,7 +240,7 @@
 
           <!-- Events List -->
           <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="10,0">
-            <ItemsControl ItemsSource="{Binding EventsToplan}">
+            <ItemsControl ItemsSource="{Binding FilteredEventsToplan}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" 
