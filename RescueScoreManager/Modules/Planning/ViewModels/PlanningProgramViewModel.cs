@@ -87,7 +87,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private void Initialize()
         {
             // Set current date to competition begin date if not within range
-            var competition = _xmlService.GetCompetition();
+            Competition? competition = _xmlService.GetCompetition();
             if (competition != null)
             {
                 if (CurrentDate < competition.BeginDate || CurrentDate > competition.EndDate)
@@ -100,6 +100,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             LoadEventsToplan();
             LoadSites();
             LoadRaceFormatDetails();
+            LoadPlanningData();
             UpdateStatistics();
             FilterEvents();
         }
@@ -150,14 +151,14 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             try
             {
-                var races = _xmlService.GetRaces();
-                var raceFormatConfigurations = _xmlService.GetRaceFormatConfigurations();
+                IReadOnlyList<Race> races = _xmlService.GetRaces();
+                IReadOnlyList<RaceFormatConfiguration> raceFormatConfigurations = _xmlService.GetRaceFormatConfigurations();
 
-                foreach (var config in raceFormatConfigurations)
+                foreach (RaceFormatConfiguration config in raceFormatConfigurations)
                 {
-                    foreach (var detail in config.RaceFormatDetails)
+                    foreach (RaceFormatDetail detail in config.RaceFormatDetails)
                     {
-                        var eventViewModel = new PlanningEventViewModel
+                        PlanningEventViewModel eventViewModel = new PlanningEventViewModel
                         {
                             Id = detail.Id,
                             Name = detail.Label,
@@ -174,9 +175,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 }
 
                 // Sort events by name
-                var sortedEvents = EventsToplan.OrderBy(e => e.Name).ToList();
+                List<PlanningEventViewModel> sortedEvents = EventsToplan.OrderBy(e => e.Name).ToList();
                 EventsToplan.Clear();
-                foreach (var evt in sortedEvents)
+                foreach (PlanningEventViewModel evt in sortedEvents)
                 {
                     EventsToplan.Add(evt);
                 }
@@ -195,14 +196,14 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             
             if (string.IsNullOrWhiteSpace(SearchText))
             {
-                foreach (var evt in EventsToplan)
+                foreach (PlanningEventViewModel evt in EventsToplan)
                 {
                     FilteredEventsToplan.Add(evt);
                 }
             }
             else
             {
-                var filtered = EventsToplan.Where(e => 
+                List<PlanningEventViewModel> filtered = EventsToplan.Where(e => 
                     e.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                     e.ConfigurationLabel.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
                 ).ToList();
@@ -234,15 +235,16 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                     
                     foreach (var site in sites)
                     {
+                        string siteColor = GetSiteColor(colorIndex++);
                         dailySites.Add(new SiteViewModel
                         {
                             Id = site.Id,
                             Name = site.Name,
                             Description = site.Description,
                             Icon = site.Icon,
-                            Color = GetSiteColor(colorIndex++),
+                            Color = siteColor,
                             Date = date,
-                            TimeSlots = CreateTimeSlots(date)
+                            TimeSlots = CreateTimeSlots(date, siteColor)
                         });
                     }
                     
@@ -267,19 +269,20 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             }
         }
 
-        private List<TimeSlotViewModel> CreateTimeSlots(DateTime? date = null)
+        private List<TimeSlotViewModel> CreateTimeSlots(DateTime? date = null, string siteColor = "#F9FAFB")
         {
             var targetDate = date ?? CurrentDate;
             var timeSlots = new List<TimeSlotViewModel>();
-            var startTime = new TimeSpan(7, 0, 0);
+            var startTime = new TimeSpan(7, 30, 0);
 
-            for (int i = 0; i < 51; i++)
+            for (int i = 0; i < 70; i++)
             {
-                var currentTime = startTime.Add(TimeSpan.FromMinutes(i * 15));
+                var currentTime = startTime.Add(TimeSpan.FromMinutes(i * 10));
                 timeSlots.Add(new TimeSlotViewModel
                 {
                     Time = currentTime.ToString(@"hh\:mm"),
                     DateTime = targetDate.Add(currentTime),
+                    SiteColor = siteColor,
                     Events = new ObservableCollection<PlannedEventViewModel>()
                 });
             }
@@ -327,6 +330,11 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             return new Random().Next(15, 35); // Mock data
         }
 
+        private int GetParticipantCountNullable(RaceFormatDetail? detail)
+        {
+            return detail == null ? 0 : GetParticipantCount(detail);
+        }
+
         private void LoadRaceFormatDetails()
         {
             RaceFormatDetails.Clear();
@@ -353,35 +361,92 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             PlannedEventsCount = Sites.SelectMany(s => s.TimeSlots).SelectMany(ts => ts.Events).Count();
         }
 
+        private int GetRequiredSlotCount(int durationInMinutes)
+        {
+            // Calculate slots needed based on 10-minute slots as specified
+            return (int)Math.Ceiling(durationInMinutes / 10.0);
+        }
+
+        private List<TimeSlotViewModel> GetConsecutiveAvailableSlots(SiteViewModel site, TimeSlotViewModel startingSlot, int requiredSlots, PlannedEventViewModel? excludeEvent = null)
+        {
+            int startIndex = site.TimeSlots.IndexOf(startingSlot);
+            if (startIndex == -1 || startIndex + requiredSlots > site.TimeSlots.Count)
+            {
+                return new List<TimeSlotViewModel>();
+            }
+
+            var consecutiveSlots = new List<TimeSlotViewModel>();
+            for (int i = startIndex; i < startIndex + requiredSlots && i < site.TimeSlots.Count; i++)
+            {
+                var slot = site.TimeSlots[i];
+                // Check if slot has any events that would conflict (excluding the specified event if provided)
+                var conflictingEvents = excludeEvent != null 
+                    ? slot.Events.Where(e => e != excludeEvent).ToList()
+                    : slot.Events.ToList();
+                
+                if (conflictingEvents.Any())
+                {
+                    return new List<TimeSlotViewModel>(); // Slot is occupied by other events
+                }
+                consecutiveSlots.Add(slot);
+            }
+
+            return consecutiveSlots.Count == requiredSlots ? consecutiveSlots : new List<TimeSlotViewModel>();
+        }
+
         public void MoveEventToTimeSlot(object eventItem, object timeSlotItem)
         {
-            if (eventItem is PlanningEventViewModel planningEvent && timeSlotItem is TimeSlotViewModel timeSlot)
+            if (eventItem is PlanningEventViewModel planningEvent && timeSlotItem is TimeSlotViewModel startingTimeSlot)
             {
                 // Check if this event is already in the timeslot to prevent duplicates
-                if (timeSlot.Events.Any(e => e.Id == planningEvent.Id))
+                if (startingTimeSlot.Events.Any(e => e.Id == planningEvent.Id))
                 {
                     return;
                 }
 
+                // Find the site containing this time slot
+                var targetSite = Sites.FirstOrDefault(s => s.TimeSlots.Contains(startingTimeSlot));
+                if (targetSite == null)
+                {
+                    return;
+                }
+
+                // Calculate required slots and get consecutive available slots
+                int requiredSlots = GetRequiredSlotCount(planningEvent.Duration);
+                List<TimeSlotViewModel> availableSlots = GetConsecutiveAvailableSlots(targetSite, startingTimeSlot, requiredSlots);
+
+                if (availableSlots.Count != requiredSlots)
+                {
+                    _logger.LogWarning($"Cannot place event {planningEvent.Name}: not enough consecutive available slots (need {requiredSlots}, found {availableSlots.Count})");
+                    return;
+                }
+
+                // Create the planned event
                 var plannedEvent = new PlannedEventViewModel
                 {
                     Id = planningEvent.Id,
                     Title = planningEvent.Name,
                     Subtitle = $"{planningEvent.ParticipantCount} participants",
-                    Color = planningEvent.ConfigurationColor,
+                    Color = startingTimeSlot.SiteColor,
                     Duration = planningEvent.Duration,
                     ConfigurationLabel = planningEvent.ConfigurationLabel,
                     StatusColor = planningEvent.StatusColor,
                     ParticipantCount = planningEvent.ParticipantCount
                 };
 
-                timeSlot.Events.Add(plannedEvent);
+                // Add the event to all required consecutive slots
+                foreach (var slot in availableSlots)
+                {
+                    slot.Events.Add(plannedEvent);
+                }
+
                 EventsToplan.Remove(planningEvent);
                 FilterEvents();
 
                 UpdateStatistics();
+                SavePlanningData();
                 
-                _logger.LogInformation($"Moved event {planningEvent.Name} to time slot {timeSlot.Time}");
+                _logger.LogInformation($"Moved event {planningEvent.Name} to {requiredSlots} time slots starting at {startingTimeSlot.Time}");
             }
         }
 
@@ -389,31 +454,25 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         {
             if (plannedEventItem is PlannedEventViewModel plannedEvent)
             {
-                // Find the timeslot containing this event
-                TimeSlotViewModel? containingTimeSlot = null;
+                // Find all timeslots containing this exact event instance
+                var containingTimeSlots = new List<TimeSlotViewModel>();
                 foreach (var site in Sites)
                 {
                     foreach (var timeSlot in site.TimeSlots)
                     {
-                        if (timeSlot.Events.Any(e => e.Id == plannedEvent.Id))
+                        if (timeSlot.Events.Contains(plannedEvent))
                         {
-                            containingTimeSlot = timeSlot;
-                            break;
+                            containingTimeSlots.Add(timeSlot);
                         }
-                    }
-                    if (containingTimeSlot != null)
-                    {
-                        break;
                     }
                 }
 
-                if (containingTimeSlot != null)
+                if (containingTimeSlots.Any())
                 {
-                    // Remove from timeslot
-                    var eventToRemove = containingTimeSlot.Events.FirstOrDefault(e => e.Id == plannedEvent.Id);
-                    if (eventToRemove != null)
+                    // Remove the exact event instance from all timeslots it occupies
+                    foreach (var timeSlot in containingTimeSlots)
                     {
-                        containingTimeSlot.Events.Remove(eventToRemove);
+                        timeSlot.Events.Remove(plannedEvent);
                     }
 
                     // Convert PlannedEventViewModel back to PlanningEventViewModel
@@ -441,7 +500,88 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
                     FilterEvents();
                     UpdateStatistics();
-                    _logger.LogInformation($"Removed event {plannedEvent.Title} from time slot and restored to planning list");
+                    SavePlanningData();
+                    _logger.LogInformation($"Removed event {plannedEvent.Title} from {containingTimeSlots.Count} time slots and restored to planning list");
+                }
+            }
+        }
+
+        public void MovePlannedEventToTimeSlot(object plannedEventItem, object timeSlotItem)
+        {
+            if (plannedEventItem is PlannedEventViewModel plannedEvent && timeSlotItem is TimeSlotViewModel targetTimeSlot)
+            {
+                // Find all source timeslots containing this exact event instance
+                var sourceTimeSlots = new List<TimeSlotViewModel>();
+                SiteViewModel? sourceSite = null;
+                foreach (var site in Sites)
+                {
+                    foreach (var timeSlot in site.TimeSlots)
+                    {
+                        if (timeSlot.Events.Contains(plannedEvent))
+                        {
+                            sourceTimeSlots.Add(timeSlot);
+                            if (sourceSite == null)
+                            {
+                                sourceSite = site;
+                            }
+                        }
+                    }
+                }
+
+                // Find the target site containing the target time slot
+                var targetSite = Sites.FirstOrDefault(s => s.TimeSlots.Contains(targetTimeSlot));
+                if (targetSite == null)
+                {
+                    return;
+                }
+
+                if (sourceTimeSlots.Any() && !sourceTimeSlots.Contains(targetTimeSlot))
+                {
+                    // Check if this event is already in the target timeslot to prevent duplicates
+                    if (targetTimeSlot.Events.Any(e => e.Id == plannedEvent.Id))
+                    {
+                        return;
+                    }
+
+                    // Calculate required slots and get consecutive available slots (excluding the current event)
+                    int requiredSlots = GetRequiredSlotCount(plannedEvent.Duration);
+                    var availableSlots = GetConsecutiveAvailableSlots(targetSite, targetTimeSlot, requiredSlots, plannedEvent);
+
+                    if (availableSlots.Count != requiredSlots)
+                    {
+                        _logger.LogWarning($"Cannot move event {plannedEvent.Title}: not enough consecutive available slots (need {requiredSlots}, found {availableSlots.Count})");
+                        return;
+                    }
+
+                    // Remove from all source timeslots
+                    foreach (var sourceSlot in sourceTimeSlots)
+                    {
+                        sourceSlot.Events.Remove(plannedEvent);
+                    }
+
+                    // Create a new event with the target site's color
+                    var movedEvent = new PlannedEventViewModel
+                    {
+                        Id = plannedEvent.Id,
+                        Title = plannedEvent.Title,
+                        Subtitle = plannedEvent.Subtitle,
+                        Color = targetTimeSlot.SiteColor,
+                        Duration = plannedEvent.Duration,
+                        ConfigurationLabel = plannedEvent.ConfigurationLabel,
+                        StatusColor = plannedEvent.StatusColor,
+                        ParticipantCount = plannedEvent.ParticipantCount
+                    };
+
+                    // Add to all required target timeslots
+                    foreach (var slot in availableSlots)
+                    {
+                        slot.Events.Add(movedEvent);
+                    }
+
+                    UpdateStatistics();
+                    SavePlanningData();
+                    
+                    _logger.LogInformation($"Moved planned event {plannedEvent.Title} from {sourceTimeSlots.Count} slots to {requiredSlots} slots starting at {targetTimeSlot.Time}");
                 }
             }
         }
@@ -450,16 +590,188 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             Initialize();
         }
 
+        private void SavePlanningData()
+        {
+            try
+            {
+                var programMeetings = new List<ProgramMeeting>();
+                int meetingId = 1;
+
+                foreach (var site in Sites)
+                {
+                    string meetingName = $"{site.Name} - {site.Date:yyyy-MM-dd}";
+                    var programMeeting = new ProgramMeeting
+                    {
+                        Id = meetingId++,
+                        Name = meetingName,
+                        Description = site.Description,
+                        ProgramDate = site.Date,
+                        BeginHour = site.Date.AddHours(7),
+                        EndHour = site.Date.AddHours(20),
+                        ProgramSlots = new List<ProgramSlot>()
+                    };
+
+                    int slotId = 1;
+                    foreach (var timeSlot in site.TimeSlots.Where(ts => ts.Events.Any()))
+                    {
+                        foreach (var plannedEvent in timeSlot.Events)
+                        {
+                            var raceFormatDetail = _xmlService.GetRaceFormatConfigurations()
+                                .SelectMany(config => config.RaceFormatDetails)
+                                .FirstOrDefault(detail => detail.Id == plannedEvent.Id);
+
+                            if (raceFormatDetail != null)
+                            {
+                                var programSlot = new ProgramSlot
+                                {
+                                    Id = slotId++,
+                                    Name = plannedEvent.Title,
+                                    BeginHour = timeSlot.DateTime,
+                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
+                                    RaceFormatDetailId = raceFormatDetail.Id,
+                                    RaceFormatDetail = raceFormatDetail,
+                                    ProgramMeetingId = programMeeting.Id,
+                                    ProgramMeeting = programMeeting,
+                                    ProgramRuns = new List<ProgramRun>()
+                                };
+
+                                var programRun = new ProgramRun
+                                {
+                                    Id = slotId,
+                                    Name = plannedEvent.Title,
+                                    Site = site.Name,
+                                    Status = Data.EnumRSM.ProgramStatus.Pending,
+                                    BeginHour = timeSlot.DateTime,
+                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
+                                    ProgramSlotId = programSlot.Id,
+                                    ProgramSlot = programSlot
+                                };
+
+                                programSlot.ProgramRuns.Add(programRun);
+                                programMeeting.ProgramSlots.Add(programSlot);
+                            }
+                            else
+                            {
+                                var programSlot = new ProgramSlot
+                                {
+                                    Id = slotId++,
+                                    Name = plannedEvent.Title,
+                                    BeginHour = timeSlot.DateTime,
+                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
+                                    ProgramMeetingId = programMeeting.Id,
+                                    ProgramMeeting = programMeeting,
+                                    ProgramRuns = new List<ProgramRun>()
+                                };
+
+
+                                var programRun = new ProgramRun
+                                {
+                                    Id = slotId,
+                                    Name = plannedEvent.Title,
+                                    Site = site.Name,
+                                    Status = Data.EnumRSM.ProgramStatus.Pending,
+                                    BeginHour = timeSlot.DateTime,
+                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
+                                    ProgramSlotId = programSlot.Id,
+                                    ProgramSlot = programSlot
+                                };
+
+
+                                programSlot.ProgramRuns.Add(programRun);
+                                programMeeting.ProgramSlots.Add(programSlot);
+                            }
+                        }
+                    }
+
+                    if (programMeeting.ProgramSlots.Any())
+                    {
+                        programMeetings.Add(programMeeting);
+                    }
+                }
+
+                _xmlService.UpdateProgramMeetings(programMeetings);
+                _xmlService.Save();
+                _logger.LogInformation("Planning data saved successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving planning data");
+            }
+        }
+
+        private void LoadPlanningData()
+        {
+            try
+            {
+                var programMeetings = _xmlService.GetProgramMeetings();
+                
+                foreach (var programMeeting in programMeetings)
+                {
+                    var meetingDate = programMeeting.ProgramDate.Date;
+                    
+                    if (_sitesByDate.TryGetValue(meetingDate, out var dailySites))
+                    {
+                        foreach (var programSlot in programMeeting.ProgramSlots)
+                        {
+                            foreach (var programRun in programSlot.ProgramRuns)
+                            {
+                                var targetSite = dailySites.FirstOrDefault(s => s.Name == programRun.Site);
+                                if (targetSite != null)
+                                {
+                                    var targetTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
+                                        Math.Abs((ts.DateTime - programRun.BeginHour).TotalMinutes) < 7.5);
+
+                                    if (targetTimeSlot != null)
+                                    {
+                                        var plannedEvent = new PlannedEventViewModel
+                                        {
+                                            Id = programSlot.RaceFormatDetailId,
+                                            Title = programRun.Name,
+                                            Subtitle = $"Site: {programRun.Site}",
+                                            Color = targetTimeSlot.SiteColor,
+                                            Duration = (int)(programRun.EndHour - programRun.BeginHour).TotalMinutes,
+                                            ConfigurationLabel = programSlot.RaceFormatDetail?.Label ?? "",
+                                            StatusColor = "#10B981",
+                                            ParticipantCount = GetParticipantCountNullable(programSlot.RaceFormatDetail)
+                                        };
+
+                                        targetTimeSlot.Events.Add(plannedEvent);
+                                        
+                                        var eventToRemove = EventsToplan.FirstOrDefault(e => e.Id == programSlot.RaceFormatDetailId);
+                                        if (eventToRemove != null)
+                                        {
+                                            EventsToplan.Remove(eventToRemove);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                FilterEvents();
+                UpdateStatistics();
+                _logger.LogInformation("Planning data loaded successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading planning data");
+            }
+        }
+
         private void OnSave()
         {
             try
             {
                 _logger.LogInformation("Saving planning configuration");
+                SavePlanningData();
+                _xmlService.Save();
                 _dialogService.ShowMessage("Sauvegarder", "Configuration sauvegardée avec succès!");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving planning configuration");
+                _dialogService.ShowMessage("Erreur", "Erreur lors de la sauvegarde");
             }
         }
 
@@ -504,15 +816,40 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             {
                 _logger.LogInformation("Auto-planning events for current day");
                 
-                var unplannedEvents = EventsToplan.Where(e => !e.IsPlanned).ToList();
-                var availableSlots = Sites.SelectMany(v => v.TimeSlots.Where(ts => !ts.Events.Any())).ToList();
+                var unplannedEvents = EventsToplan.Where(e => !e.IsPlanned).OrderBy(e => e.Duration).ToList();
+                int plannedCount = 0;
 
-                for (int i = 0; i < Math.Min(unplannedEvents.Count, availableSlots.Count); i++)
+                foreach (var evt in unplannedEvents)
                 {
-                    MoveEventToTimeSlot(unplannedEvents[i], availableSlots[i]);
+                    int requiredSlots = GetRequiredSlotCount(evt.Duration);
+                    bool placed = false;
+
+                    // Try to place the event in each site
+                    foreach (var site in Sites)
+                    {
+                        if (placed)
+                        {
+                            break;
+                        }
+
+                        // Try each starting slot in the site
+                        for (int i = 0; i <= site.TimeSlots.Count - requiredSlots; i++)
+                        {
+                            var startingSlot = site.TimeSlots[i];
+                            var availableSlots = GetConsecutiveAvailableSlots(site, startingSlot, requiredSlots);
+
+                            if (availableSlots.Count == requiredSlots)
+                            {
+                                MoveEventToTimeSlot(evt, startingSlot);
+                                plannedCount++;
+                                placed = true;
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                _dialogService.ShowMessage("Auto-planification", $"Planification automatique terminée! {Math.Min(unplannedEvents.Count, availableSlots.Count)} épreuves planifiées.");
+                _dialogService.ShowMessage("Auto-planification", $"Planification automatique terminée! {plannedCount} épreuves planifiées.");
             }
             catch (Exception ex)
             {
@@ -555,7 +892,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                                 Icon = viewModel.CreatedSite.Icon,
                                 Color = GetSiteColor(colorIndex),
                                 Date = date,
-                                TimeSlots = CreateTimeSlots(date)
+                                TimeSlots = CreateTimeSlots(date, GetSiteColor(colorIndex))
                             };
                             
                             _sitesByDate[date].Add(newSiteViewModel);
@@ -651,16 +988,30 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                             // Find the appropriate timeslot
                             var targetTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
                                 ts.DateTime.TimeOfDay <= selectedDateTime.TimeOfDay &&
-                                ts.DateTime.TimeOfDay.Add(TimeSpan.FromMinutes(15)) > selectedDateTime.TimeOfDay);
+                                ts.DateTime.TimeOfDay.Add(TimeSpan.FromMinutes(10)) > selectedDateTime.TimeOfDay);
 
                             if (targetTimeSlot != null)
                             {
-                                targetTimeSlot.Events.Add(dialogViewModel.CreatedEvent);
+                                // Create a copy of the event with the site's color
+                                var siteSpecificEvent = new PlannedEventViewModel
+                                {
+                                    Id = dialogViewModel.CreatedEvent.Id,
+                                    Title = dialogViewModel.CreatedEvent.Title,
+                                    Subtitle = dialogViewModel.CreatedEvent.Subtitle,
+                                    Color = targetSite.Color,
+                                    Duration = dialogViewModel.CreatedEvent.Duration,
+                                    ConfigurationLabel = dialogViewModel.CreatedEvent.ConfigurationLabel,
+                                    StatusColor = dialogViewModel.CreatedEvent.StatusColor,
+                                    ParticipantCount = dialogViewModel.CreatedEvent.ParticipantCount
+                                };
+                                
+                                targetTimeSlot.Events.Add(siteSpecificEvent);
                             }
                         }
                     }
 
                     UpdateStatistics();
+                    SavePlanningData();
                     _logger.LogInformation($"Manual timeslot created: {dialogViewModel.CreatedEvent.Title}");
                 }
             }
@@ -699,6 +1050,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
     {
         public string Time { get; set; } = string.Empty;
         public DateTime DateTime { get; set; }
+        public string SiteColor { get; set; } = "#F9FAFB";
         public ObservableCollection<PlannedEventViewModel> Events { get; set; } = new();
     }
 

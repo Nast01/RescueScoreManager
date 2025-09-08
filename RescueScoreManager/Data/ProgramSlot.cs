@@ -22,6 +22,11 @@ public partial class ProgramSlot
     public int ProgramMeetingId { get; set; }
     public ProgramMeeting ProgramMeeting { get; set; } = null!;
 
+    public ProgramSlot()
+    {
+        // Parameterless constructor for manual creation
+    }
+
     public ProgramSlot(XElement xElement, List<RaceFormatDetail> raceFormatDetails, List<Heat> heats)
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);

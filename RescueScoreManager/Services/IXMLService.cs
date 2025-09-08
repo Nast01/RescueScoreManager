@@ -38,4 +38,5 @@ public interface IXMLService
     // Update methods
     void UpdateRaceFormatConfigurations(IEnumerable<RaceFormatConfiguration> raceFormatConfigurations);
     void UpdateSites(IEnumerable<Site> sites);
+    void UpdateProgramMeetings(IEnumerable<ProgramMeeting> programMeetings);
 }

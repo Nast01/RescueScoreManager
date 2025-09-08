@@ -735,5 +735,12 @@ public class XMLService : IXMLService
         _sites.AddRange(sites);
         _logger.LogDebug("Updated {Count} sites", _sites.Count);
     }
+
+    public void UpdateProgramMeetings(IEnumerable<ProgramMeeting> programMeetings)
+    {
+        _programMeetings.Clear();
+        _programMeetings.AddRange(programMeetings);
+        _logger.LogDebug("Updated {Count} program meetings", _programMeetings.Count);
+    }
     #endregion
 }

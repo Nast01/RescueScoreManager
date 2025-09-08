@@ -18,6 +18,11 @@ public partial class ProgramMeeting
 
     public ICollection<ProgramSlot> ProgramSlots { get; set; } = new List<ProgramSlot>();
 
+    public ProgramMeeting()
+    {
+        // Parameterless constructor for manual creation
+    }
+
     public ProgramMeeting(XElement xElement,List<RaceFormatDetail> raceFormatDetails,List<Heat> heats)
     {
 

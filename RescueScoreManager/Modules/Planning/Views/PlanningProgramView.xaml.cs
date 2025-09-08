@@ -53,7 +53,7 @@ namespace RescueScoreManager.Modules.Planning.Views
 
         private void OnTimeSlotDragOver(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent("PlanningEvent"))
+            if (e.Data.GetDataPresent("PlanningEvent") || e.Data.GetDataPresent("PlannedEvent"))
             {
                 e.Effects = DragDropEffects.Move;
                 e.Handled = true;
@@ -66,13 +66,54 @@ namespace RescueScoreManager.Modules.Planning.Views
 
         private void OnTimeSlotDrop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent("PlanningEvent") && DataContext is PlanningProgramViewModel viewModel)
+            if (DataContext is PlanningProgramViewModel viewModel)
             {
-                object droppedEvent = e.Data.GetData("PlanningEvent");
                 object timeSlot = ((Border)sender).DataContext;
 
-                viewModel.MoveEventToTimeSlot(droppedEvent, timeSlot);
-                e.Handled = true;
+                if (e.Data.GetDataPresent("PlanningEvent"))
+                {
+                    object droppedEvent = e.Data.GetData("PlanningEvent");
+                    viewModel.MoveEventToTimeSlot(droppedEvent, timeSlot);
+                    e.Handled = true;
+                }
+                else if (e.Data.GetDataPresent("PlannedEvent"))
+                {
+                    object plannedEvent = e.Data.GetData("PlannedEvent");
+                    viewModel.MovePlannedEventToTimeSlot(plannedEvent, timeSlot);
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void OnPlannedEventMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                var border = sender as Border;
+                _draggedItem = border?.DataContext;
+                _isDragging = true;
+                Mouse.Capture(border);
+            }
+        }
+
+        private void OnPlannedEventMouseMove(object sender, MouseEventArgs e)
+        {
+            if (_isDragging && e.LeftButton == MouseButtonState.Pressed && _draggedItem != null)
+            {
+                var border = sender as Border;
+                if (border != null)
+                {
+                    Mouse.Capture(null);
+                    _isDragging = false;
+
+                    var dragData = new DataObject("PlannedEvent", _draggedItem);
+                    DragDrop.DoDragDrop(border, dragData, DragDropEffects.Move);
+                }
+            }
+            else if (e.LeftButton == MouseButtonState.Released)
+            {
+                _isDragging = false;
+                Mouse.Capture(null);
             }
         }
 

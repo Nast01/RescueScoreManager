@@ -24,6 +24,11 @@ public partial class ProgramRun
     public int ProgramSlotId { get; set; }
     public ProgramSlot ProgramSlot { get; set; } = null!;
 
+    public ProgramRun()
+    {
+        // Parameterless constructor for manual creation
+    }
+
     public ProgramRun(XElement xElement, List<Heat> heats)
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI)?.Value ?? "0");
