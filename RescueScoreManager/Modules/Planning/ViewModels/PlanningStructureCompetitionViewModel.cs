@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -306,9 +307,26 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                     string dialogTitle = _localizationService.GetString("ConfigurationPhasesTitle") ?? "Configuration des phases";
                     string fullTitle = $"{dialogTitle} - {raceCard.Name}";
 
-                    RaceConfigurationDialog dialog = new RaceConfigurationDialog(fullTitle, raceCard.Races);
-                    bool? result = dialog.ShowDialog();
-                    dialog.Close();
+                    // Determine which dialog to open based on the speciality
+                    var firstRace = raceCard.Races.FirstOrDefault();
+                    if (firstRace != null)
+                    {
+                        Window dialog;
+                        
+                        if (firstRace.Speciality == EnumRSM.Speciality.EauPlate)
+                        {
+                            // Use SwimConfigurationDialog for swimming disciplines
+                            dialog = new SwimConfigurationDialog(fullTitle, raceCard.Races);
+                        }
+                        else
+                        {
+                            // Use BeachConfigurationDialog for beach/coastal disciplines
+                            dialog = new BeachConfigurationDialog(fullTitle, raceCard.Races);
+                        }
+                        
+                        bool? result = dialog.ShowDialog();
+                        dialog.Close();
+                    }
                 }
             }
             catch (Exception ex)
