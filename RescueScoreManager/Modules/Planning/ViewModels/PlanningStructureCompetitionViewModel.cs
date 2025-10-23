@@ -33,7 +33,11 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         [ObservableProperty]
         private bool _showAddEventCard = true;
 
+        [ObservableProperty]
+        private string _filterText = string.Empty;
+
         public ObservableCollection<RaceCardViewModel> RaceCards { get; }
+        public ObservableCollection<RaceCardViewModel> FilteredRaceCards { get; }
 
         public ICommand NouvelleEpreuveCommand { get; }
         public ICommand SaveCommand { get; }
@@ -51,6 +55,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             RaceCards = new ObservableCollection<RaceCardViewModel>();
+            FilteredRaceCards = new ObservableCollection<RaceCardViewModel>();
             
             NouvelleEpreuveCommand = new RelayCommand(OnNouvelleEpreuve);
             SaveCommand = new RelayCommand(OnSave);
@@ -97,6 +102,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
                 // Update statistics
                 UpdateStatistics();
+                
+                // Apply initial filter
+                ApplyFilter();
             }
             catch (Exception ex)
             {
@@ -221,6 +229,37 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public void RefreshData()
         {
             Initialize();
+        }
+
+        partial void OnFilterTextChanged(string value)
+        {
+            ApplyFilter();
+        }
+
+        private void ApplyFilter()
+        {
+            FilteredRaceCards.Clear();
+
+            if (string.IsNullOrWhiteSpace(FilterText))
+            {
+                // Show all race cards when filter is empty
+                foreach (var raceCard in RaceCards)
+                {
+                    FilteredRaceCards.Add(raceCard);
+                }
+            }
+            else
+            {
+                // Filter race cards by name (case insensitive)
+                var filteredCards = RaceCards.Where(rc => 
+                    rc.Name.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ||
+                    rc.Type.Contains(FilterText, StringComparison.OrdinalIgnoreCase));
+
+                foreach (var raceCard in filteredCards)
+                {
+                    FilteredRaceCards.Add(raceCard);
+                }
+            }
         }
 
         private void OnNouvelleEpreuve()

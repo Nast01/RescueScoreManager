@@ -77,8 +77,57 @@
           </StackPanel>
         </Grid>
       </Border>
+      
+      <!-- Filter Section -->
+      <Border DockPanel.Dock="Top" Background="White" BorderBrush="#E5E7EB" BorderThickness="1" 
+              CornerRadius="8" Padding="15" Margin="0,0,0,20">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          
+          <TextBlock Grid.Column="0" Text="🔍" FontSize="16" 
+                     VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#6B7280"/>
+          
+          <TextBox Grid.Column="1" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" 
+                   FontSize="14" Padding="8" BorderThickness="0" Background="Transparent"
+                   VerticalAlignment="Center">
+            <TextBox.Style>
+              <Style TargetType="TextBox">
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                      <Border Background="Transparent">
+                        <ScrollViewer x:Name="PART_ContentHost"/>
+                      </Border>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </TextBox.Style>
+          </TextBox>
+          
+          <!-- Placeholder text -->
+          <TextBlock Grid.Column="1" Text="Filtrer par nom de discipline..." 
+                     FontSize="14" Foreground="#9CA3AF" VerticalAlignment="Center" 
+                     Margin="8,0,0,0" IsHitTestVisible="False">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding FilterText}" Value="">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+        </Grid>
+      </Border>
+      
       <!-- RaceCards Grid -->
-      <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding RaceCards}">
+      <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding FilteredRaceCards}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel Orientation="Horizontal"/>
