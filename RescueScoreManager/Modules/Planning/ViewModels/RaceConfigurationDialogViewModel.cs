@@ -16,6 +16,8 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
     {
         private readonly ILocalizationService _localizationService;
         private readonly IXMLService _xmlService;
+        private readonly IApiService _apiService;
+        private readonly IAuthenticationService _authService;
         private readonly IMessenger _messenger;
 
         [ObservableProperty]
@@ -28,17 +30,20 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
         public RaceConfigurationDialogViewModel(ILocalizationService localizationService,
                                                 IXMLService xmlService,
+                                                IApiService apiService,
+                                                IAuthenticationService authService,
                                                 IMessenger messenger,
                                                 List<Race> races)
         {
             _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
             _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
+            _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
 
             CategoryConfigurations = new ObservableCollection<CategoryConfigurationViewModel>();
             AddPhaseCommand = new RelayCommand<CategoryConfigurationViewModel>(OnAddPhase);
-            SaveCommand = new RelayCommand(OnSave);
-
+            SaveCommand = new AsyncRelayCommand(OnSaveAsync);           
             InitializeFromRaces(races);
         }
 
@@ -151,7 +156,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             }
         }
 
-        private void OnSave()
+        private async Task OnSaveAsync()
         {
             try
             {
@@ -161,6 +166,8 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 {
                     RaceFormatConfiguration raceFormatConfig = ConvertToRaceFormatConfiguration(categoryConfig);
                     raceFormatConfigurations.Add(raceFormatConfig);
+                    
+                    await _apiService.SubmitRaceFormatConfigurationAsync(raceFormatConfig, _xmlService.GetCompetition()!, _authService.AuthenticationInfo);
                 }
 
                 // Update XML service with new configurations
@@ -230,7 +237,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             };
         }
         #endregion Private Methods
-
     }
 
     #region Local ViewModels

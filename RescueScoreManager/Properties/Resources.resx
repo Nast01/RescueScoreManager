@@ -1125,4 +1125,10 @@
   <data name="Icon_XMI" xml:space="preserve">
     <value>Icon</value>
   </data>
+  <data name="DisciplinesTotals" xml:space="preserve">
+    <value>DISCIPLINES TOTALES</value>
+  </data>
+  <data name="Entries" xml:space="preserve">
+    <value>ENGAGEMENTS</value>
+  </data>
 </root>

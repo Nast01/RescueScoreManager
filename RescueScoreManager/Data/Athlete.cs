@@ -74,9 +74,20 @@ public partial class Athlete : Licensee
         Id = data["Id"].Value<int>();
         FirstName = data["Prenom"].Value<string>();
         LastName = data["Nom"].Value<string>();
-        IsLicensee = data["isLicencie"].Value<bool>();
         IsGuest = data["isInvite"].Value<bool>();
-        LicenseeNumber = data["NumeroLicence"].Value<string>();
+        IsLicensee = data["isLicencie"].Value<bool>();
+
+        if (IsGuest)
+        {
+            LicenseeNumber = data["idInvite"].Value<string>();
+        }
+        else
+        {
+
+            LicenseeNumber = data["NumeroLicence"].Value<string>();
+        }
+
+        
         Gender = JsonHelper.GetGenderFromJsonValue(data["Sexe"].Value<string>());
         BirthYear = data["Annee"].Value<int>();
         Nationality = data["nationaliteLabel"].Value<string>();

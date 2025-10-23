@@ -1,5 +1,7 @@
 using System.ComponentModel;
 
+using Windows.Devices.Geolocation;
+
 namespace RescueScoreManager.Data;
 
 public class EnumRSM
@@ -11,6 +13,22 @@ public class EnumRSM
         var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(fieldInfo, typeof(DescriptionAttribute));
 
         return attribute != null ? attribute.Description : value.ToString();
+    }
+
+    public static string GetGenderLetter(Gender gender)
+    {
+        if (gender == Gender.Men)
+        {
+            return "H";
+        }
+        else if (gender == Gender.Woman)
+        {
+            return "F";
+        }
+        else
+        {
+            return "M";
+        }
     }
 
     public enum Status
@@ -83,15 +101,23 @@ public class EnumRSM
 
     public enum HeatLevel
     {
+        [Description("heat")]
         Heat,
+        [Description("quarter")]
         Quarter,
+        [Description("semi")]
         Semi,
+        [Description("final")]
         Final,
     }
     public enum QualificationType
     {
+        [Description("course")]
         Course,
+        [Description("partie")]
         Partie,
+        [Description("none")]
+        NA,
     }
 
     public enum ExcelType

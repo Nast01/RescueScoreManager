@@ -736,6 +736,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à DISCIPLINES TOTALES.
+        /// </summary>
+        internal static string DisciplinesTotals {
+            get {
+                return ResourceManager.GetString("DisciplinesTotals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Disqualification.
         /// </summary>
         internal static string Disqualification {
@@ -795,6 +804,15 @@ namespace RescueScoreManager.Properties {
         internal static string EndLoadingInfo {
             get {
                 return ResourceManager.GetString("EndLoadingInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à ENGAGEMENTS.
+        /// </summary>
+        internal static string Entries {
+            get {
+                return ResourceManager.GetString("Entries", resourceCulture);
             }
         }
         

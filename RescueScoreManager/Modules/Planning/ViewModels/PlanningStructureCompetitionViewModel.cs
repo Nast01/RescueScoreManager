@@ -19,7 +19,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private readonly ILogger<PlanningStructureCompetitionViewModel> _logger;
 
         [ObservableProperty]
-        private int _totalRaces = 18;
+        private int _totalRaces = 1;
 
         [ObservableProperty]
         private int _configuredEvents;
@@ -28,7 +28,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private int _totalParticipants;
 
         [ObservableProperty]
-        private string _progressionPercentage = "67%";
+        private string _progressionPercentage = "0%";
 
         [ObservableProperty]
         private bool _showAddEventCard = true;
@@ -66,6 +66,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             try
             {
                 IReadOnlyList<Race> races = _xmlService.GetRaces();
+                IReadOnlyList<RaceFormatConfiguration> raceFormatConfigurations = _xmlService.GetRaceFormatConfigurations();
 
                 // Create dictionary with DisciplineLabel as key and List<Race> as value
                 Dictionary<string, List<Race>> racesByDiscipline = new Dictionary<string, List<Race>>();
@@ -90,7 +91,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                     List<Race> racesInDiscipline = kvp.Value;
 
                     // Create a combined RaceCardViewModel representing all races in this discipline
-                    RaceCardViewModel raceCard = CreateDisciplineRaceCardViewModel(disciplineLabel, racesInDiscipline);
+                    RaceCardViewModel raceCard = CreateDisciplineRaceCardViewModel(disciplineLabel, racesInDiscipline, raceFormatConfigurations);
                     RaceCards.Add(raceCard);
                 }
 
@@ -103,10 +104,11 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             }
         }
 
-        private RaceCardViewModel CreateDisciplineRaceCardViewModel(string disciplineLabel, List<Race> races)
+        private RaceCardViewModel CreateDisciplineRaceCardViewModel(string disciplineLabel, List<Race> races, IReadOnlyList<RaceFormatConfiguration> raceFormatConfigurations)
         {
             // Use the first race to determine common properties for the discipline
             Race firstRace = races.First();
+            
             
             // Determine icon and color based on speciality
             string icon = firstRace.Speciality switch
@@ -134,8 +136,18 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             // Calculate aggregate statistics for all races in this discipline
             int totalTeams = races.Sum(r => r.Teams.Count);
-            int configuredRaces = races.Count(r => r.Teams.Count != 0);
+            
+            // A race is configured if it has a corresponding RaceFormatConfiguration
+            int configuredRaces = races.Count(race => 
+                raceFormatConfigurations.Any(config => 
+                    config.Discipline == race.Discipline && 
+                    config.Gender == race.Gender &&
+                    config.Categories.Any(cat => race.Categories.Any(raceCat => raceCat.Id == cat.Id))
+                )
+            );
+            
             double progress = races.Count > 0 ? (configuredRaces * 100.0 / races.Count) : 0;
+
 
             // Determine status based on configuration level
             string statusText;
@@ -143,19 +155,18 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             
             if (configuredRaces == races.Count && races.Count > 0)
             {
-                statusText = _localizationService.GetString("Configure");
+                statusText = _localizationService.GetString("Configure") ?? "Configuré";
                 statusColor = "#10B981";
             }
             else if (configuredRaces > 0)
             {
-                statusText = _localizationService.GetString("EnCours");
+                statusText = _localizationService.GetString("EnCours") ?? "En cours";
                 statusColor = "#F59E0B";
             }
             else
             {
-                statusText = _localizationService.GetString("AConfigurer");
+                statusText = _localizationService.GetString("AConfigurer") ?? "À configurer";
                 statusColor = "#6B7280";
-                progress = 25.0; // Minimum progress for unconfigured
             }
 
 
@@ -200,7 +211,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private void UpdateStatistics()
         {
             TotalRaces = RaceCards.Count;
-            ConfiguredEvents = RaceCards.Count(rc => rc.Progress >= 100);
+            ConfiguredEvents = RaceCards.Count(rc => rc.Progress == 100);
             TotalParticipants = RaceCards.Sum(rc => rc.ParticipantCount);
             
             double averageProgress = RaceCards.Any() ? RaceCards.Average(rc => rc.Progress) : 0;

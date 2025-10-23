@@ -25,6 +25,9 @@ public interface IApiService
     Competition? GetCompetition();
     void SetCompetition(Competition competition);
 
+    // Data saving methods
+    Task SubmitRaceFormatConfigurationAsync(RaceFormatConfiguration raceFormatConfiguration, Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken = default);
+
     // State management
     void Reset();
 }

@@ -48,7 +48,7 @@
           <StackPanel Grid.Column="0" HorizontalAlignment="Center">
             <TextBlock Text="{Binding TotalRaces}" FontSize="32" FontWeight="Bold" 
                                  Foreground="#F59E0B" HorizontalAlignment="Center"/>
-            <TextBlock Text="{loc:Translate EpreuvesTotales}" FontSize="14" 
+            <TextBlock Text="{loc:Translate DisciplinesTotals}" FontSize="14" 
                                  Foreground="#6B7280" HorizontalAlignment="Center"/>
           </StackPanel>
 
@@ -64,7 +64,7 @@
           <StackPanel Grid.Column="2" HorizontalAlignment="Center">
             <TextBlock Text="{Binding TotalParticipants}" FontSize="32" FontWeight="Bold" 
                                  Foreground="#8B5CF6" HorizontalAlignment="Center"/>
-            <TextBlock Text="{loc:Translate Participants}" FontSize="14" 
+            <TextBlock Text="{loc:Translate Entries}" FontSize="14" 
                                  Foreground="#6B7280" HorizontalAlignment="Center"/>
           </StackPanel>
 

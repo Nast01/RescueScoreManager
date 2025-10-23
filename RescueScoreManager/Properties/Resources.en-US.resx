@@ -496,13 +496,13 @@
     <value>Login Successfull</value>
   </data>
   <data name="LoadingAthletes" xml:space="preserve">
-    <value>Loading Athletes....</value>
+    <value>Loading Athletes...</value>
   </data>
   <data name="Ready" xml:space="preserve">
     <value>Ready</value>
   </data>
   <data name="ErrorLoadingData" xml:space="preserve">
-    <value>Error Loading Data</value>
+    <value>Data Loading Error</value>
   </data>
   <data name="TeamForfeitToggledFor" xml:space="preserve">
     <value>Team forfeit toggled for</value>
@@ -1124,5 +1124,15 @@
   </data>
   <data name="Icon_XMI" xml:space="preserve">
     <value>Icon</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="DisciplinesTotals" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="Entries" xml:space="preserve">
+    <value>ENTRIES</value>
+  </data>
+  <data name="DisciplinesTotals" xml:space="preserve">
+    <value>TOTAL EVENTS</value>
   </data>
 </root>

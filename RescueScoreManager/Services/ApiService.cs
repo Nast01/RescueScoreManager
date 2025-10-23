@@ -8,12 +8,16 @@ using System.Text;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
 
+using Irony.Parsing;
+
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using RescueScoreManager.Data;
+
+using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Services;
 
@@ -42,7 +46,7 @@ public class ApiService : IApiService, IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Set base address based on environment
-        _baseAddress = "https://ffss.fr/";//Debugger.IsAttached ? "https://qual.ffss.fr/" : 
+        _baseAddress = Debugger.IsAttached ? "https://qual.ffss.fr/" : "https://ffss.fr/";
         _version = "api/v1.0";
 
         // Create and configure HttpClient
@@ -414,8 +418,16 @@ public class ApiService : IApiService, IDisposable
                     {
                         int idClub = clubData["Id"]?.Value<int>() ?? 0;
                         bool isForeignClub = (idClub == 245);
+                        Club club = null;
+                        if(idClub == 245) //we create the club FFSS
+                        {
+                            club = new Club(clubData, false);
+                            club.Competition = competition;
+                            _clubs.Add(club);
+                        }
 
-                        var club = new Club(clubData, isForeignClub);
+                        club = null;
+                        club = new Club(clubData, isForeignClub);
                         club.Competition = competition;
                         _clubs.Add(club);
                     }
@@ -433,7 +445,7 @@ public class ApiService : IApiService, IDisposable
                 {
                     int missingClubCount = jData.Count - _clubs.Count;
                     _logger.LogError("Not all clubs loaded missing { missingClubCount}", missingClubCount);
-                    throw new Exception($"Not all clubs loaded missing {missingClubCount}");
+                    //throw new Exception($"Not all clubs loaded missing {missingClubCount}");
                 }
             }
             else
@@ -492,16 +504,11 @@ public class ApiService : IApiService, IDisposable
                 {
                     _licensees.Clear();
                     int count = 0;
-                    _logger.LogDebug("expected athlete : {AhtleteNumber}",jData.Children().Count());
+                    _logger.LogDebug("expected athlete : {AhtleteNumber}", jData.Children().Count());
                     foreach (var licenseeData in jData.Children())
                     {
                         try
                         {
-                            if (licenseeData["Id"]!.Value<int>() == 535396)
-                            {
-                                int i = 0;
-                                ++i;
-                            }
                             Athlete athlete = new Athlete(licenseeData);
                             Club? club = _clubs.Find(c => c.Id == licenseeData["idClub"]!.Value<int>());
                             if (club != null)
@@ -591,11 +598,18 @@ public class ApiService : IApiService, IDisposable
                     {
                         try
                         {
-
                             Referee referee = new Referee(licenseeData, competition.BeginDate);
                             int idOrganisme = licenseeData["IdOrganisme"]!.Value<int>();
                             int idClub = licenseeData["idOfficielClub"]!.Value<int>();
-                            Club? club = _clubs.Find(c => c.Id == idClub);
+                            Club? club = null;
+                            if (idOrganisme != idClub)
+                            {
+                                club = _clubs.Find(c => c.Id == idOrganisme);
+                            }
+                            else
+                            {
+                                club = _clubs.Find(c => c.Id == idClub);
+                            }
 
                             if (club != null)
                             {
@@ -823,7 +837,7 @@ public class ApiService : IApiService, IDisposable
                     try
                     {
                         // Create a new RaceFormatConfiguration instance and RaceFormatDetail instances
-                        var raceFormatConfiguration = new RaceFormatConfiguration(raceFormatConfigurationData,_categories);
+                        var raceFormatConfiguration = new RaceFormatConfiguration(raceFormatConfigurationData, _categories);
                         _raceFormatConfigurations.Add(raceFormatConfiguration);
                     }
                     catch (Exception ex)
@@ -873,7 +887,196 @@ public class ApiService : IApiService, IDisposable
         _logger.LogDebug("ApiService data has been reset");
     }
 
-    #endregion
+    public async Task SubmitRaceFormatConfigurationAsync(RaceFormatConfiguration raceFormatConfiguration, Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken = default)
+    {
+        if (authenticationInfo == null)
+        {
+            throw new ArgumentNullException(nameof(authenticationInfo));
+        }
+        if (competition == null)
+        {
+            throw new InvalidOperationException("Aucune compétition n'est chargée.");
+        }
+        string endpoint = $"/competition/{competition.Id}/deroulement/submit";
+        var queryParameters = new Dictionary<string, string>();
+
+        if (authenticationInfo.IsTokenValid)
+        {
+            queryParameters.Add("token", authenticationInfo.Token!);
+            if (raceFormatConfiguration.Id != 0)
+            {
+                queryParameters.Add("id", raceFormatConfiguration.Id.ToString());
+            }
+            else
+            {
+                queryParameters.Add("id", "");
+            }
+        }
+        queryParameters.Add("discipline", raceFormatConfiguration.Discipline.ToString());
+        queryParameters.Add("genre", EnumRSM.GetGenderLetter(raceFormatConfiguration.Gender));
+        foreach (Category category in raceFormatConfiguration.Categories)
+        {
+
+            queryParameters.Add("categories[]", category.Id.ToString());
+        }
+
+        //token=gQEKgILl%24cXgCxswuM8yyol4Zo13jA_0s18Pf52D%21cZVRfnSYCG8RGxs_iXeLuu1&id=&discipline=9&genre=F&categories%5B%5D=13
+
+        try
+        {
+            _logger.LogInformation("Submit RaceFormatConfiguration : {raceFormatConfiguration}", raceFormatConfiguration.FullLabel);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            string apiUrl = string.IsNullOrEmpty(queryString) ? $"{_version}{endpoint}" : $"{_version}{endpoint}?{queryString}";
+            var requestContent = new StringContent("", Encoding.UTF8, "application/json");
+
+            _logger.LogInformation("Sending POST request to: {ApiUrl}", apiUrl);
+
+            using var response = await _httpClient.PostAsync(apiUrl, requestContent);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+            _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
+
+            if (jResponse?["success"]?.Value<bool>() == true)
+            {
+                raceFormatConfiguration.Id = jResponse["id"]?.Value<int>() ?? raceFormatConfiguration.Id;
+                foreach (RaceFormatDetail raceFormatDetail in raceFormatConfiguration.RaceFormatDetails)
+                {
+                    await SubmitRaceFormatDetailAsync(raceFormatDetail, raceFormatConfiguration, competition, authenticationInfo, cancellationToken);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Submit RaceFormatConfiguration API returned unsuccessful response");
+            }
+        }
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException || !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation(ex, "Request timed out after 10 seconds for RaceFormatConfiguration: {RaceFormatConfiguration}. The server may have processed the request successfully but failed to send a response.", raceFormatConfiguration.FullLabel);
+            // Since the data appears on the website, we'll treat this as a successful operation
+            return;
+        }
+        catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Submit RaceFormatConfiguration request was cancelled: {RaceFormatConfiguration}", raceFormatConfiguration.FullLabel);
+            throw new OperationCanceledException("The operation was cancelled.", ex, cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error occurred while submitting RaceFormatConfiguration: {RaceFormatConfiguration}", raceFormatConfiguration.FullLabel);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error Submit RaceFormatConfiguration: {RaceFormatConfiguration}", raceFormatConfiguration.FullLabel);
+            throw;
+        }
+
+
+        // Implémentation à ajouter ici selon la logique métier.
+        // Pour corriger l'erreur CS0161, retourner une tâche terminée.
+        //return Task.CompletedTask;
+    }
+
+    public async Task SubmitRaceFormatDetailAsync(RaceFormatDetail raceFormatDetail, RaceFormatConfiguration raceFormatConfiguration, Competition competition, AuthenticationInfo authenticationInfo, CancellationToken cancellationToken = default)
+    {
+        if (authenticationInfo == null)
+        {
+            throw new ArgumentNullException(nameof(authenticationInfo));
+        }
+        if (competition == null)
+        {
+            throw new InvalidOperationException("Aucune compétition n'est chargée.");
+        }
+        string endpoint = $"/competition/deroulement/{raceFormatConfiguration.Id}/partie/submit";
+        var queryParameters = new Dictionary<string, string>();
+
+        if (authenticationInfo.IsTokenValid)
+        {
+            queryParameters.Add("token", authenticationInfo.Token!);
+            if (raceFormatDetail.Id != 0)
+            {
+                queryParameters.Add("id", raceFormatDetail.Id.ToString());
+            }
+            else
+            {
+                queryParameters.Add("id", "");
+            }
+        }
+        queryParameters.Add("deroulement", raceFormatConfiguration.Id.ToString());
+        queryParameters.Add("ordre", raceFormatDetail.Order.ToString());
+        queryParameters.Add("niveau", EnumRSM.GetEnumDescription(raceFormatDetail.Level));
+        queryParameters.Add("logiqueQualification", EnumRSM.GetEnumDescription(raceFormatDetail.QualificationMethod));
+        queryParameters.Add("nbCourse", raceFormatDetail.NumberOfRun.ToString());
+        queryParameters.Add("nbPlace", raceFormatDetail.SpotsPerRace.ToString());
+        queryParameters.Add("nbPlaceQualificative", raceFormatDetail.QualifyingSpots.ToString());
+        
+        foreach (Category category in raceFormatConfiguration.Categories)
+        {
+
+            queryParameters.Add("categories[]", category.Id.ToString());
+        }
+
+        //token=gQEKgILl%24cXgCxswuM8yyol4Zo13jA_0s18Pf52D%21cZVRfnSYCG8RGxs_iXeLuu1&id=&discipline=9&genre=F&categories%5B%5D=13
+
+        try
+        {
+            _logger.LogInformation("Submit RaceFormatDetail : {RaceFormatDetail}", raceFormatDetail.FullLabel);
+
+            string queryString = string.Join("&", queryParameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            string apiUrl = string.IsNullOrEmpty(queryString) ? $"{_version}{endpoint}" : $"{_version}{endpoint}?{queryString}";
+            var requestContent = new StringContent("", Encoding.UTF8, "application/json");
+
+            _logger.LogInformation("Sending POST request to: {ApiUrl}", apiUrl);
+            //api/v1.0/competition/deroulement/33/partie/submit?token=yuzEl5zbfxI%24QVvPCRGYUVkbulLBHO3pSxOTPvb5RLpAyKrFhroeUwk4CFCOWnZp&id=&ordre=1&niveau=Heat&logiqueQualification=course&nbCourse=4&nbPlace=13&categories%5B%5D=11
+            using var response = await _httpClient.PostAsync(apiUrl, requestContent);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var jResponse = JsonConvert.DeserializeObject<JToken>(responseBody);
+
+            _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
+
+            if (jResponse?["success"]?.Value<bool>() == true)
+            {
+                raceFormatDetail.Id = jResponse["id"].Value<int>();
+            }
+            else
+            {
+                _logger.LogWarning("Submit RaceFormatDetail API returned unsuccessful response");
+            }
+        }
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException || !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation(ex, "Request timed out after 10 seconds for RaceFormatDetail: {RaceFormatDetail}. The server may have processed the request successfully but failed to send a response.", raceFormatDetail.FullLabel);
+            // Since the data appears on the website, we'll treat this as a successful operation
+            return;
+        }
+        catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Submit RaceFormatDetail request was cancelled: {RaceFormatDetail}", raceFormatDetail.FullLabel);
+            throw new OperationCanceledException("The operation was cancelled.", ex, cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error occurred while submitting RaceFormatDetail: {RaceFormatDetail}", raceFormatDetail.FullLabel);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error Submit RaceFormatDetail: {RaceFormatDetail}", raceFormatDetail.FullLabel);
+            throw;
+        }
+
+
+        // Implémentation à ajouter ici selon la logique métier.
+        // Pour corriger l'erreur CS0161, retourner une tâche terminée.
+        //return Task.CompletedTask;
+    }
+    #endregion Data Saving Methods
 
     #region IDisposable
 

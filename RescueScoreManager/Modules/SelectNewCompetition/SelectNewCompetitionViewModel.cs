@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
@@ -124,7 +124,7 @@ public partial class SelectNewCompetitionViewModel : ObservableObject
         _imageService = imageService; // Optional - for club logo loading
 
 
-        _beginDate = Debugger.IsAttached ? new DateTime(2024, 9, 26) : DateTime.Now;
+        _beginDate = Debugger.IsAttached ? new DateTime(2024, 3, 30) : DateTime.Now;
     }
 
     public async Task InitializeAsync()
