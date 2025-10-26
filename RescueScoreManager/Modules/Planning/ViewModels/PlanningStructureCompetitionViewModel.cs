@@ -326,6 +326,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                         
                         bool? result = dialog.ShowDialog();
                         dialog.Close();
+                        
+                        // Refresh the data to update the planning structure view after configuration changes
+                        RefreshData();
                     }
                 }
             }

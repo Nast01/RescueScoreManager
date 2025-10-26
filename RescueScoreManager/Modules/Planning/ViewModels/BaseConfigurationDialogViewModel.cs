@@ -232,12 +232,14 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             // Get the display name for qualification method
             string qualificationDisplayName = PhaseViewModel.QualificationTypeOptions.FirstOrDefault(q => q.Value == phase.QualificationLogic)?.DisplayName ?? phase.QualificationLogic.ToString();
 
+            string categoryNames = $"({string.Join(", ", parentConfig.Categories.OrderBy(c => c.AgeMin).Select(c => c.Name))})";
+
             return new RaceFormatDetail
             {
                 Id = 0, // Always 0 as specified
                 Order = phase.Order,
-                Label = $"{race.Name} - {race.Gender} - {levelDisplayName} - {string.Join(", ", race.Categories.Select(c => c.Name))}",
-                FullLabel = $"{race.Name} - {race.Gender} - {levelDisplayName} - {string.Join(", ", race.Categories.Select(c => c.Name))}",
+                Label = $"{race.Name} - {race.Gender} - {levelDisplayName} {categoryNames}",
+                FullLabel = $"{race.Name} - {race.Gender} - {levelDisplayName} {categoryNames}",
                 LevelLabel = levelDisplayName,
                 Level = phase.Level,
                 NumberOfRun = phase.NumberOfRaces,

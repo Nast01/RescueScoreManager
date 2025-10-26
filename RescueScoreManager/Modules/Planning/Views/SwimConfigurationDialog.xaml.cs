@@ -42,10 +42,11 @@ namespace RescueScoreManager.Modules.Planning.Views
                 var apiService = serviceProvider?.GetService<IApiService>();
                 var authService = serviceProvider?.GetService<IAuthenticationService>();
                 var messenger = serviceProvider?.GetService<IMessenger>();
+                var dialogService = serviceProvider?.GetService<IDialogService>();
 
-                if (localizationService != null && xmlService != null && apiService != null && authService != null && messenger != null)
+                if (localizationService != null && xmlService != null && apiService != null && authService != null && messenger != null && dialogService != null && serviceProvider != null)
                 {
-                    SwimConfigurationDialogViewModel viewModel = new SwimConfigurationDialogViewModel(localizationService, xmlService, apiService, authService, messenger, races);
+                    SwimConfigurationDialogViewModel viewModel = new SwimConfigurationDialogViewModel(localizationService, xmlService, apiService, authService, messenger, dialogService, serviceProvider, races);
 
                     DataContext = viewModel;
                 }

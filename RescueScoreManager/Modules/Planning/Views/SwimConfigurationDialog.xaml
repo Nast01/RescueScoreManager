@@ -26,7 +26,7 @@
 
 
     <!-- Main content -->
-    <TabControl Grid.Row="1" ItemsSource="{Binding CategoryConfigurations}" SelectedIndex="{Binding SelectedCategoryIndex}" 
+    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedPhaseTypeIndex}" 
                     Background="Transparent" BorderThickness="0" Margin="20">
       <TabControl.ItemContainerStyle>
         <Style TargetType="TabItem">
@@ -46,9 +46,11 @@
           </Setter>
         </Style>
       </TabControl.ItemContainerStyle>
-      <TabControl.ItemTemplate>
-        <DataTemplate>
-          <TextBlock Text="{Binding Name}" FontWeight="Bold">
+      
+      <!-- Onglet Séries -->
+      <TabItem>
+        <TabItem.Header>
+          <TextBlock Text="SERIES" FontWeight="Bold" Foreground="{Binding RelativeSource={RelativeSource AncestorType=TabItem}, Path=IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock.Style>
               <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="#6B7280"/>
@@ -60,140 +62,286 @@
               </Style>
             </TextBlock.Style>
           </TextBlock>
-        </DataTemplate>
-      </TabControl.ItemTemplate>
-      <TabControl.ContentTemplate>
-        <DataTemplate>
-          <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-              <!-- Configuration section -->
-              <TextBlock Margin="0,20,0,30" FontSize="16" FontWeight="SemiBold">
-                <Run Text="{loc:Translate ConfigurationCategorie}"/>
-                <Run Text="{Binding DisplayText, Mode=OneWay}"/>
-              </TextBlock>
+        </TabItem.Header>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel>
+            <!-- Categories concernées -->
+            <TextBlock Margin="0,20,0,15" FontSize="14" FontWeight="SemiBold" Text="Catégories concernées:"/>
+            <ItemsControl ItemsSource="{Binding SeriesCategories}" Margin="0,0,0,20">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding}" Margin="10,0,0,5" FontStyle="Italic"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-              <!-- Phases section -->
-              <Grid>
-                <Grid.RowDefinitions>
-                  <RowDefinition Height="Auto"/>
-                  <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <!-- Phases séries section -->
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
 
-                <!-- Phases header -->
-                <Grid Grid.Row="0" Margin="0,0,0,20">
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
+              <!-- Series phases header -->
+              <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                  <TextBlock Grid.Column="0" Text="{loc:Translate PhasesEpreuve}" 
-                                               FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0" Text="Phases Séries" 
+                                             FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
 
-                  <Button Grid.Column="1" Background="#2563EB" Foreground="White" 
-                                            BorderThickness="0" Padding="15,8"
-                                            Command="{Binding DataContext.AddPhaseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}">
-                    <Button.Template>
-                      <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                                        CornerRadius="6" 
-                                                        Padding="{TemplateBinding Padding}">
-                          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                      </ControlTemplate>
-                    </Button.Template>
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="+" FontWeight="Bold" Margin="0,0,8,0"/>
-                      <TextBlock Text="{loc:Translate AjouterPhase}"/>
-                    </StackPanel>
-                  </Button>
-                </Grid>
-
-                <!-- Phases List -->
-                <ItemsControl Grid.Row="1" ItemsSource="{Binding Phases}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" 
-                                                    Margin="0,0,0,20" Background="White" Padding="20">
-                        <StackPanel>
-                          <!-- Phase header -->
-                          <DockPanel Margin="0,0,0,20" LastChildFill="True">
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                              <Button Content="✕" Background="Transparent" BorderThickness="0"  FontWeight="ExtraBold"
-                                                                    Foreground="#EF4444" FontSize="14" Cursor="Hand"
-                                                                    Command="{Binding RemoveCommand}" CommandParameter="{Binding}"/>
-                            </StackPanel>
-                            <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" FontWeight="Bold" 
-                                                                   FontSize="14" VerticalAlignment="Center" Margin="0,0,15,0"/>
-                            
-                          </DockPanel>
-
-                          <!-- Phase form -->
-                          <Grid>
-                            <Grid.ColumnDefinitions>
-                              <ColumnDefinition Width="*"/>
-                              <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                              <RowDefinition Height="Auto"/>
-                              <RowDefinition Height="Auto"/>
-                              <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- Order -->
-                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
-                              <TextBlock Text="{loc:Translate Ordre}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                              <TextBox Text="{Binding Order}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
-                            </StackPanel>
-
-                            <!-- Level -->
-                            <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,15">
-                              <TextBlock Text="{loc:Translate Niveau}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                              <ComboBox ItemsSource="{x:Static local:PhaseViewModel.HeatLevelOptions}" 
-                                        SelectedValue="{Binding Level}" 
-                                        SelectedValuePath="Value"
-                                        DisplayMemberPath="DisplayName"
-                                        Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
-                            </StackPanel>
-
-                            <!-- Qualification Logic -->
-                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,15">
-                              <TextBlock Text="{loc:Translate LogiqueQualification}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                              <ComboBox ItemsSource="{x:Static local:PhaseViewModel.QualificationTypeOptions}" 
-                                        SelectedValue="{Binding QualificationLogic}" 
-                                        SelectedValuePath="Value"
-                                        DisplayMemberPath="DisplayName"
-                                        Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
-                            </StackPanel>
-
-                            <!-- Number of races -->
-                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,15">
-                              <TextBlock Text="{loc:Translate NombreCourse}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                              <TextBox Text="{Binding NumberOfRaces}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
-                            </StackPanel>
-
-                            <!-- Places per race -->
-                            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0">
-                              <TextBlock Text="{loc:Translate NombrePlaceCourse}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                              <TextBox Text="{Binding PlacesPerRace}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
-                            </StackPanel>
-
-                            <!-- Qualifying places -->
-                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,0">
-                              <TextBlock Text="{loc:Translate NombrePlaceQualificative}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                              <TextBox Text="{Binding QualifyingPlaces}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
-                            </StackPanel>
-                          </Grid>
-                        </StackPanel>
+                <Button Grid.Column="1" Background="#2563EB" Foreground="White" 
+                                          BorderThickness="0" Padding="15,8"
+                                          Command="{Binding AddSeriesPhaseCommand}">
+                  <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                      <Border Background="{TemplateBinding Background}" 
+                                                      CornerRadius="6" 
+                                                      Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                       </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ControlTemplate>
+                  </Button.Template>
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="+" FontWeight="Bold" Margin="0,0,8,0"/>
+                    <TextBlock Text="Ajouter Phase Série"/>
+                  </StackPanel>
+                </Button>
               </Grid>
-            </StackPanel>
-          </ScrollViewer>
-        </DataTemplate>
-      </TabControl.ContentTemplate>
+
+              <!-- Series Phases List -->
+              <ItemsControl Grid.Row="1" ItemsSource="{Binding SeriesPhases}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" 
+                                                  Margin="0,0,0,20" Background="White" Padding="20">
+                      <StackPanel>
+                        <!-- Phase header -->
+                        <DockPanel Margin="0,0,0,20" LastChildFill="True">
+                          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="✕" Background="Transparent" BorderThickness="0"  FontWeight="ExtraBold"
+                                                                  Foreground="#EF4444" FontSize="14" Cursor="Hand"
+                                                                  Command="{Binding RemoveCommand}" CommandParameter="{Binding}"/>
+                          </StackPanel>
+                          <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" FontWeight="Bold" 
+                                                                 FontSize="14" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                        </DockPanel>
+
+                        <!-- Phase form -->
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                          </Grid.ColumnDefinitions>
+                          <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                          </Grid.RowDefinitions>
+
+                          <!-- Order -->
+                          <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="{loc:Translate Ordre}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding Order}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
+                          </StackPanel>
+
+                          <!-- Level -->
+                          <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,15">
+                            <TextBlock Text="{loc:Translate Niveau}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{x:Static local:PhaseViewModel.HeatLevelOptions}" 
+                                      SelectedValue="{Binding Level}" 
+                                      SelectedValuePath="Value"
+                                      DisplayMemberPath="DisplayName"
+                                      Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
+                          </StackPanel>
+
+                          <!-- Qualification Logic -->
+                          <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="{loc:Translate LogiqueQualification}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{x:Static local:PhaseViewModel.QualificationTypeOptions}" 
+                                      SelectedValue="{Binding QualificationLogic}" 
+                                      SelectedValuePath="Value"
+                                      DisplayMemberPath="DisplayName"
+                                      Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
+                          </StackPanel>
+
+                          <!-- Number of races -->
+                          <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,15">
+                            <TextBlock Text="{loc:Translate NombreCourse}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding NumberOfRaces}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
+                          </StackPanel>
+
+                          <!-- Places per race -->
+                          <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="{loc:Translate NombrePlaceCourse}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding PlacesPerRace}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
+                          </StackPanel>
+
+                          <!-- Qualifying places -->
+                          <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock Text="{loc:Translate NombrePlaceQualificative}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding QualifyingPlaces}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
+                          </StackPanel>
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Onglet Finales -->
+      <TabItem Visibility="{Binding IsFinalsTabVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <TabItem.Header>
+          <TextBlock Text="FINALES" FontWeight="Bold">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#6B7280"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}}" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+        </TabItem.Header>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel>
+            <!-- Categories concernées -->
+            <TextBlock Margin="0,20,0,15" FontSize="14" FontWeight="SemiBold" Text="Catégories concernées:"/>
+            <ItemsControl ItemsSource="{Binding FinalsCategories}" Margin="0,0,0,20">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding}" Margin="10,0,0,5" FontStyle="Italic"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Phases finales section -->
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+
+              <!-- Finals phases header -->
+              <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Phases Finales" 
+                                             FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+
+                <Button Grid.Column="1" Background="#2563EB" Foreground="White" 
+                                          BorderThickness="0" Padding="15,8"
+                                          Command="{Binding AddFinalsPhaseCommand}">
+                  <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                      <Border Background="{TemplateBinding Background}" 
+                                                      CornerRadius="6" 
+                                                      Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      </Border>
+                    </ControlTemplate>
+                  </Button.Template>
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="+" FontWeight="Bold" Margin="0,0,8,0"/>
+                    <TextBlock Text="Ajouter Phase Finale"/>
+                  </StackPanel>
+                </Button>
+              </Grid>
+
+              <!-- Finals Phases List -->
+              <ItemsControl Grid.Row="1" ItemsSource="{Binding FinalsPhases}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" 
+                                                  Margin="0,0,0,20" Background="White" Padding="20">
+                      <StackPanel>
+                        <!-- Phase header -->
+                        <DockPanel Margin="0,0,0,20" LastChildFill="True">
+                          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="✕" Background="Transparent" BorderThickness="0"  FontWeight="ExtraBold"
+                                                                  Foreground="#EF4444" FontSize="14" Cursor="Hand"
+                                                                  Command="{Binding RemoveCommand}" CommandParameter="{Binding}"/>
+                          </StackPanel>
+                          <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" FontWeight="Bold" 
+                                                                 FontSize="14" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                        </DockPanel>
+
+                        <!-- Phase form -->
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                          </Grid.ColumnDefinitions>
+                          <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                          </Grid.RowDefinitions>
+
+                          <!-- Order -->
+                          <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="{loc:Translate Ordre}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding Order}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
+                          </StackPanel>
+
+                          <!-- Level -->
+                          <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,15">
+                            <TextBlock Text="{loc:Translate Niveau}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{x:Static local:PhaseViewModel.HeatLevelOptions}" 
+                                      SelectedValue="{Binding Level}" 
+                                      SelectedValuePath="Value"
+                                      DisplayMemberPath="DisplayName"
+                                      Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
+                          </StackPanel>
+
+                          <!-- Qualification Logic -->
+                          <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,15">
+                            <TextBlock Text="{loc:Translate LogiqueQualification}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{x:Static local:PhaseViewModel.QualificationTypeOptions}" 
+                                      SelectedValue="{Binding QualificationLogic}" 
+                                      SelectedValuePath="Value"
+                                      DisplayMemberPath="DisplayName"
+                                      Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10"/>
+                          </StackPanel>
+
+                          <!-- Number of races -->
+                          <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,15">
+                            <TextBlock Text="{loc:Translate NombreCourse}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding NumberOfRaces}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
+                          </StackPanel>
+
+                          <!-- Places per race -->
+                          <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="{loc:Translate NombrePlaceCourse}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding PlacesPerRace}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
+                          </StackPanel>
+
+                          <!-- Qualifying places -->
+                          <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock Text="{loc:Translate NombrePlaceQualificative}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding QualifyingPlaces}" Background="#F9FAFB" BorderBrush="#E5E7EB" Padding="10" PreviewTextInput="NumericTextBox_PreviewTextInput"/>
+                          </StackPanel>
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
     </TabControl>
 
     <!-- Footer buttons -->

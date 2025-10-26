@@ -1,5 +1,7 @@
 using System.ComponentModel;
 
+using RescueScoreManager.Services;
+
 using Windows.Devices.Geolocation;
 
 namespace RescueScoreManager.Data;
@@ -28,6 +30,22 @@ public class EnumRSM
         else
         {
             return "M";
+        }
+    }
+
+    public static string GetGenderLabel(Gender gender, ILocalizationService localizationService)
+    {
+        if (gender == Gender.Men)
+        {
+            return localizationService.GetString("Men");
+        }
+        else if (gender == Gender.Woman)
+        {
+            return localizationService.GetString("Women");
+        }
+        else
+        {
+            return localizationService.GetString("Mixte");
         }
     }
 
