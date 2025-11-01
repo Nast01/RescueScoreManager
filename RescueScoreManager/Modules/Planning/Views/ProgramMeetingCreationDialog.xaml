@@ -1,0 +1,112 @@
+<Window x:Class="RescueScoreManager.Modules.Planning.Views.ProgramMeetingCreationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:RescueScoreManager.Localization"
+        Title="Créer un Groupe de Programme" Height="350" Width="500"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="White">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Créer un nouveau groupe de programme" 
+                   FontSize="18" FontWeight="Bold" 
+                   Foreground="#1F2937" Margin="0,0,0,20"/>
+
+        <!-- Form Content -->
+        <StackPanel Grid.Row="1">
+            <!-- Name Input -->
+            <StackPanel>
+                <TextBlock Text="Nom du groupe :" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                         Background="#F9FAFB" BorderBrush="#E5E7EB" 
+                         Padding="12" Height="40" FontSize="14"/>
+            </StackPanel>
+
+            <!-- Site Selection -->
+            <StackPanel>
+                <TextBlock Text="Site :" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
+                <ComboBox ItemsSource="{Binding AvailableSites}" 
+                          SelectedItem="{Binding SelectedSite}"
+                          DisplayMemberPath="Name"
+                          Background="#F9FAFB" BorderBrush="#E5E7EB" 
+                          Padding="12" Height="40" FontSize="14"/>
+            </StackPanel>
+
+            <!-- Start Time Input -->
+            <StackPanel>
+                <TextBlock Text="Heure de début :" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Hour -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Heure" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding AvailableHours}" 
+                                  SelectedItem="{Binding SelectedHour}"
+                                  Background="#F9FAFB" BorderBrush="#E5E7EB" 
+                                  Padding="8" Height="36"/>
+                    </StackPanel>
+                    
+                    <!-- Minute -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Minutes" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding AvailableMinutes}" 
+                                  SelectedItem="{Binding SelectedMinute}"
+                                  Background="#F9FAFB" BorderBrush="#E5E7EB" 
+                                  Padding="8" Height="36"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Footer Buttons -->
+        <Grid Grid.Row="2" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1" Content="Annuler" 
+                    Background="Transparent" BorderBrush="#E5E7EB" BorderThickness="1" 
+                    Click="Cancel_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <Button Grid.Column="2" Content="Créer" 
+                    Background="#2563EB" Foreground="White" BorderThickness="0"
+                    Command="{Binding CreateCommand}">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

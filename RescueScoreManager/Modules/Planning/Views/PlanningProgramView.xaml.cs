@@ -125,6 +125,41 @@ namespace RescueScoreManager.Modules.Planning.Views
                 viewModel.RemoveEventFromTimeSlot(plannedEvent);
             }
         }
+
+        private void OnProgramMeetingDragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("PlanningEvent") || e.Data.GetDataPresent("PlannedEvent"))
+            {
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        }
+
+        private void OnProgramMeetingDrop(object sender, DragEventArgs e)
+        {
+            if (DataContext is PlanningProgramViewModel viewModel)
+            {
+                var border = sender as Border;
+                object programMeeting = border?.DataContext;
+
+                if (e.Data.GetDataPresent("PlanningEvent"))
+                {
+                    object droppedEvent = e.Data.GetData("PlanningEvent");
+                    viewModel.MoveEventToProgramMeeting(droppedEvent, programMeeting);
+                    e.Handled = true;
+                }
+                else if (e.Data.GetDataPresent("PlannedEvent"))
+                {
+                    object plannedEvent = e.Data.GetData("PlannedEvent");
+                    viewModel.MovePlannedEventToProgramMeeting(plannedEvent, programMeeting);
+                    e.Handled = true;
+                }
+            }
+        }
         private void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
         {
             try

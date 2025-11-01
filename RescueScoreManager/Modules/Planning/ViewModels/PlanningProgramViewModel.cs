@@ -50,6 +50,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public ICommand AddSiteCommand { get; }
         public ICommand RemoveSiteCommand { get; }
         public ICommand CreateManualTimeSlotCommand { get; }
+        public ICommand CreateProgramMeetingCommand { get; }
 
         public PlanningProgramViewModel(
             IXMLService xmlService,
@@ -75,6 +76,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             AddSiteCommand = new RelayCommand(OnAddSite);
             RemoveSiteCommand = new RelayCommand<SiteViewModel>(OnRemoveSite);
             CreateManualTimeSlotCommand = new RelayCommand(OnCreateManualTimeSlot);
+            CreateProgramMeetingCommand = new RelayCommand(OnCreateProgramMeeting);
 
             Initialize();
         }
@@ -327,7 +329,43 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
         private int GetParticipantCount(RaceFormatDetail detail)
         {
-            return new Random().Next(15, 35); // Mock data
+            try
+            {
+                // Get the parent RaceFormatConfiguration
+                var raceFormatConfiguration = detail.RaceFormatConfiguration;
+                
+                if (raceFormatConfiguration == null)
+                {
+                    // If not accessible directly, find it from the XML service
+                    var allConfigurations = _xmlService.GetRaceFormatConfigurations();
+                    raceFormatConfiguration = allConfigurations.FirstOrDefault(config => 
+                        config.RaceFormatDetails.Any(d => d.Id == detail.Id));
+                }
+                
+                if (raceFormatConfiguration != null)
+                {
+                    // Get all races from XML service
+                    var allRaces = _xmlService.GetRaces();
+                    
+                    // Find races that match the configuration criteria
+                    var matchingRaces = allRaces.Where(race => 
+                        race.Discipline == raceFormatConfiguration.Discipline &&
+                        race.Gender == raceFormatConfiguration.Gender &&
+                        raceFormatConfiguration.Categories.Any(configCat => 
+                            race.Categories.Any(raceCat => raceCat.Id == configCat.Id))
+                    ).ToList();
+                    
+                    // Calculate total participant count from all matching races
+                    return matchingRaces.Sum(race => race.GetAvailableTeams().Count);
+                }
+                
+                return 0; // Return 0 if configuration not found
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating participant count for RaceFormatDetail {DetailId}", detail.Id);
+                return 0;
+            }
         }
 
         private int GetParticipantCountNullable(RaceFormatDetail? detail)
@@ -590,6 +628,204 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             Initialize();
         }
 
+        public void MoveEventToProgramMeeting(object eventItem, object programMeetingItem)
+        {
+            if (eventItem is PlanningEventViewModel planningEvent && programMeetingItem is ProgramMeetingViewModel programMeeting)
+            {
+                try
+                {
+                    // Create the planned event for the program meeting
+                    var plannedEvent = new PlannedEventViewModel
+                    {
+                        Id = planningEvent.Id,
+                        Title = planningEvent.Name,
+                        Subtitle = $"{planningEvent.ParticipantCount} participants",
+                        Color = programMeeting.SiteColor,
+                        Duration = planningEvent.Duration,
+                        ConfigurationLabel = planningEvent.ConfigurationLabel,
+                        StatusColor = planningEvent.StatusColor,
+                        ParticipantCount = planningEvent.ParticipantCount
+                    };
+
+                    // Add to program meeting
+                    programMeeting.Events.Add(plannedEvent);
+                    
+                    // Update program meeting end time based on events
+                    UpdateProgramMeetingEndTime(programMeeting);
+
+                    // Remove from events to plan
+                    EventsToplan.Remove(planningEvent);
+                    FilterEvents();
+                    UpdateStatistics();
+                    
+                    // Save the changes
+                    SaveProgramMeetingData(programMeeting);
+                    
+                    _logger.LogInformation($"Moved event {planningEvent.Name} to program meeting {programMeeting.Name}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error moving event to program meeting");
+                }
+            }
+        }
+
+        public void MovePlannedEventToProgramMeeting(object plannedEventItem, object programMeetingItem)
+        {
+            if (plannedEventItem is PlannedEventViewModel plannedEvent && programMeetingItem is ProgramMeetingViewModel programMeeting)
+            {
+                try
+                {
+                    // Remove from current location (time slots or other program meetings)
+                    RemoveEventFromCurrentLocation(plannedEvent);
+
+                    // Update color to match new program meeting
+                    plannedEvent.Color = programMeeting.SiteColor;
+
+                    // Add to new program meeting
+                    programMeeting.Events.Add(plannedEvent);
+                    
+                    // Update program meeting end time
+                    UpdateProgramMeetingEndTime(programMeeting);
+                    
+                    UpdateStatistics();
+                    
+                    // Save the changes
+                    SaveProgramMeetingData(programMeeting);
+                    
+                    _logger.LogInformation($"Moved planned event {plannedEvent.Title} to program meeting {programMeeting.Name}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error moving planned event to program meeting");
+                }
+            }
+        }
+
+        private void RemoveEventFromCurrentLocation(PlannedEventViewModel plannedEvent)
+        {
+            // Remove from time slots
+            foreach (var site in Sites)
+            {
+                foreach (var timeSlot in site.TimeSlots)
+                {
+                    if (timeSlot.Events.Contains(plannedEvent))
+                    {
+                        timeSlot.Events.Remove(plannedEvent);
+                    }
+                }
+                
+                // Remove from other program meetings
+                foreach (var programMeeting in site.ProgramMeetings)
+                {
+                    if (programMeeting.Events.Contains(plannedEvent))
+                    {
+                        programMeeting.Events.Remove(plannedEvent);
+                        UpdateProgramMeetingEndTime(programMeeting);
+                        SaveProgramMeetingData(programMeeting);
+                    }
+                }
+            }
+        }
+
+        private void UpdateProgramMeetingEndTime(ProgramMeetingViewModel programMeeting)
+        {
+            if (programMeeting.Events.Any())
+            {
+                // Calculate end time based on the latest event end time
+                var latestEndTime = programMeeting.BeginHour;
+                foreach (var evt in programMeeting.Events)
+                {
+                    var eventEndTime = programMeeting.BeginHour.AddMinutes(evt.Duration);
+                    if (eventEndTime > latestEndTime)
+                    {
+                        latestEndTime = eventEndTime;
+                    }
+                }
+                programMeeting.EndHour = latestEndTime;
+            }
+            else
+            {
+                // Default 1 hour duration if no events
+                programMeeting.EndHour = programMeeting.BeginHour.AddHours(1);
+            }
+        }
+
+        private void SaveProgramMeetingData(ProgramMeetingViewModel programMeetingViewModel)
+        {
+            try
+            {
+                var allMeetings = _xmlService.GetProgramMeetings().ToList();
+                var existingMeeting = allMeetings.FirstOrDefault(m => m.Id == programMeetingViewModel.Id);
+                
+                if (existingMeeting != null)
+                {
+                    // Update existing meeting
+                    existingMeeting.EndHour = programMeetingViewModel.EndHour;
+                    
+                    // Clear existing slots and recreate them
+                    existingMeeting.ProgramSlots.Clear();
+                    
+                    int slotId = 1;
+                    foreach (var evt in programMeetingViewModel.Events)
+                    {
+                        var raceFormatDetail = _xmlService.GetRaceFormatConfigurations()
+                            .SelectMany(config => config.RaceFormatDetails)
+                            .FirstOrDefault(detail => detail.Id == evt.Id);
+
+                        if (raceFormatDetail != null)
+                        {
+                            var programSlot = new ProgramSlot
+                            {
+                                Id = slotId++,
+                                Name = evt.Title,
+                                BeginHour = programMeetingViewModel.BeginHour,
+                                EndHour = programMeetingViewModel.BeginHour.AddMinutes(evt.Duration),
+                                RaceFormatDetailId = evt.Id,
+                                RaceFormatDetail = raceFormatDetail,
+                                ProgramMeetingId = existingMeeting.Id,
+                                ProgramMeeting = existingMeeting,
+                                ProgramRuns = new List<ProgramRun>()
+                            };
+
+                            // Find site name from description or current site
+                            string siteName = "Default Site";
+                            if (existingMeeting.Description != null && existingMeeting.Description.StartsWith("Site:"))
+                            {
+                                var parts = existingMeeting.Description.Split('|');
+                                if (parts.Length >= 1)
+                                {
+                                    siteName = parts[0].Substring(5);
+                                }
+                            }
+
+                            var programRun = new ProgramRun
+                            {
+                                Id = slotId,
+                                Name = evt.Title,
+                                Site = siteName,
+                                Status = Data.EnumRSM.ProgramStatus.Pending,
+                                BeginHour = programSlot.BeginHour,
+                                EndHour = programSlot.EndHour,
+                                ProgramSlotId = programSlot.Id,
+                                ProgramSlot = programSlot
+                            };
+
+                            programSlot.ProgramRuns.Add(programRun);
+                            existingMeeting.ProgramSlots.Add(programSlot);
+                        }
+                    }
+                    
+                    _xmlService.UpdateProgramMeetings(allMeetings);
+                    _xmlService.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving program meeting data");
+            }
+        }
+
         private void SavePlanningData()
         {
             try
@@ -705,49 +941,148 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             {
                 var programMeetings = _xmlService.GetProgramMeetings();
                 
+                // First, clear any existing program meetings from sites and time slots
+                foreach (var siteList in _sitesByDate.Values)
+                {
+                    foreach (var site in siteList)
+                    {
+                        site.ProgramMeetings.Clear();
+                        foreach (var timeSlot in site.TimeSlots)
+                        {
+                            timeSlot.ProgramMeeting = null;
+                            timeSlot.IsFirstSlotOfMeeting = false;
+                            timeSlot.IsLastSlotOfMeeting = false;
+                            timeSlot.IsMiddleSlotOfMeeting = false;
+                        }
+                    }
+                }
+                
                 foreach (var programMeeting in programMeetings)
                 {
                     var meetingDate = programMeeting.ProgramDate.Date;
                     
                     if (_sitesByDate.TryGetValue(meetingDate, out var dailySites))
                     {
-                        foreach (var programSlot in programMeeting.ProgramSlots)
+                        // Find the appropriate site for this program meeting
+                        string? targetSiteName = null;
+                        SiteViewModel? targetSite = null;
+                        
+                        // First try to get site from program runs (for meetings with content)
+                        targetSiteName = programMeeting.ProgramSlots.FirstOrDefault()?.ProgramRuns.FirstOrDefault()?.Site;
+                        if (!string.IsNullOrEmpty(targetSiteName))
                         {
-                            foreach (var programRun in programSlot.ProgramRuns)
+                            targetSite = dailySites.FirstOrDefault(s => s.Name == targetSiteName);
+                        }
+                        
+                        // If no site found and it's a new meeting, try to parse from description
+                        if (targetSite == null && programMeeting.Description != null && programMeeting.Description.StartsWith("Site:"))
+                        {
+                            var parts = programMeeting.Description.Split('|');
+                            if (parts.Length >= 2)
                             {
-                                var targetSite = dailySites.FirstOrDefault(s => s.Name == programRun.Site);
-                                if (targetSite != null)
+                                targetSiteName = parts[0].Substring(5); // Remove "Site:" prefix
+                                if (int.TryParse(parts[1], out int siteId))
                                 {
-                                    var targetTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
-                                        Math.Abs((ts.DateTime - programRun.BeginHour).TotalMinutes) < 7.5);
-
-                                    if (targetTimeSlot != null)
-                                    {
-                                        var plannedEvent = new PlannedEventViewModel
-                                        {
-                                            Id = programSlot.RaceFormatDetailId,
-                                            Title = programRun.Name,
-                                            Subtitle = $"Site: {programRun.Site}",
-                                            Color = targetTimeSlot.SiteColor,
-                                            Duration = (int)(programRun.EndHour - programRun.BeginHour).TotalMinutes,
-                                            ConfigurationLabel = programSlot.RaceFormatDetail?.Label ?? "",
-                                            StatusColor = "#10B981",
-                                            ParticipantCount = GetParticipantCountNullable(programSlot.RaceFormatDetail)
-                                        };
-
-                                        targetTimeSlot.Events.Add(plannedEvent);
-                                        
-                                        var eventToRemove = EventsToplan.FirstOrDefault(e => e.Id == programSlot.RaceFormatDetailId);
-                                        if (eventToRemove != null)
-                                        {
-                                            EventsToplan.Remove(eventToRemove);
-                                        }
-                                    }
+                                    targetSite = dailySites.FirstOrDefault(s => s.Id == siteId);
+                                }
+                                if (targetSite == null)
+                                {
+                                    targetSite = dailySites.FirstOrDefault(s => s.Name == targetSiteName);
                                 }
                             }
                         }
+                        
+                        if (targetSite != null)
+                        {
+                            // Create ProgramMeetingViewModel
+                            var programMeetingViewModel = new ProgramMeetingViewModel
+                            {
+                                Id = programMeeting.Id,
+                                Name = programMeeting.Name,
+                                Description = programMeeting.Description ?? "",
+                                BeginHour = programMeeting.BeginHour,
+                                EndHour = programMeeting.EndHour,
+                                SiteColor = targetSite.Color
+                            };
+                            
+                            // Find the corresponding time slots for the entire duration
+                            var startTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
+                                Math.Abs((ts.DateTime - programMeeting.BeginHour).TotalMinutes) < 7.5);
+                            var endTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
+                                Math.Abs((ts.DateTime - programMeeting.EndHour).TotalMinutes) < 7.5);
+                            
+                            if (startTimeSlot != null)
+                            {
+                                int startIndex = targetSite.TimeSlots.IndexOf(startTimeSlot);
+                                int endIndex = endTimeSlot != null ? targetSite.TimeSlots.IndexOf(endTimeSlot) : startIndex;
+                                
+                                programMeetingViewModel.StartSlotIndex = startIndex;
+                                
+                                // Mark all slots in the range as part of this meeting
+                                for (int i = startIndex; i <= endIndex && i < targetSite.TimeSlots.Count; i++)
+                                {
+                                    var slot = targetSite.TimeSlots[i];
+                                    slot.ProgramMeeting = programMeetingViewModel;
+                                    
+                                    if (startIndex == endIndex)
+                                    {
+                                        // Single slot meeting: both first and last
+                                        slot.IsFirstSlotOfMeeting = true;
+                                        slot.IsLastSlotOfMeeting = true;
+                                    }
+                                    else if (i == startIndex)
+                                    {
+                                        // First slot: contains the meeting object and header
+                                        slot.IsFirstSlotOfMeeting = true;
+                                    }
+                                    else if (i == endIndex)
+                                    {
+                                        // Last slot: only mark as last, not middle
+                                        slot.IsLastSlotOfMeeting = true;
+                                    }
+                                    else
+                                    {
+                                        // Middle slots: just part of the meeting
+                                        slot.IsMiddleSlotOfMeeting = true;
+                                    }
+                                }
+                            }
+                            
+                            // Add events to the program meeting
+                            foreach (var programSlot in programMeeting.ProgramSlots)
+                            {
+                                foreach (var programRun in programSlot.ProgramRuns)
+                                {
+                                    var plannedEvent = new PlannedEventViewModel
+                                    {
+                                        Id = programSlot.RaceFormatDetailId,
+                                        Title = programRun.Name,
+                                        Subtitle = $"Site: {programRun.Site}",
+                                        Color = targetSite.Color,
+                                        Duration = (int)(programRun.EndHour - programRun.BeginHour).TotalMinutes,
+                                        ConfigurationLabel = programSlot.RaceFormatDetail?.Label ?? "",
+                                        StatusColor = "#10B981",
+                                        ParticipantCount = GetParticipantCountNullable(programSlot.RaceFormatDetail)
+                                    };
+
+                                    programMeetingViewModel.Events.Add(plannedEvent);
+                                    
+                                    // Remove from events to plan
+                                    var eventToRemove = EventsToplan.FirstOrDefault(e => e.Id == programSlot.RaceFormatDetailId);
+                                    if (eventToRemove != null)
+                                    {
+                                        EventsToplan.Remove(eventToRemove);
+                                    }
+                                }
+                            }
+                            
+                            targetSite.ProgramMeetings.Add(programMeetingViewModel);
+                        }
                     }
                 }
+                
+                // Update sites for current date to reflect changes
+                UpdateSitesForCurrentDate();
 
                 FilterEvents();
                 UpdateStatistics();
@@ -1021,6 +1356,32 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 _dialogService.ShowMessage("Erreur", "Erreur lors de la création du créneau manuel");
             }
         }
+
+        private void OnCreateProgramMeeting()
+        {
+            try
+            {
+                var dialog = new ProgramMeetingCreationDialog(CurrentDate, Sites);
+                bool? result = dialog.ShowDialog();
+
+                if (result == true && dialog.DataContext is ProgramMeetingCreationDialogViewModel viewModel && viewModel.CreatedProgramMeeting != null)
+                {
+                    // Refresh the data to show the new ProgramMeeting
+                    LoadPlanningData();
+                    UpdateStatistics();
+                    
+                    // Update sites for current date to show changes immediately
+                    UpdateSitesForCurrentDate();
+                    
+                    _logger.LogInformation($"ProgramMeeting created: {viewModel.CreatedProgramMeeting.Name}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating ProgramMeeting");
+                _dialogService.ShowMessage("Erreur", "Erreur lors de la création du groupe de programme");
+            }
+        }
     }
 
     public class PlanningEventViewModel : ObservableObject
@@ -1044,6 +1405,26 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public string Color { get; set; } = "#6B7280";
         public DateTime Date { get; set; }
         public List<TimeSlotViewModel> TimeSlots { get; set; } = new();
+        public ObservableCollection<ProgramMeetingViewModel> ProgramMeetings { get; set; } = new();
+    }
+
+    public class ProgramMeetingViewModel : ObservableObject
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime BeginHour { get; set; }
+        public DateTime EndHour { get; set; }
+        public string TimeRange => $"{BeginHour:HH:mm} - {EndHour:HH:mm}";
+        public string SiteColor { get; set; } = "#6B7280";
+        public ObservableCollection<PlannedEventViewModel> Events { get; set; } = new();
+        public int StartSlotIndex { get; set; }
+        public int SlotCount => (int)Math.Ceiling((EndHour - BeginHour).TotalMinutes / 10.0);
+        
+        // Visual properties for grouping
+        public bool IsExpanded { get; set; } = true;
+        public string GroupColor => SiteColor;
+        public string BorderColor => SiteColor;
     }
 
     public class TimeSlotViewModel
@@ -1052,6 +1433,12 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         public DateTime DateTime { get; set; }
         public string SiteColor { get; set; } = "#F9FAFB";
         public ObservableCollection<PlannedEventViewModel> Events { get; set; } = new();
+        public ProgramMeetingViewModel? ProgramMeeting { get; set; }
+        public bool HasProgramMeeting => ProgramMeeting != null;
+        public bool IsFirstSlotOfMeeting { get; set; }
+        public bool IsLastSlotOfMeeting { get; set; }
+        public bool IsMiddleSlotOfMeeting { get; set; }
+        public bool IsPartOfMeeting => HasProgramMeeting || IsMiddleSlotOfMeeting;
     }
 
     public class PlannedEventViewModel

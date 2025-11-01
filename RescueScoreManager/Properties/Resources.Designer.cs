@@ -1249,7 +1249,7 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à Acceuil.
+        ///   Recherche une chaîne localisée semblable à Accueil.
         /// </summary>
         internal static string Home {
             get {
