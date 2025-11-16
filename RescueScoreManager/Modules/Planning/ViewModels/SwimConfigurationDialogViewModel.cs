@@ -169,13 +169,26 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             AppSetting? appSetting = _xmlService.GetSetting();
             int numberOfLanes = appSetting?.NumberOfLanes ?? 8;
 
+            // Calculate NumberOfRaces for 'eau-plate' discipline based on total teams divided by number of lanes
+            int numberOfRaces = 1; // Default value
+            if (_races != null && _races.Any())
+            {
+                Race firstRace = _races.First();
+                if (firstRace.Speciality == EnumRSM.Speciality.EauPlate)
+                {
+                    // Calculate total teams across all races
+                    int totalTeams = _races.Sum(race => race.GetAvailableTeams().Count);
+                    numberOfRaces = (int)Math.Ceiling((double)totalTeams / numberOfLanes);
+                }
+            }
+
             PhaseViewModel newPhase = new PhaseViewModel
             {
                 Order = SeriesPhases.Count + 1,
                 Name = _localizationService.GetString("Series") ?? "Série",
                 Level = EnumRSM.HeatLevel.Heat,
                 QualificationLogic = EnumRSM.QualificationType.NA, // Empty for series
-                NumberOfRaces = 1,
+                NumberOfRaces = numberOfRaces,
                 PlacesPerRace = numberOfLanes,
                 QualifyingPlaces = 0,
                 RemoveCommand = new RelayCommand<PhaseViewModel>(OnRemoveSeriesPhase)
@@ -189,13 +202,26 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             AppSetting? appSetting = _xmlService.GetSetting();
             int numberOfLanes = appSetting?.NumberOfLanes ?? 8;
 
+            // Calculate NumberOfRaces for 'eau-plate' discipline based on total teams divided by number of lanes
+            int numberOfRaces = 1; // Default value
+            if (_races != null && _races.Any())
+            {
+                Race firstRace = _races.First();
+                if (firstRace.Speciality == EnumRSM.Speciality.EauPlate)
+                {
+                    // Calculate total teams across all races
+                    int totalTeams = _races.Sum(race => race.GetAvailableTeams().Count);
+                    numberOfRaces = (int)Math.Ceiling((double)totalTeams / numberOfLanes);
+                }
+            }
+
             PhaseViewModel newPhase = new PhaseViewModel
             {
                 Order = FinalsPhases.Count + 1,
                 Name = _localizationService.GetString("Final") ?? "Finale",
                 Level = EnumRSM.HeatLevel.Final,
                 QualificationLogic = EnumRSM.QualificationType.Course,
-                NumberOfRaces = 1,
+                NumberOfRaces = numberOfRaces,
                 PlacesPerRace = numberOfLanes,
                 QualifyingPlaces = numberOfLanes,
                 RemoveCommand = new RelayCommand<PhaseViewModel>(OnRemoveFinalsPhase)
@@ -237,6 +263,19 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             AppSetting? appSetting = _xmlService.GetSetting();
             int numberOfLanes = appSetting?.NumberOfLanes ?? 8;
 
+            // Calculate NumberOfRaces for 'eau-plate' discipline based on total teams divided by number of lanes
+            int numberOfRaces = 1; // Default value
+            if (_races != null && _races.Any())
+            {
+                Race firstRace = _races.First();
+                if (firstRace.Speciality == EnumRSM.Speciality.EauPlate)
+                {
+                    // Calculate total teams across all races
+                    int totalTeams = _races.Sum(race => race.GetAvailableTeams().Count);
+                    numberOfRaces = (int)Math.Ceiling((double)totalTeams / numberOfLanes);
+                }
+            }
+
             // Swimming-specific default values
             return new PhaseViewModel
             {
@@ -244,7 +283,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 Name = _localizationService.GetString("Series") ?? "Series",
                 Level = EnumRSM.HeatLevel.Heat,
                 QualificationLogic = EnumRSM.QualificationType.Course,
-                NumberOfRaces = 1,
+                NumberOfRaces = numberOfRaces,
                 PlacesPerRace = numberOfLanes,
                 QualifyingPlaces = 0,
                 RemoveCommand = new RelayCommand<PhaseViewModel>(OnRemovePhase)
@@ -278,57 +317,59 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 List<RaceFormatConfiguration> raceFormatConfigurations = new List<RaceFormatConfiguration>();
                 bool hasApiCalls = false;
 
-                // Create RaceFormatConfiguration for each race, combining series and finals phases
-                foreach (var raceGroup in CategoryConfigurations.GroupBy(cc => new { cc.Race.Name, cc.Race.Gender, cc.Race.Discipline }))
+                // Create RaceFormatConfiguration combining series and finals phases
+                var allPhases = new List<PhaseViewModel>();
+                
+                // Add all series phases
+                allPhases.AddRange(SeriesPhases);
+                // Add all finals phases
+                allPhases.AddRange(FinalsPhases);
+
+                if (allPhases.Any() && _races.Any())
                 {
-                    Race race = raceGroup.First().Race;
-                    var allPhases = new List<PhaseViewModel>();
-                    
-                    // Add all series phases
-                    allPhases.AddRange(SeriesPhases);
-                    // Add all finals phases
-                    allPhases.AddRange(FinalsPhases);
+                    // Use the first race to determine common properties for the discipline
+                    Race firstRace = _races.First();
+                    string categoryNames = $"({string.Join(", ", _allCategories.OrderBy(c => c.AgeMin).Select(c => c.Name))})";
 
-                    if (allPhases.Any())
+                    RaceFormatConfiguration raceFormatConfig = new RaceFormatConfiguration
                     {
-                        string categoryNames = $"({string.Join(", ", _allCategories.OrderBy(c => c.AgeMin).Select(c => c.Name))})";
+                        Id = 0,
+                        Label = $"{firstRace.Name} {categoryNames}",
+                        FullLabel = $"{firstRace.Name} {categoryNames}",
+                        Gender = firstRace.Gender,
+                        Discipline = firstRace.Discipline,
+                        Categories = _allCategories,
+                        Races = _races.ToList(),
+                        RaceFormatDetails = new List<RaceFormatDetail>()
+                    };
 
-                        RaceFormatConfiguration raceFormatConfig = new RaceFormatConfiguration
-                        {
-                            Id = 0,
-                            Label = $"{race.Name} {categoryNames}",
-                            FullLabel = $"{race.Name} {categoryNames}",
-                            Gender = race.Gender,
-                            Discipline = race.Discipline,
-                            Categories = _allCategories,
-                            RaceFormatDetails = new List<RaceFormatDetail>()
-                        };
+                    // Update DisciplineLabel from races
+                    raceFormatConfig.UpdateDisciplineLabel();
 
-                        // Convert phases to RaceFormatDetails
-                        foreach (PhaseViewModel phase in allPhases.OrderBy(p => p.Order))
-                        {
-                            RaceFormatDetail raceFormatDetail = ConvertToRaceFormatDetail(phase, race, raceFormatConfig);
-                            raceFormatConfig.RaceFormatDetails.Add(raceFormatDetail);
-                        }
-
-                        raceFormatConfigurations.Add(raceFormatConfig);
-
-                        // TODO - Check authentication before making API call
-                        //if (!hasApiCalls)
-                        //{
-                        //    bool isAuthenticated = await EnsureAuthenticatedAsync();
-                        //    if (!isAuthenticated)
-                        //    {
-                        //        // User chose not to authenticate, but continue with local save
-                        //        _messenger.Send(new Messages.SnackMessage(_localizationService.GetString("ConfigurationSaved") ?? "Configuration saved"));
-                        //        break;
-                        //    }
-                        //    hasApiCalls = true;
-                        //}
-
-                        // TODO - Submit to API only if authenticated
-                        //await _apiService.SubmitRaceFormatConfigurationAsync(raceFormatConfig, _xmlService.GetCompetition()!, _authService.AuthenticationInfo);
+                    // Convert phases to RaceFormatDetails
+                    foreach (PhaseViewModel phase in allPhases.OrderBy(p => p.Order))
+                    {
+                        RaceFormatDetail raceFormatDetail = ConvertToRaceFormatDetail(phase, firstRace, raceFormatConfig);
+                        raceFormatConfig.RaceFormatDetails.Add(raceFormatDetail);
                     }
+
+                    raceFormatConfigurations.Add(raceFormatConfig);
+
+                    // TODO - Check authentication before making API call
+                    //if (!hasApiCalls)
+                    //{
+                    //    bool isAuthenticated = await EnsureAuthenticatedAsync();
+                    //    if (!isAuthenticated)
+                    //    {
+                    //        // User chose not to authenticate, but continue with local save
+                    //        _messenger.Send(new Messages.SnackMessage(_localizationService.GetString("ConfigurationSaved") ?? "Configuration saved"));
+                    //        break;
+                    //    }
+                    //    hasApiCalls = true;
+                    //}
+
+                    // TODO - Submit to API only if authenticated
+                    //await _apiService.SubmitRaceFormatConfigurationAsync(raceFormatConfig, _xmlService.GetCompetition()!, _authService.AuthenticationInfo);
                 }
 
                 // Update XML service with new configurations

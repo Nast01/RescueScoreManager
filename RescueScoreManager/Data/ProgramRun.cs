@@ -18,8 +18,8 @@ public partial class ProgramRun
     public DateTime BeginHour { get; set; }
     public DateTime EndHour { get; set; }
 
-    public int HeatId { get; set; }
-    public Heat Heat { get; set; } = null!;
+    public int? HeatId { get; set; }
+    public Heat? Heat { get; set; }
 
     public int ProgramSlotId { get; set; }
     public ProgramSlot ProgramSlot { get; set; } = null!;
@@ -37,8 +37,12 @@ public partial class ProgramRun
         Status = Enum.Parse<ProgramStatus>(xElement.Attribute(Properties.Resources.Status_XMI)?.Value ?? "Unknown");
         BeginHour = DateTime.Parse(xElement.Attribute(Properties.Resources.BeginHour_XMI)?.Value ?? DateTime.MinValue.ToString());
         EndHour = DateTime.Parse(xElement.Attribute(Properties.Resources.EndHour_XMI)?.Value ?? DateTime.MinValue.ToString());
-        HeatId = int.Parse(xElement.Attribute(Properties.Resources.HeatId_XMI)?.Value ?? "0");
-        Heat = heats.FirstOrDefault(h => h.Id == HeatId) ?? new Heat();
+        var heatIdValue = xElement.Attribute(Properties.Resources.HeatId_XMI)?.Value;
+        if (!string.IsNullOrEmpty(heatIdValue) && int.TryParse(heatIdValue, out int heatId))
+        {
+            HeatId = heatId;
+            Heat = heats.FirstOrDefault(h => h.Id == heatId);
+        }
 
     }
 
@@ -52,7 +56,7 @@ public partial class ProgramRun
                             new XAttribute(Properties.Resources.Status_XMI, Status.ToString()),
                             new XAttribute(Properties.Resources.BeginHour_XMI, BeginHour.ToString("yyyy-MM-ddTHH:mm:ss")),
                             new XAttribute(Properties.Resources.EndHour_XMI, EndHour.ToString("yyyy-MM-ddTHH:mm:ss")),
-                            new XAttribute(Properties.Resources.HeatId_XMI, HeatId)
+                            new XAttribute(Properties.Resources.HeatId_XMI, HeatId ?? 0)
                             );
 
         return xElement;

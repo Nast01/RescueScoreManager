@@ -1,15 +1,17 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
 using System.Windows.Input;
+using System.Windows.Media;
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+
 using Microsoft.Extensions.Logging;
+
 using RescueScoreManager.Data;
-using RescueScoreManager.Modules.Planning.Views;
 using RescueScoreManager.Services;
+
+using static RescueScoreManager.Data.EnumRSM;
 
 namespace RescueScoreManager.Modules.Planning.ViewModels
 {
@@ -18,1438 +20,1288 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private readonly IXMLService _xmlService;
         private readonly ILocalizationService _localizationService;
         private readonly IDialogService _dialogService;
+        private readonly IProgramService _programService;
+        private readonly IProgramValidationService _validationService;
         private readonly ILogger<PlanningProgramViewModel> _logger;
 
-        [ObservableProperty]
-        private string _searchText = string.Empty;
+        #region Observable Properties
 
         [ObservableProperty]
-        private DateTime _currentDate = DateTime.Today;
+        private Program? _currentProgram;
+
+        private Competition? _currentCompetition;
+
+        public Competition? CurrentCompetition
+        {
+            get => _currentCompetition;
+            set
+            {
+                SetProperty(ref _currentCompetition, value);
+                RefreshCommandStates();
+            }
+        }
 
         [ObservableProperty]
-        private string _currentDateDisplay = string.Empty;
+        private ObservableCollection<RaceFormatDetail> _availableRaceFormats = new();
+
+        // Keep track of all race formats (original list before filtering)
+        private List<RaceFormatDetail> _allRaceFormats = new();
 
         [ObservableProperty]
-        private int _eventsToplanCount;
+        private ObservableCollection<Site> _availableSites = new();
 
         [ObservableProperty]
-        private int _plannedEventsCount;
+        private ObservableCollection<ProgramMeeting> _programMeetings = new();
 
-        public ObservableCollection<PlanningEventViewModel> EventsToplan { get; }
-        public ObservableCollection<PlanningEventViewModel> FilteredEventsToplan { get; }
-        public ObservableCollection<SiteViewModel> Sites { get; }
-        public ObservableCollection<RaceFormatDetail> RaceFormatDetails { get; }
-        
-        private readonly Dictionary<DateTime, List<SiteViewModel>> _sitesByDate = new();
+        [ObservableProperty]
+        private ProgramValidationResult _validationResult = new();
 
-        public ICommand SaveCommand { get; }
-        public ICommand ExportCommand { get; }
+        private DateTime _selectedDate = DateTime.Today;
+
+        public DateTime SelectedDate
+        {
+            get => _selectedDate;
+            set
+            {
+                // Validate date range against competition dates
+                if (CurrentCompetition != null)
+                {
+                    if (value < CurrentCompetition.BeginDate.Date)
+                    {
+                        value = CurrentCompetition.BeginDate.Date;
+                        _logger.LogWarning("Selected date adjusted to competition begin date: {Date}", value);
+                    }
+                    else if (value > CurrentCompetition.EndDate.Date)
+                    {
+                        value = CurrentCompetition.EndDate.Date;
+                        _logger.LogWarning("Selected date adjusted to competition end date: {Date}", value);
+                    }
+                }
+
+                SetProperty(ref _selectedDate, value);
+                RefreshCommandStates();
+                OnPropertyChanged(nameof(SitesForSelectedDate));
+            }
+        }
+
+        [ObservableProperty]
+        private string _selectedViewMode = "By Time";
+
+        [ObservableProperty]
+        private ProgramSlot? _selectedEvent;
+
+        [ObservableProperty]
+        private bool _canPublish = false;
+
+        [ObservableProperty]
+        private string _validationSummary = "No validation performed";
+
+        [ObservableProperty]
+        private Brush _validationStatusColor = Brushes.Gray;
+
+        [ObservableProperty]
+        private Brush _statusColor = Brushes.Blue;
+
+        [ObservableProperty]
+        private int _eventCount = 0;
+
+        [ObservableProperty]
+        private int _conflictCount = 0;
+
+        [ObservableProperty]
+        private DateTime _lastValidationTime = DateTime.Now;
+
+        [ObservableProperty]
+        private string _autoSaveStatus = "Auto-save enabled";
+
+        #endregion
+
+        #region Computed Properties
+
+        /// <summary>
+        /// Gets the available sites with only the program meetings for the selected date
+        /// </summary>
+        public IEnumerable<Site> SitesForSelectedDate
+        {
+            get
+            {
+                return AvailableSites.Select(site =>
+                {
+                    var clonedSite = new Site(site.Id, site.Name, site.Description, site.Icon);
+                    clonedSite.ProgramMeetings = site.ProgramMeetings
+                        .Where(meeting => meeting.ProgramDate.Date == SelectedDate.Date)
+                        .ToList();
+                    return clonedSite;
+                }).Where(site => site.ProgramMeetings.Any()); // Only show sites that have meetings for the selected date
+            }
+        }
+
+        #endregion
+
+        #region Commands
+
+        public ICommand AddSiteCommand { get; }
+        public ICommand AddMeetingCommand { get; }
+        public ICommand ValidateCommand { get; }
+        public ICommand PublishCommand { get; }
         public ICommand PreviousDayCommand { get; }
         public ICommand NextDayCommand { get; }
-        public ICommand AutoPlanCommand { get; }
-        public ICommand AddSiteCommand { get; }
-        public ICommand RemoveSiteCommand { get; }
-        public ICommand CreateManualTimeSlotCommand { get; }
-        public ICommand CreateProgramMeetingCommand { get; }
+        public ICommand TodayCommand { get; }
+        public ICommand AddManualEventCommand { get; }
+        public ICommand AutoArrangeCommand { get; }
+        public ICommand ExportCommand { get; }
+        public ICommand AddManualSlotCommand { get; }
+        public ICommand DeleteSlotCommand { get; }
+
+        #endregion
 
         public PlanningProgramViewModel(
             IXMLService xmlService,
             ILocalizationService localizationService,
             IDialogService dialogService,
+            IProgramService programService,
+            IProgramValidationService validationService,
             ILogger<PlanningProgramViewModel> logger)
         {
             _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
             _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
             _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+            _programService = programService ?? throw new ArgumentNullException(nameof(programService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            EventsToplan = new ObservableCollection<PlanningEventViewModel>();
-            FilteredEventsToplan = new ObservableCollection<PlanningEventViewModel>();
-            Sites = new ObservableCollection<SiteViewModel>();
-            RaceFormatDetails = new ObservableCollection<RaceFormatDetail>();
-
-            SaveCommand = new RelayCommand(OnSave);
-            ExportCommand = new RelayCommand(OnExport);
-            PreviousDayCommand = new RelayCommand(OnPreviousDay);
-            NextDayCommand = new RelayCommand(OnNextDay);
-            AutoPlanCommand = new RelayCommand(OnAutoPlan);
-            AddSiteCommand = new RelayCommand(OnAddSite);
-            RemoveSiteCommand = new RelayCommand<SiteViewModel>(OnRemoveSite);
-            CreateManualTimeSlotCommand = new RelayCommand(OnCreateManualTimeSlot);
-            CreateProgramMeetingCommand = new RelayCommand(OnCreateProgramMeeting);
+            // Initialize commands
+            AddSiteCommand = new RelayCommand(async () => await AddSiteAsync());
+            AddMeetingCommand = new RelayCommand(async () => await AddMeetingAsync());
+            ValidateCommand = new RelayCommand(async () => await ValidateScheduleAsync());
+            PublishCommand = new RelayCommand(async () => await PublishProgramAsync(), () => CanPublish);
+            PreviousDayCommand = new RelayCommand(() => SelectedDate = SelectedDate.AddDays(-1), CanGoToPreviousDay);
+            NextDayCommand = new RelayCommand(() => SelectedDate = SelectedDate.AddDays(1), CanGoToNextDay);
+            TodayCommand = new RelayCommand(() => SelectedDate = DateTime.Today, CanGoToToday);
+            AddManualEventCommand = new RelayCommand(async () => await AddManualEventAsync());
+            AutoArrangeCommand = new RelayCommand(async () => await AutoArrangeEventsAsync());
+            ExportCommand = new RelayCommand(async () => await ExportScheduleAsync());
+            AddManualSlotCommand = new RelayCommand<ProgramMeeting>(async (meeting) => await AddManualSlotAsync(meeting));
+            DeleteSlotCommand = new RelayCommand<ProgramSlot>(async (slot) => await DeleteSlotAsync(slot));
 
             Initialize();
         }
-        
-        partial void OnSearchTextChanged(string value)
-        {
-            FilterEvents();
-        }
 
-        private void Initialize()
-        {
-            // Set current date to competition begin date if not within range
-            Competition? competition = _xmlService.GetCompetition();
-            if (competition != null)
-            {
-                if (CurrentDate < competition.BeginDate || CurrentDate > competition.EndDate)
-                {
-                    CurrentDate = competition.BeginDate;
-                }
-            }
-            
-            UpdateCurrentDateDisplay();
-            LoadEventsToplan();
-            LoadSites();
-            LoadRaceFormatDetails();
-            LoadPlanningData();
-            UpdateStatistics();
-            FilterEvents();
-        }
+        #region Initialization
 
-        private void UpdateCurrentDateDisplay()
+        private async void Initialize()
         {
-            CurrentDateDisplay = $"{GetDayName(CurrentDate.DayOfWeek)} {CurrentDate.Day} {GetMonthName(CurrentDate.Month)} {CurrentDate.Year}";
-        }
-
-        private string GetDayName(DayOfWeek dayOfWeek)
-        {
-            return dayOfWeek switch
-            {
-                DayOfWeek.Monday => "Lundi",
-                DayOfWeek.Tuesday => "Mardi",
-                DayOfWeek.Wednesday => "Mercredi",
-                DayOfWeek.Thursday => "Jeudi",
-                DayOfWeek.Friday => "Vendredi",
-                DayOfWeek.Saturday => "Samedi",
-                DayOfWeek.Sunday => "Dimanche",
-                _ => dayOfWeek.ToString()
-            };
-        }
-
-        private string GetMonthName(int month)
-        {
-            return month switch
-            {
-                1 => "Janvier",
-                2 => "Février",
-                3 => "Mars",
-                4 => "Avril",
-                5 => "Mai",
-                6 => "Juin",
-                7 => "Juillet",
-                8 => "Août",
-                9 => "Septembre",
-                10 => "Octobre",
-                11 => "Novembre",
-                12 => "Décembre",
-                _ => month.ToString()
-            };
-        }
-
-        private void LoadEventsToplan()
-        {
-            EventsToplan.Clear();
-
             try
             {
-                IReadOnlyList<Race> races = _xmlService.GetRaces();
-                IReadOnlyList<RaceFormatConfiguration> raceFormatConfigurations = _xmlService.GetRaceFormatConfigurations();
+                _logger.LogInformation("Initializing PlanningProgram module");
 
-                foreach (RaceFormatConfiguration config in raceFormatConfigurations)
-                {
-                    foreach (RaceFormatDetail detail in config.RaceFormatDetails)
-                    {
-                        PlanningEventViewModel eventViewModel = new PlanningEventViewModel
-                        {
-                            Id = detail.Id,
-                            Name = detail.Label,
-                            ConfigurationLabel = config.Label,
-                            ConfigurationColor = GetConfigurationColor(config.Discipline),
-                            StatusColor = GetStatusColor(detail),
-                            ParticipantCount = GetParticipantCount(detail),
-                            Duration = detail.NumberOfRun * 10,
-                            IsPlanned = false
-                        };
+                await LoadCurrentCompetitionAsync();
+                await LoadCurrentProgramAsync();
+                await LoadAvailableRaceFormatsAsync();
+                await LoadAvailableSitesAsync();
+                await LoadProgramMeetingsAsync();
+                await ValidateScheduleAsync();
 
-                        EventsToplan.Add(eventViewModel);
-                    }
-                }
-
-                // Sort events by name
-                List<PlanningEventViewModel> sortedEvents = EventsToplan.OrderBy(e => e.Name).ToList();
-                EventsToplan.Clear();
-                foreach (PlanningEventViewModel evt in sortedEvents)
-                {
-                    EventsToplan.Add(evt);
-                }
-                
-                FilterEvents();
+                _logger.LogInformation("PlanningProgram module initialized successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading events to plan");
-            }
-        }
-        
-        private void FilterEvents()
-        {
-            FilteredEventsToplan.Clear();
-            
-            if (string.IsNullOrWhiteSpace(SearchText))
-            {
-                foreach (PlanningEventViewModel evt in EventsToplan)
-                {
-                    FilteredEventsToplan.Add(evt);
-                }
-            }
-            else
-            {
-                List<PlanningEventViewModel> filtered = EventsToplan.Where(e => 
-                    e.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                    e.ConfigurationLabel.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-                
-                foreach (var evt in filtered)
-                {
-                    FilteredEventsToplan.Add(evt);
-                }
-            }
-            
-            EventsToplanCount = FilteredEventsToplan.Count;
-        }
-
-        private void LoadSites()
-        {
-            Sites.Clear();
-            _sitesByDate.Clear();
-
-            var sites = _xmlService.GetSites();
-            var competition = _xmlService.GetCompetition();
-            
-            if (sites.Count > 0 && competition != null)
-            {
-                // Create site instances for each day of the competition
-                for (var date = competition.BeginDate.Date; date <= competition.EndDate.Date; date = date.AddDays(1))
-                {
-                    var dailySites = new List<SiteViewModel>();
-                    int colorIndex = 0;
-                    
-                    foreach (var site in sites)
-                    {
-                        string siteColor = GetSiteColor(colorIndex++);
-                        dailySites.Add(new SiteViewModel
-                        {
-                            Id = site.Id,
-                            Name = site.Name,
-                            Description = site.Description,
-                            Icon = site.Icon,
-                            Color = siteColor,
-                            Date = date,
-                            TimeSlots = CreateTimeSlots(date, siteColor)
-                        });
-                    }
-                    
-                    _sitesByDate[date] = dailySites;
-                }
-            }
-            
-            // Load sites for current date
-            UpdateSitesForCurrentDate();
-        }
-
-        private void UpdateSitesForCurrentDate()
-        {
-            Sites.Clear();
-            
-            if (_sitesByDate.TryGetValue(CurrentDate.Date, out var dailySites))
-            {
-                foreach (var site in dailySites)
-                {
-                    Sites.Add(site);
-                }
+                _logger.LogError(ex, "Error initializing PlanningProgram module");
             }
         }
 
-        private List<TimeSlotViewModel> CreateTimeSlots(DateTime? date = null, string siteColor = "#F9FAFB")
-        {
-            var targetDate = date ?? CurrentDate;
-            var timeSlots = new List<TimeSlotViewModel>();
-            var startTime = new TimeSpan(7, 30, 0);
-
-            for (int i = 0; i < 70; i++)
-            {
-                var currentTime = startTime.Add(TimeSpan.FromMinutes(i * 10));
-                timeSlots.Add(new TimeSlotViewModel
-                {
-                    Time = currentTime.ToString(@"hh\:mm"),
-                    DateTime = targetDate.Add(currentTime),
-                    SiteColor = siteColor,
-                    Events = new ObservableCollection<PlannedEventViewModel>()
-                });
-            }
-
-            return timeSlots;
-        }
-
-        private string GetConfigurationColor(int discipline)
-        {
-            return discipline switch
-            {
-                1 => "#3B82F6", // EauPlate
-                2 => "#F59E0B", // Cotier
-                3 => "#8B5CF6", // Mixte
-                _ => "#6B7280"
-            };
-        }
-
-        private string GetSiteColor(int index)
-        {
-            string[] colors = new[]
-            {
-                "#3B82F6", // Blue
-                "#10B981", // Green
-                "#F59E0B", // Orange
-                "#8B5CF6", // Purple
-                "#EF4444", // Red
-                "#06B6D4", // Cyan
-                "#84CC16", // Lime
-                "#F97316", // Orange alt
-                "#EC4899", // Pink
-                "#6366F1"  // Indigo
-            };
-            
-            return colors[index % colors.Length];
-        }
-
-        private string GetStatusColor(RaceFormatDetail detail)
-        {
-            return "#F59E0B"; // Orange for pending
-        }
-
-        private int GetParticipantCount(RaceFormatDetail detail)
+        private async Task LoadCurrentCompetitionAsync()
         {
             try
             {
-                // Get the parent RaceFormatConfiguration
-                var raceFormatConfiguration = detail.RaceFormatConfiguration;
-                
-                if (raceFormatConfiguration == null)
+                CurrentCompetition = await Task.Run(() => _xmlService.GetCompetition());
+                if (CurrentCompetition != null)
                 {
-                    // If not accessible directly, find it from the XML service
-                    var allConfigurations = _xmlService.GetRaceFormatConfigurations();
-                    raceFormatConfiguration = allConfigurations.FirstOrDefault(config => 
-                        config.RaceFormatDetails.Any(d => d.Id == detail.Id));
-                }
-                
-                if (raceFormatConfiguration != null)
-                {
-                    // Get all races from XML service
-                    var allRaces = _xmlService.GetRaces();
-                    
-                    // Find races that match the configuration criteria
-                    var matchingRaces = allRaces.Where(race => 
-                        race.Discipline == raceFormatConfiguration.Discipline &&
-                        race.Gender == raceFormatConfiguration.Gender &&
-                        raceFormatConfiguration.Categories.Any(configCat => 
-                            race.Categories.Any(raceCat => raceCat.Id == configCat.Id))
-                    ).ToList();
-                    
-                    // Calculate total participant count from all matching races
-                    return matchingRaces.Sum(race => race.GetAvailableTeams().Count);
-                }
-                
-                return 0; // Return 0 if configuration not found
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating participant count for RaceFormatDetail {DetailId}", detail.Id);
-                return 0;
-            }
-        }
-
-        private int GetParticipantCountNullable(RaceFormatDetail? detail)
-        {
-            return detail == null ? 0 : GetParticipantCount(detail);
-        }
-
-        private void LoadRaceFormatDetails()
-        {
-            RaceFormatDetails.Clear();
-
-            try
-            {
-                var raceFormatConfigurations = _xmlService.GetRaceFormatConfigurations();
-                foreach (var config in raceFormatConfigurations)
-                {
-                    foreach (var detail in config.RaceFormatDetails)
+                    // Set initial SelectedDate to competition begin date if current date is outside range
+                    var today = DateTime.Today;
+                    if (today < CurrentCompetition.BeginDate.Date || today > CurrentCompetition.EndDate.Date)
                     {
-                        RaceFormatDetails.Add(detail);
+                        SelectedDate = CurrentCompetition.BeginDate.Date;
                     }
+                    else
+                    {
+                        SelectedDate = today;
+                    }
+
+                    _logger.LogDebug("Loaded current competition: {CompetitionName} ({BeginDate} - {EndDate})",
+                        CurrentCompetition.Name,
+                        CurrentCompetition.BeginDate.ToShortDateString(),
+                        CurrentCompetition.EndDate.ToShortDateString());
+                }
+                else
+                {
+                    _logger.LogWarning("No current competition found");
+                    SelectedDate = DateTime.Today;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading race format details");
+                _logger.LogError(ex, "Error loading current competition");
+                SelectedDate = DateTime.Today;
             }
         }
 
-        private void UpdateStatistics()
-        {
-            PlannedEventsCount = Sites.SelectMany(s => s.TimeSlots).SelectMany(ts => ts.Events).Count();
-        }
-
-        private int GetRequiredSlotCount(int durationInMinutes)
-        {
-            // Calculate slots needed based on 10-minute slots as specified
-            return (int)Math.Ceiling(durationInMinutes / 10.0);
-        }
-
-        private List<TimeSlotViewModel> GetConsecutiveAvailableSlots(SiteViewModel site, TimeSlotViewModel startingSlot, int requiredSlots, PlannedEventViewModel? excludeEvent = null)
-        {
-            int startIndex = site.TimeSlots.IndexOf(startingSlot);
-            if (startIndex == -1 || startIndex + requiredSlots > site.TimeSlots.Count)
-            {
-                return new List<TimeSlotViewModel>();
-            }
-
-            var consecutiveSlots = new List<TimeSlotViewModel>();
-            for (int i = startIndex; i < startIndex + requiredSlots && i < site.TimeSlots.Count; i++)
-            {
-                var slot = site.TimeSlots[i];
-                // Check if slot has any events that would conflict (excluding the specified event if provided)
-                var conflictingEvents = excludeEvent != null 
-                    ? slot.Events.Where(e => e != excludeEvent).ToList()
-                    : slot.Events.ToList();
-                
-                if (conflictingEvents.Any())
-                {
-                    return new List<TimeSlotViewModel>(); // Slot is occupied by other events
-                }
-                consecutiveSlots.Add(slot);
-            }
-
-            return consecutiveSlots.Count == requiredSlots ? consecutiveSlots : new List<TimeSlotViewModel>();
-        }
-
-        public void MoveEventToTimeSlot(object eventItem, object timeSlotItem)
-        {
-            if (eventItem is PlanningEventViewModel planningEvent && timeSlotItem is TimeSlotViewModel startingTimeSlot)
-            {
-                // Check if this event is already in the timeslot to prevent duplicates
-                if (startingTimeSlot.Events.Any(e => e.Id == planningEvent.Id))
-                {
-                    return;
-                }
-
-                // Find the site containing this time slot
-                var targetSite = Sites.FirstOrDefault(s => s.TimeSlots.Contains(startingTimeSlot));
-                if (targetSite == null)
-                {
-                    return;
-                }
-
-                // Calculate required slots and get consecutive available slots
-                int requiredSlots = GetRequiredSlotCount(planningEvent.Duration);
-                List<TimeSlotViewModel> availableSlots = GetConsecutiveAvailableSlots(targetSite, startingTimeSlot, requiredSlots);
-
-                if (availableSlots.Count != requiredSlots)
-                {
-                    _logger.LogWarning($"Cannot place event {planningEvent.Name}: not enough consecutive available slots (need {requiredSlots}, found {availableSlots.Count})");
-                    return;
-                }
-
-                // Create the planned event
-                var plannedEvent = new PlannedEventViewModel
-                {
-                    Id = planningEvent.Id,
-                    Title = planningEvent.Name,
-                    Subtitle = $"{planningEvent.ParticipantCount} participants",
-                    Color = startingTimeSlot.SiteColor,
-                    Duration = planningEvent.Duration,
-                    ConfigurationLabel = planningEvent.ConfigurationLabel,
-                    StatusColor = planningEvent.StatusColor,
-                    ParticipantCount = planningEvent.ParticipantCount
-                };
-
-                // Add the event to all required consecutive slots
-                foreach (var slot in availableSlots)
-                {
-                    slot.Events.Add(plannedEvent);
-                }
-
-                EventsToplan.Remove(planningEvent);
-                FilterEvents();
-
-                UpdateStatistics();
-                SavePlanningData();
-                
-                _logger.LogInformation($"Moved event {planningEvent.Name} to {requiredSlots} time slots starting at {startingTimeSlot.Time}");
-            }
-        }
-
-        public void RemoveEventFromTimeSlot(object plannedEventItem)
-        {
-            if (plannedEventItem is PlannedEventViewModel plannedEvent)
-            {
-                // Find all timeslots containing this exact event instance
-                var containingTimeSlots = new List<TimeSlotViewModel>();
-                foreach (var site in Sites)
-                {
-                    foreach (var timeSlot in site.TimeSlots)
-                    {
-                        if (timeSlot.Events.Contains(plannedEvent))
-                        {
-                            containingTimeSlots.Add(timeSlot);
-                        }
-                    }
-                }
-
-                if (containingTimeSlots.Any())
-                {
-                    // Remove the exact event instance from all timeslots it occupies
-                    foreach (var timeSlot in containingTimeSlots)
-                    {
-                        timeSlot.Events.Remove(plannedEvent);
-                    }
-
-                    // Convert PlannedEventViewModel back to PlanningEventViewModel
-                    var restoredEvent = new PlanningEventViewModel
-                    {
-                        Id = plannedEvent.Id,
-                        Name = plannedEvent.Title,
-                        ConfigurationLabel = plannedEvent.ConfigurationLabel,
-                        ConfigurationColor = plannedEvent.Color,
-                        StatusColor = plannedEvent.StatusColor,
-                        ParticipantCount = plannedEvent.ParticipantCount,
-                        Duration = plannedEvent.Duration,
-                        IsPlanned = false
-                    };
-
-                    EventsToplan.Add(restoredEvent);
-
-                    // Sort events by name after adding
-                    var sortedEvents = EventsToplan.OrderBy(e => e.Name).ToList();
-                    EventsToplan.Clear();
-                    foreach (var evt in sortedEvents)
-                    {
-                        EventsToplan.Add(evt);
-                    }
-
-                    FilterEvents();
-                    UpdateStatistics();
-                    SavePlanningData();
-                    _logger.LogInformation($"Removed event {plannedEvent.Title} from {containingTimeSlots.Count} time slots and restored to planning list");
-                }
-            }
-        }
-
-        public void MovePlannedEventToTimeSlot(object plannedEventItem, object timeSlotItem)
-        {
-            if (plannedEventItem is PlannedEventViewModel plannedEvent && timeSlotItem is TimeSlotViewModel targetTimeSlot)
-            {
-                // Find all source timeslots containing this exact event instance
-                var sourceTimeSlots = new List<TimeSlotViewModel>();
-                SiteViewModel? sourceSite = null;
-                foreach (var site in Sites)
-                {
-                    foreach (var timeSlot in site.TimeSlots)
-                    {
-                        if (timeSlot.Events.Contains(plannedEvent))
-                        {
-                            sourceTimeSlots.Add(timeSlot);
-                            if (sourceSite == null)
-                            {
-                                sourceSite = site;
-                            }
-                        }
-                    }
-                }
-
-                // Find the target site containing the target time slot
-                var targetSite = Sites.FirstOrDefault(s => s.TimeSlots.Contains(targetTimeSlot));
-                if (targetSite == null)
-                {
-                    return;
-                }
-
-                if (sourceTimeSlots.Any() && !sourceTimeSlots.Contains(targetTimeSlot))
-                {
-                    // Check if this event is already in the target timeslot to prevent duplicates
-                    if (targetTimeSlot.Events.Any(e => e.Id == plannedEvent.Id))
-                    {
-                        return;
-                    }
-
-                    // Calculate required slots and get consecutive available slots (excluding the current event)
-                    int requiredSlots = GetRequiredSlotCount(plannedEvent.Duration);
-                    var availableSlots = GetConsecutiveAvailableSlots(targetSite, targetTimeSlot, requiredSlots, plannedEvent);
-
-                    if (availableSlots.Count != requiredSlots)
-                    {
-                        _logger.LogWarning($"Cannot move event {plannedEvent.Title}: not enough consecutive available slots (need {requiredSlots}, found {availableSlots.Count})");
-                        return;
-                    }
-
-                    // Remove from all source timeslots
-                    foreach (var sourceSlot in sourceTimeSlots)
-                    {
-                        sourceSlot.Events.Remove(plannedEvent);
-                    }
-
-                    // Create a new event with the target site's color
-                    var movedEvent = new PlannedEventViewModel
-                    {
-                        Id = plannedEvent.Id,
-                        Title = plannedEvent.Title,
-                        Subtitle = plannedEvent.Subtitle,
-                        Color = targetTimeSlot.SiteColor,
-                        Duration = plannedEvent.Duration,
-                        ConfigurationLabel = plannedEvent.ConfigurationLabel,
-                        StatusColor = plannedEvent.StatusColor,
-                        ParticipantCount = plannedEvent.ParticipantCount
-                    };
-
-                    // Add to all required target timeslots
-                    foreach (var slot in availableSlots)
-                    {
-                        slot.Events.Add(movedEvent);
-                    }
-
-                    UpdateStatistics();
-                    SavePlanningData();
-                    
-                    _logger.LogInformation($"Moved planned event {plannedEvent.Title} from {sourceTimeSlots.Count} slots to {requiredSlots} slots starting at {targetTimeSlot.Time}");
-                }
-            }
-        }
-        public void RefreshData()
-        {
-            Initialize();
-        }
-
-        public void MoveEventToProgramMeeting(object eventItem, object programMeetingItem)
-        {
-            if (eventItem is PlanningEventViewModel planningEvent && programMeetingItem is ProgramMeetingViewModel programMeeting)
-            {
-                try
-                {
-                    // Create the planned event for the program meeting
-                    var plannedEvent = new PlannedEventViewModel
-                    {
-                        Id = planningEvent.Id,
-                        Title = planningEvent.Name,
-                        Subtitle = $"{planningEvent.ParticipantCount} participants",
-                        Color = programMeeting.SiteColor,
-                        Duration = planningEvent.Duration,
-                        ConfigurationLabel = planningEvent.ConfigurationLabel,
-                        StatusColor = planningEvent.StatusColor,
-                        ParticipantCount = planningEvent.ParticipantCount
-                    };
-
-                    // Add to program meeting
-                    programMeeting.Events.Add(plannedEvent);
-                    
-                    // Update program meeting end time based on events
-                    UpdateProgramMeetingEndTime(programMeeting);
-
-                    // Remove from events to plan
-                    EventsToplan.Remove(planningEvent);
-                    FilterEvents();
-                    UpdateStatistics();
-                    
-                    // Save the changes
-                    SaveProgramMeetingData(programMeeting);
-                    
-                    _logger.LogInformation($"Moved event {planningEvent.Name} to program meeting {programMeeting.Name}");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error moving event to program meeting");
-                }
-            }
-        }
-
-        public void MovePlannedEventToProgramMeeting(object plannedEventItem, object programMeetingItem)
-        {
-            if (plannedEventItem is PlannedEventViewModel plannedEvent && programMeetingItem is ProgramMeetingViewModel programMeeting)
-            {
-                try
-                {
-                    // Remove from current location (time slots or other program meetings)
-                    RemoveEventFromCurrentLocation(plannedEvent);
-
-                    // Update color to match new program meeting
-                    plannedEvent.Color = programMeeting.SiteColor;
-
-                    // Add to new program meeting
-                    programMeeting.Events.Add(plannedEvent);
-                    
-                    // Update program meeting end time
-                    UpdateProgramMeetingEndTime(programMeeting);
-                    
-                    UpdateStatistics();
-                    
-                    // Save the changes
-                    SaveProgramMeetingData(programMeeting);
-                    
-                    _logger.LogInformation($"Moved planned event {plannedEvent.Title} to program meeting {programMeeting.Name}");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error moving planned event to program meeting");
-                }
-            }
-        }
-
-        private void RemoveEventFromCurrentLocation(PlannedEventViewModel plannedEvent)
-        {
-            // Remove from time slots
-            foreach (var site in Sites)
-            {
-                foreach (var timeSlot in site.TimeSlots)
-                {
-                    if (timeSlot.Events.Contains(plannedEvent))
-                    {
-                        timeSlot.Events.Remove(plannedEvent);
-                    }
-                }
-                
-                // Remove from other program meetings
-                foreach (var programMeeting in site.ProgramMeetings)
-                {
-                    if (programMeeting.Events.Contains(plannedEvent))
-                    {
-                        programMeeting.Events.Remove(plannedEvent);
-                        UpdateProgramMeetingEndTime(programMeeting);
-                        SaveProgramMeetingData(programMeeting);
-                    }
-                }
-            }
-        }
-
-        private void UpdateProgramMeetingEndTime(ProgramMeetingViewModel programMeeting)
-        {
-            if (programMeeting.Events.Any())
-            {
-                // Calculate end time based on the latest event end time
-                var latestEndTime = programMeeting.BeginHour;
-                foreach (var evt in programMeeting.Events)
-                {
-                    var eventEndTime = programMeeting.BeginHour.AddMinutes(evt.Duration);
-                    if (eventEndTime > latestEndTime)
-                    {
-                        latestEndTime = eventEndTime;
-                    }
-                }
-                programMeeting.EndHour = latestEndTime;
-            }
-            else
-            {
-                // Default 1 hour duration if no events
-                programMeeting.EndHour = programMeeting.BeginHour.AddHours(1);
-            }
-        }
-
-        private void SaveProgramMeetingData(ProgramMeetingViewModel programMeetingViewModel)
+        private async Task LoadCurrentProgramAsync()
         {
             try
             {
-                var allMeetings = _xmlService.GetProgramMeetings().ToList();
-                var existingMeeting = allMeetings.FirstOrDefault(m => m.Id == programMeetingViewModel.Id);
-                
-                if (existingMeeting != null)
+                CurrentProgram = await _programService.GetCurrentProgramAsync();
+                if (CurrentProgram == null)
                 {
-                    // Update existing meeting
-                    existingMeeting.EndHour = programMeetingViewModel.EndHour;
-                    
-                    // Clear existing slots and recreate them
-                    existingMeeting.ProgramSlots.Clear();
-                    
-                    int slotId = 1;
-                    foreach (var evt in programMeetingViewModel.Events)
-                    {
-                        var raceFormatDetail = _xmlService.GetRaceFormatConfigurations()
-                            .SelectMany(config => config.RaceFormatDetails)
-                            .FirstOrDefault(detail => detail.Id == evt.Id);
+                    // Create a new program if none exists
+                    CurrentProgram = await _programService.CreateProgramAsync("New Competition Schedule");
+                    await _programService.SetCurrentProgramAsync(CurrentProgram);
+                }
 
-                        if (raceFormatDetail != null)
-                        {
-                            var programSlot = new ProgramSlot
-                            {
-                                Id = slotId++,
-                                Name = evt.Title,
-                                BeginHour = programMeetingViewModel.BeginHour,
-                                EndHour = programMeetingViewModel.BeginHour.AddMinutes(evt.Duration),
-                                RaceFormatDetailId = evt.Id,
-                                RaceFormatDetail = raceFormatDetail,
-                                ProgramMeetingId = existingMeeting.Id,
-                                ProgramMeeting = existingMeeting,
-                                ProgramRuns = new List<ProgramRun>()
-                            };
+                UpdateStatusIndicators();
+                _logger.LogDebug("Loaded current program: {ProgramId}", CurrentProgram?.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading current program");
+            }
+        }
 
-                            // Find site name from description or current site
-                            string siteName = "Default Site";
-                            if (existingMeeting.Description != null && existingMeeting.Description.StartsWith("Site:"))
-                            {
-                                var parts = existingMeeting.Description.Split('|');
-                                if (parts.Length >= 1)
-                                {
-                                    siteName = parts[0].Substring(5);
-                                }
-                            }
+        private async Task LoadAvailableRaceFormatsAsync()
+        {
+            try
+            {
+                // Get data from services (can be done on background thread)
+                var raceFormatConfigurations = await Task.Run(() => _xmlService.GetRaceFormatConfigurations());
+                _logger.LogDebug("Found {ConfigCount} race format configurations", raceFormatConfigurations.Count);
 
-                            var programRun = new ProgramRun
-                            {
-                                Id = slotId,
-                                Name = evt.Title,
-                                Site = siteName,
-                                Status = Data.EnumRSM.ProgramStatus.Pending,
-                                BeginHour = programSlot.BeginHour,
-                                EndHour = programSlot.EndHour,
-                                ProgramSlotId = programSlot.Id,
-                                ProgramSlot = programSlot
-                            };
+                var raceFormats = await Task.Run(() => raceFormatConfigurations
+                    .SelectMany(config => config.RaceFormatDetails)
+                    .OrderBy(detail => detail.RaceFormatConfiguration.Discipline)
+                    .ThenBy(detail => detail.RaceFormatConfiguration.DisciplineLabel)
+                    .ThenBy(detail => detail.Order)
+                    .ToList());
 
-                            programSlot.ProgramRuns.Add(programRun);
-                            existingMeeting.ProgramSlots.Add(programSlot);
-                        }
-                    }
-                    
-                    _xmlService.UpdateProgramMeetings(allMeetings);
+                _logger.LogDebug("Found {DetailCount} race format details", raceFormats.Count);
+
+                // Store all race formats and update UI collection on UI thread
+                _allRaceFormats = raceFormats;
+                AvailableRaceFormats.Clear();
+                foreach (var format in raceFormats)
+                {
+                    AvailableRaceFormats.Add(format);
+                    _logger.LogDebug("Added race format: {Label} from discipline {Discipline}",
+                        format.Label, format.RaceFormatConfiguration.DisciplineLabel);
+                }
+
+                // If no race formats found, create some sample data for testing
+                if (raceFormats.Count == 0)
+                {
+                    _logger.LogWarning("No race format configurations found, creating sample data for testing");
+                    CreateSampleRaceFormats();
+                }
+
+                _logger.LogInformation("Loaded {Count} available race formats sorted by discipline", AvailableRaceFormats.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading available race formats");
+            }
+        }
+
+        private async Task LoadAvailableSitesAsync()
+        {
+            try
+            {
+                var sites = await Task.Run(() => _xmlService.GetSites().ToList());
+
+                // Update UI collection on UI thread
+                AvailableSites.Clear();
+                foreach (var site in sites)
+                {
+                    AvailableSites.Add(site);
+                }
+
+                _logger.LogDebug("Loaded {Count} available sites", AvailableSites.Count);
+                OnPropertyChanged(nameof(SitesForSelectedDate));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading available sites");
+            }
+        }
+
+        private async Task LoadProgramMeetingsAsync()
+        {
+            try
+            {
+                if (CurrentProgram == null)
+                {
+                    return;
+                }
+
+                var meetings = await _programService.GetProgramMeetingsAsync(CurrentProgram.Id);
+
+                // Update UI collection on UI thread
+                ProgramMeetings.Clear();
+                foreach (var meeting in meetings)
+                {
+                    ProgramMeetings.Add(meeting);
+                }
+
+                UpdateEventCount();
+                OnPropertyChanged(nameof(SitesForSelectedDate));
+
+                // Refresh available race formats to exclude used ones
+                RefreshAvailableRaceFormats();
+
+                _logger.LogDebug("Loaded {Count} program meetings", ProgramMeetings.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading program meetings");
+            }
+        }
+
+        #endregion
+
+        #region Command Implementations
+
+        private async Task AddSiteAsync()
+        {
+            try
+            {
+                var dialog = new Views.SiteCreationDialog();
+                bool? result = dialog.ShowDialog();
+
+                if (result == true && dialog.DataContext is ViewModels.SiteCreationDialogViewModel viewModel && viewModel.CreatedSite != null)
+                {
+                    var newSite = viewModel.CreatedSite;
+
+                    // Save to XML
+                    var sites = _xmlService.GetSites().ToList();
+                    sites.Add(newSite);
+                    _xmlService.UpdateSites(sites);
                     _xmlService.Save();
+
+                    // Add to available sites collection
+                    AvailableSites.Add(newSite);
+                    OnPropertyChanged(nameof(SitesForSelectedDate));
+                    _logger.LogInformation("Added new site: {SiteName}", newSite.Name);
+                }
+                else
+                {
+                    _logger.LogDebug("Site creation cancelled by user");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving program meeting data");
+                _logger.LogError(ex, "Error adding new site");
             }
         }
 
-        private void SavePlanningData()
+        private async Task AddMeetingAsync()
         {
             try
             {
-                var programMeetings = new List<ProgramMeeting>();
-                int meetingId = 1;
-
-                foreach (var site in Sites)
+                if (CurrentProgram == null)
                 {
-                    string meetingName = $"{site.Name} - {site.Date:yyyy-MM-dd}";
-                    var programMeeting = new ProgramMeeting
+                    _logger.LogWarning("Cannot add meeting: CurrentProgram is null");
+                    return;
+                }
+
+                // Open the ProgramMeetingCreationDialog
+                var dialog = new Views.ProgramMeetingCreationDialog(SelectedDate, AvailableSites);
+                bool? result = dialog.ShowDialog();
+
+                if (result == true && dialog.DataContext is ViewModels.ProgramMeetingCreationDialogViewModel viewModel && viewModel.CreatedProgramMeeting != null)
+                {
+                    var newMeeting = viewModel.CreatedProgramMeeting;
+
+                    // Set the program reference properly
+                    newMeeting.ProgramId = CurrentProgram.Id;
+                    newMeeting.Program = CurrentProgram;
+
+                    // Find the site for this meeting from description
+                    string? targetSiteId = newMeeting.Description?.Split('|').LastOrDefault();
+                    var targetSite = AvailableSites.FirstOrDefault(s => s.Id.ToString() == targetSiteId);
+                    if (targetSite != null)
                     {
-                        Id = meetingId++,
-                        Name = meetingName,
-                        Description = site.Description,
-                        ProgramDate = site.Date,
-                        BeginHour = site.Date.AddHours(7),
-                        EndHour = site.Date.AddHours(20),
-                        ProgramSlots = new List<ProgramSlot>()
+                        // Add the meeting to the site's meetings collection
+                        if (!targetSite.ProgramMeetings.Any(m => m.Id == newMeeting.Id))
+                        {
+                            targetSite.ProgramMeetings.Add(newMeeting);
+                        }
+
+                        // Update the program's sites collection
+                        var sites = _xmlService.GetSites().ToList();
+                        int siteIndex = sites.FindIndex(s => s.Id == targetSite.Id);
+                        if (siteIndex >= 0)
+                        {
+                            sites[siteIndex] = targetSite;
+                        }
+                        else
+                        {
+                            sites.Add(targetSite);
+                        }
+
+                        // Save the updated sites and program to XML
+                        _xmlService.UpdateSites(sites);
+                        _xmlService.Save();
+
+                        // Update the UI collections
+                        ProgramMeetings.Add(newMeeting);
+                        OnPropertyChanged(nameof(SitesForSelectedDate));
+                        UpdateEventCount();
+                        await ValidateScheduleAsync();
+
+                        _logger.LogInformation("Added new meeting: {MeetingName} to site: {SiteName}", newMeeting.Name, targetSite.Name);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Could not find target site for meeting: {MeetingName}", newMeeting.Name);
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug("Meeting creation cancelled by user");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding new meeting");
+            }
+        }
+
+        private async Task ValidateScheduleAsync()
+        {
+            try
+            {
+                if (CurrentProgram == null)
+                { return; }
+
+                ValidationResult = await _validationService.ValidateProgramAsync(CurrentProgram);
+                LastValidationTime = DateTime.Now;
+
+                ConflictCount = ValidationResult.Conflicts.Count;
+                CanPublish = await _validationService.CanPublishProgramAsync(CurrentProgram);
+                ValidationSummary = await _validationService.GetPublishValidationMessageAsync(CurrentProgram);
+
+                ValidationStatusColor = ValidationResult.IsValid ? Brushes.Green : Brushes.Red;
+
+                _logger.LogInformation("Schedule validation completed: Valid={IsValid}, Conflicts={ConflictCount}",
+                    ValidationResult.IsValid, ConflictCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating schedule");
+                ValidationSummary = "Validation error occurred";
+                ValidationStatusColor = Brushes.Red;
+            }
+        }
+
+        private async Task PublishProgramAsync()
+        {
+            try
+            {
+                if (CurrentProgram == null)
+                { return; }
+
+                // Validate before publishing
+                await ValidateScheduleAsync();
+
+                if (!CanPublish)
+                {
+                    _logger.LogWarning("Cannot publish program due to validation issues");
+                    return;
+                }
+
+                CurrentProgram = await _programService.PublishProgramAsync(CurrentProgram.Id);
+                UpdateStatusIndicators();
+
+                _logger.LogInformation("Program published successfully: {ProgramId} - Version {Version}",
+                    CurrentProgram.Id, CurrentProgram.Version);
+
+                // Show success message (this would typically be a dialog)
+                ValidationSummary = "Program published successfully!";
+                ValidationStatusColor = Brushes.Green;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error publishing program");
+                ValidationSummary = "Error occurred during publishing";
+                ValidationStatusColor = Brushes.Red;
+            }
+        }
+
+        private async Task AddManualEventAsync()
+        {
+            try
+            {
+                var firstMeeting = ProgramMeetings.FirstOrDefault();
+                if (firstMeeting == null)
+                {
+                    _logger.LogWarning("No meetings available to add manual event");
+                    return;
+                }
+
+                var manualSlot = await _programService.CreateManualEventAsync(
+                    meetingId: firstMeeting.Id,
+                    name: "Manual Event",
+                    beginHour: DateTime.Now.Date.AddHours(12), // Noon
+                    durationMinutes: 30,
+                    eventType: "Break"
+                );
+
+                firstMeeting.ProgramSlots.Add(manualSlot);
+                UpdateEventCount();
+                await ValidateScheduleAsync();
+
+                _logger.LogInformation("Added manual event: {EventName}", manualSlot.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding manual event");
+            }
+        }
+
+        private async Task AutoArrangeEventsAsync()
+        {
+            try
+            {
+                // This would implement automatic event arrangement logic
+                _logger.LogInformation("Auto-arrange events feature not yet implemented");
+                await Task.Delay(100); // Placeholder
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error auto-arranging events");
+            }
+        }
+
+        private async Task ExportScheduleAsync()
+        {
+            try
+            {
+                // This would implement schedule export functionality
+                _logger.LogInformation("Export schedule feature not yet implemented");
+                await Task.Delay(100); // Placeholder
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting schedule");
+            }
+        }
+
+        private async Task AddManualSlotAsync(ProgramMeeting? programMeeting)
+        {
+            try
+            {
+                if (programMeeting == null)
+                {
+                    _logger.LogWarning("Cannot add manual slot: ProgramMeeting is null");
+                    return;
+                }
+
+                // Open the ManualTimeSlotDialog
+                var dialog = new Views.ManualTimeSlotDialog();
+
+                // Initialize with current context
+                var viewModel = new ManualTimeSlotDialogViewModel(_xmlService, programMeeting.ProgramDate);
+                dialog.DataContext = viewModel;
+
+                bool? result = dialog.ShowDialog();
+
+                if (result == true && viewModel.CreatedEvent != null)
+                {
+                    // Create a new ProgramSlot
+                    var startTime = viewModel.GetSelectedDateTime();
+                    var endTime = startTime.AddMinutes(viewModel.Duration);
+
+                    var newSlot = new ProgramSlot
+                    {
+                        Id = GetNextProgramSlotId(),
+                        Name = viewModel.Name,
+                        BeginHour = startTime,
+                        EndHour = endTime,
+                        RaceFormatDetailId = -1, // Use -1 for manual slots
+                        RaceFormatDetail = CreateManualRaceFormatDetail(),
+                        ProgramMeetingId = programMeeting.Id,
+                        ProgramMeeting = programMeeting
                     };
 
-                    int slotId = 1;
-                    foreach (var timeSlot in site.TimeSlots.Where(ts => ts.Events.Any()))
-                    {
-                        foreach (var plannedEvent in timeSlot.Events)
-                        {
-                            var raceFormatDetail = _xmlService.GetRaceFormatConfigurations()
-                                .SelectMany(config => config.RaceFormatDetails)
-                                .FirstOrDefault(detail => detail.Id == plannedEvent.Id);
+                    // Add directly to the ProgramMeeting (this updates both the in-memory object and XML since they reference the same object)
+                    programMeeting.ProgramSlots.Add(newSlot);
 
-                            if (raceFormatDetail != null)
-                            {
-                                var programSlot = new ProgramSlot
-                                {
-                                    Id = slotId++,
-                                    Name = plannedEvent.Title,
-                                    BeginHour = timeSlot.DateTime,
-                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
-                                    RaceFormatDetailId = raceFormatDetail.Id,
-                                    RaceFormatDetail = raceFormatDetail,
-                                    ProgramMeetingId = programMeeting.Id,
-                                    ProgramMeeting = programMeeting,
-                                    ProgramRuns = new List<ProgramRun>()
-                                };
+                    _xmlService.Save();
 
-                                var programRun = new ProgramRun
-                                {
-                                    Id = slotId,
-                                    Name = plannedEvent.Title,
-                                    Site = site.Name,
-                                    Status = Data.EnumRSM.ProgramStatus.Pending,
-                                    BeginHour = timeSlot.DateTime,
-                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
-                                    ProgramSlotId = programSlot.Id,
-                                    ProgramSlot = programSlot
-                                };
+                    // Refresh UI
+                    OnPropertyChanged(nameof(SitesForSelectedDate));
+                    UpdateEventCount();
+                    await ValidateScheduleAsync();
 
-                                programSlot.ProgramRuns.Add(programRun);
-                                programMeeting.ProgramSlots.Add(programSlot);
-                            }
-                            else
-                            {
-                                var programSlot = new ProgramSlot
-                                {
-                                    Id = slotId++,
-                                    Name = plannedEvent.Title,
-                                    BeginHour = timeSlot.DateTime,
-                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
-                                    ProgramMeetingId = programMeeting.Id,
-                                    ProgramMeeting = programMeeting,
-                                    ProgramRuns = new List<ProgramRun>()
-                                };
+                    _logger.LogInformation("Added manual slot: {SlotName} to meeting: {MeetingName}", newSlot.Name, programMeeting.Name);
+                }
+                else
+                {
+                    _logger.LogDebug("Manual slot creation cancelled by user");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding manual slot to meeting: {MeetingName}", programMeeting?.Name ?? "Unknown");
+            }
+        }
 
+        private int GetNextProgramSlotId()
+        {
+            var existingIds = ProgramMeetings.SelectMany(m => m.ProgramSlots).Select(s => s.Id).ToList();
+            return existingIds.Any() ? existingIds.Max() + 1 : 1;
+        }
 
-                                var programRun = new ProgramRun
-                                {
-                                    Id = slotId,
-                                    Name = plannedEvent.Title,
-                                    Site = site.Name,
-                                    Status = Data.EnumRSM.ProgramStatus.Pending,
-                                    BeginHour = timeSlot.DateTime,
-                                    EndHour = timeSlot.DateTime.AddMinutes(plannedEvent.Duration),
-                                    ProgramSlotId = programSlot.Id,
-                                    ProgramSlot = programSlot
-                                };
+        private RaceFormatDetail CreateManualRaceFormatDetail()
+        {
+            return new RaceFormatDetail
+            {
+                Id = -1,
+                Label = "Manual Event",
+                FullLabel = "Manual Time Slot",
+                LevelLabel = "Manual",
+                Level = HeatLevel.Heat,
+                Order = 999,
+                NumberOfRun = 1,
+                RaceFormatConfiguration = new RaceFormatConfiguration
+                {
+                    Id = -1,
+                    Label = "Manual Events",
+                    FullLabel = "Manual Time Slots",
+                    Gender = Gender.Mixte,
+                    Discipline = 999,
+                    DisciplineLabel = "Manual",
+                    Categories = new List<Category>()
+                }
+            };
+        }
 
-
-                                programSlot.ProgramRuns.Add(programRun);
-                                programMeeting.ProgramSlots.Add(programSlot);
-                            }
-                        }
-                    }
-
-                    if (programMeeting.ProgramSlots.Any())
-                    {
-                        programMeetings.Add(programMeeting);
-                    }
+        private async Task DeleteSlotAsync(ProgramSlot? programSlot)
+        {
+            try
+            {
+                if (programSlot == null)
+                {
+                    _logger.LogWarning("Cannot delete slot: ProgramSlot is null");
+                    return;
                 }
 
-                _xmlService.UpdateProgramMeetings(programMeetings);
-                _xmlService.Save();
-                _logger.LogInformation("Planning data saved successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving planning data");
-            }
-        }
+                // Show confirmation dialog
+                var result = System.Windows.MessageBox.Show(
+                    $"Êtes-vous sûr de vouloir supprimer le slot '{programSlot.Name}' ?",
+                    "Confirmation de suppression",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Question);
 
-        private void LoadPlanningData()
-        {
-            try
-            {
-                var programMeetings = _xmlService.GetProgramMeetings();
-                
-                // First, clear any existing program meetings from sites and time slots
-                foreach (var siteList in _sitesByDate.Values)
+                if (result != System.Windows.MessageBoxResult.Yes)
                 {
-                    foreach (var site in siteList)
-                    {
-                        site.ProgramMeetings.Clear();
-                        foreach (var timeSlot in site.TimeSlots)
-                        {
-                            timeSlot.ProgramMeeting = null;
-                            timeSlot.IsFirstSlotOfMeeting = false;
-                            timeSlot.IsLastSlotOfMeeting = false;
-                            timeSlot.IsMiddleSlotOfMeeting = false;
-                        }
-                    }
+                    _logger.LogDebug("Slot deletion cancelled by user");
+                    return;
                 }
-                
-                foreach (var programMeeting in programMeetings)
+
+                // Find and remove from Program structure
+                var program = _xmlService.GetProgram();
+                bool slotFound = false;
+
+                foreach (var site in program.Sites)
                 {
-                    var meetingDate = programMeeting.ProgramDate.Date;
-                    
-                    if (_sitesByDate.TryGetValue(meetingDate, out var dailySites))
+                    foreach (var meeting in site.ProgramMeetings)
                     {
-                        // Find the appropriate site for this program meeting
-                        string? targetSiteName = null;
-                        SiteViewModel? targetSite = null;
-                        
-                        // First try to get site from program runs (for meetings with content)
-                        targetSiteName = programMeeting.ProgramSlots.FirstOrDefault()?.ProgramRuns.FirstOrDefault()?.Site;
-                        if (!string.IsNullOrEmpty(targetSiteName))
+                        var slotToRemove = meeting.ProgramSlots.FirstOrDefault(s => s.Id == programSlot.Id);
+                        if (slotToRemove != null)
                         {
-                            targetSite = dailySites.FirstOrDefault(s => s.Name == targetSiteName);
-                        }
-                        
-                        // If no site found and it's a new meeting, try to parse from description
-                        if (targetSite == null && programMeeting.Description != null && programMeeting.Description.StartsWith("Site:"))
-                        {
-                            var parts = programMeeting.Description.Split('|');
-                            if (parts.Length >= 2)
-                            {
-                                targetSiteName = parts[0].Substring(5); // Remove "Site:" prefix
-                                if (int.TryParse(parts[1], out int siteId))
-                                {
-                                    targetSite = dailySites.FirstOrDefault(s => s.Id == siteId);
-                                }
-                                if (targetSite == null)
-                                {
-                                    targetSite = dailySites.FirstOrDefault(s => s.Name == targetSiteName);
-                                }
-                            }
-                        }
-                        
-                        if (targetSite != null)
-                        {
-                            // Create ProgramMeetingViewModel
-                            var programMeetingViewModel = new ProgramMeetingViewModel
-                            {
-                                Id = programMeeting.Id,
-                                Name = programMeeting.Name,
-                                Description = programMeeting.Description ?? "",
-                                BeginHour = programMeeting.BeginHour,
-                                EndHour = programMeeting.EndHour,
-                                SiteColor = targetSite.Color
-                            };
-                            
-                            // Find the corresponding time slots for the entire duration
-                            var startTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
-                                Math.Abs((ts.DateTime - programMeeting.BeginHour).TotalMinutes) < 7.5);
-                            var endTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
-                                Math.Abs((ts.DateTime - programMeeting.EndHour).TotalMinutes) < 7.5);
-                            
-                            if (startTimeSlot != null)
-                            {
-                                int startIndex = targetSite.TimeSlots.IndexOf(startTimeSlot);
-                                int endIndex = endTimeSlot != null ? targetSite.TimeSlots.IndexOf(endTimeSlot) : startIndex;
-                                
-                                programMeetingViewModel.StartSlotIndex = startIndex;
-                                
-                                // Mark all slots in the range as part of this meeting
-                                for (int i = startIndex; i <= endIndex && i < targetSite.TimeSlots.Count; i++)
-                                {
-                                    var slot = targetSite.TimeSlots[i];
-                                    slot.ProgramMeeting = programMeetingViewModel;
-                                    
-                                    if (startIndex == endIndex)
-                                    {
-                                        // Single slot meeting: both first and last
-                                        slot.IsFirstSlotOfMeeting = true;
-                                        slot.IsLastSlotOfMeeting = true;
-                                    }
-                                    else if (i == startIndex)
-                                    {
-                                        // First slot: contains the meeting object and header
-                                        slot.IsFirstSlotOfMeeting = true;
-                                    }
-                                    else if (i == endIndex)
-                                    {
-                                        // Last slot: only mark as last, not middle
-                                        slot.IsLastSlotOfMeeting = true;
-                                    }
-                                    else
-                                    {
-                                        // Middle slots: just part of the meeting
-                                        slot.IsMiddleSlotOfMeeting = true;
-                                    }
-                                }
-                            }
-                            
-                            // Add events to the program meeting
-                            foreach (var programSlot in programMeeting.ProgramSlots)
-                            {
-                                foreach (var programRun in programSlot.ProgramRuns)
-                                {
-                                    var plannedEvent = new PlannedEventViewModel
-                                    {
-                                        Id = programSlot.RaceFormatDetailId,
-                                        Title = programRun.Name,
-                                        Subtitle = $"Site: {programRun.Site}",
-                                        Color = targetSite.Color,
-                                        Duration = (int)(programRun.EndHour - programRun.BeginHour).TotalMinutes,
-                                        ConfigurationLabel = programSlot.RaceFormatDetail?.Label ?? "",
-                                        StatusColor = "#10B981",
-                                        ParticipantCount = GetParticipantCountNullable(programSlot.RaceFormatDetail)
-                                    };
-
-                                    programMeetingViewModel.Events.Add(plannedEvent);
-                                    
-                                    // Remove from events to plan
-                                    var eventToRemove = EventsToplan.FirstOrDefault(e => e.Id == programSlot.RaceFormatDetailId);
-                                    if (eventToRemove != null)
-                                    {
-                                        EventsToplan.Remove(eventToRemove);
-                                    }
-                                }
-                            }
-                            
-                            targetSite.ProgramMeetings.Add(programMeetingViewModel);
-                        }
-                    }
-                }
-                
-                // Update sites for current date to reflect changes
-                UpdateSitesForCurrentDate();
-
-                FilterEvents();
-                UpdateStatistics();
-                _logger.LogInformation("Planning data loaded successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading planning data");
-            }
-        }
-
-        private void OnSave()
-        {
-            try
-            {
-                _logger.LogInformation("Saving planning configuration");
-                SavePlanningData();
-                _xmlService.Save();
-                _dialogService.ShowMessage("Sauvegarder", "Configuration sauvegardée avec succès!");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving planning configuration");
-                _dialogService.ShowMessage("Erreur", "Erreur lors de la sauvegarde");
-            }
-        }
-
-        private void OnExport()
-        {
-            try
-            {
-                _logger.LogInformation("Exporting planning");
-                _dialogService.ShowMessage("Exporter", "Planning exporté avec succès!");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error exporting planning");
-            }
-        }
-
-        private void OnPreviousDay()
-        {
-            var competition = _xmlService.GetCompetition();
-            if (competition != null && CurrentDate > competition.BeginDate)
-            {
-                CurrentDate = CurrentDate.AddDays(-1);
-                UpdateCurrentDateDisplay();
-                UpdateSitesForCurrentDate();
-            }
-        }
-
-        private void OnNextDay()
-        {
-            var competition = _xmlService.GetCompetition();
-            if (competition != null && CurrentDate < competition.EndDate)
-            {
-                CurrentDate = CurrentDate.AddDays(1);
-                UpdateCurrentDateDisplay();
-                UpdateSitesForCurrentDate();
-            }
-        }
-
-        private void OnAutoPlan()
-        {
-            try
-            {
-                _logger.LogInformation("Auto-planning events for current day");
-                
-                var unplannedEvents = EventsToplan.Where(e => !e.IsPlanned).OrderBy(e => e.Duration).ToList();
-                int plannedCount = 0;
-
-                foreach (var evt in unplannedEvents)
-                {
-                    int requiredSlots = GetRequiredSlotCount(evt.Duration);
-                    bool placed = false;
-
-                    // Try to place the event in each site
-                    foreach (var site in Sites)
-                    {
-                        if (placed)
-                        {
+                            meeting.ProgramSlots.Remove(slotToRemove);
+                            slotFound = true;
                             break;
                         }
+                    }
+                    if (slotFound)
+                    {
+                        break;
+                    }
+                }
 
-                        // Try each starting slot in the site
-                        for (int i = 0; i <= site.TimeSlots.Count - requiredSlots; i++)
+                if (slotFound)
+                {
+                    // Restore race format to available list if it was a race format slot (not manual)
+                    if (programSlot.RaceFormatDetailId > 0 && programSlot.RaceFormatDetail != null)
+                    {
+                        _logger.LogInformation("Restoring race format to available list: {Label} (ID: {Id})",
+                            programSlot.RaceFormatDetail.Label, programSlot.RaceFormatDetail.Id);
+                        RestoreRaceFormatToAvailable(programSlot.RaceFormatDetail);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Slot being deleted is manual (ID: {SlotId}), no race format to restore", programSlot.Id);
+                    }
+
+                    // Refresh the available race formats to apply discipline-based filtering
+                    RefreshAvailableRaceFormats();
+
+                    // Save to XML
+                    _xmlService.Save();
+
+                    // Refresh UI
+                    OnPropertyChanged(nameof(SitesForSelectedDate));
+                    UpdateEventCount();
+                    await ValidateScheduleAsync();
+
+                    _logger.LogInformation("Deleted slot: {SlotName} (ID: {SlotId})", programSlot.Name, programSlot.Id);
+                }
+                else
+                {
+                    _logger.LogWarning("Could not find slot to delete: {SlotName} (ID: {SlotId})", programSlot.Name, programSlot.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting slot: {SlotName}", programSlot?.Name ?? "Unknown");
+
+                // Show error message to user
+                System.Windows.MessageBox.Show(
+                    "Une erreur s'est produite lors de la suppression du slot. Veuillez réessayer.",
+                    "Erreur",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        #endregion
+
+        #region Drag and Drop Support
+
+        public async void HandleEventDrop(object raceFormatDetail, DateTime timeSlot)
+        {
+            try
+            {
+                if (raceFormatDetail is not RaceFormatDetail formatDetail)
+                {
+                    return;
+                }
+                var targetMeeting = ProgramMeetings.FirstOrDefault(m =>
+                    m.ProgramDate.Date == timeSlot.Date &&
+                    timeSlot >= m.BeginHour && timeSlot <= m.EndHour);
+
+                if (targetMeeting == null)
+                {
+                    _logger.LogWarning("No suitable meeting found for time slot: {TimeSlot}", timeSlot);
+                    return;
+                }
+
+                var newSlot = await _programService.CreateProgramSlotAsync(
+                    meetingId: targetMeeting.Id,
+                    name: formatDetail.Label,
+                    beginHour: timeSlot,
+                    endHour: timeSlot.AddMinutes(30), // Default 30-minute duration
+                    raceFormatDetailId: formatDetail.Id
+                );
+
+                targetMeeting.ProgramSlots.Add(newSlot);
+                UpdateEventCount();
+                await ValidateScheduleAsync();
+
+                _logger.LogInformation("Added event from drag-drop: {EventName} at {TimeSlot}",
+                    formatDetail.Label, timeSlot);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling event drop");
+            }
+        }
+
+        public async void HandleRaceFormatDrop(RaceFormatDetail raceFormatDetail, ProgramMeeting programMeeting)
+        {
+            try
+            {
+                _logger.LogInformation("Handling race format drop: {RaceFormat} into meeting: {MeetingName}",
+                    raceFormatDetail.Label, programMeeting.Name);
+
+                // Calculate start time - end hour of the previous slot or meeting begin hour
+                var startTime = programMeeting.ProgramSlots.Any()
+                    ? programMeeting.ProgramSlots.Max(s => s.EndHour)
+                    : programMeeting.BeginHour;
+
+                // Calculate duration based on NumberOfRun, interval, and race entries
+                double durationMinutes = await CalculateSlotDuration(raceFormatDetail);
+                var endTime = startTime.AddMinutes(durationMinutes);
+
+                // Create new ProgramSlot
+                var newSlot = new ProgramSlot
+                {
+                    Id = GetNextProgramSlotId(),
+                    Name = raceFormatDetail.Label,
+                    BeginHour = startTime,
+                    EndHour = endTime,
+                    RaceFormatDetailId = raceFormatDetail.Id,
+                    RaceFormatDetail = raceFormatDetail,
+                    ProgramMeetingId = programMeeting.Id,
+                    ProgramMeeting = programMeeting
+                };
+
+                // Add to meeting
+                programMeeting.ProgramSlots.Add(newSlot);
+
+                // Update meeting end hour to max of all slots
+                UpdateMeetingEndHour(programMeeting);
+
+                // Save to XML
+                _xmlService.Save();
+
+                // Remove from available race formats
+                RemoveRaceFormatFromAvailable(raceFormatDetail);
+
+                // Refresh UI
+                OnPropertyChanged(nameof(SitesForSelectedDate));
+                UpdateEventCount();
+                await ValidateScheduleAsync();
+
+                _logger.LogInformation("Added race format slot: {SlotName} ({StartTime:HH:mm} - {EndTime:HH:mm}) to meeting: {MeetingName}",
+                    newSlot.Name, newSlot.BeginHour, newSlot.EndHour, programMeeting.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling race format drop: {RaceFormat}", raceFormatDetail?.Label);
+            }
+        }
+
+        private async Task<double> CalculateSlotDuration(RaceFormatDetail raceFormatDetail)
+        {
+            try
+            {
+                if (raceFormatDetail?.Races == null || !raceFormatDetail.Races.Any())
+                {
+                    // Fallback: use a default duration if no races available
+                    return raceFormatDetail?.NumberOfRun * 5.0 ?? 30.0; // 5 minutes per run, or 30 minutes default
+                }
+
+                // Get app settings to get NumberOfLanes
+                var appSettings = _xmlService.GetSetting();
+                int numberOfLanes = appSettings?.NumberOfLanes ?? 8; // Default to 8 lanes if not found
+
+                // Base duration minutes - could be configurable, using a default of 5 minutes
+                double baseDurationMinutes = 5.0;
+
+                // Collect all teams from all races and sort by ascending EntryTime
+                var allTeams = new List<Team>();
+                await Task.Run(() =>
+                {
+                    foreach (var race in raceFormatDetail.Races)
+                    {
+                        var availableTeams = race.GetAvailableTeams();
+                        allTeams.AddRange(availableTeams);
+                    }
+                    
+                    // Sort teams by ascending EntryTime
+                    allTeams = allTeams.OrderBy(team => team.EntryTime).ToList();
+                });
+
+                // Calculate duration for each possible heat
+                double totalHeatDurationMinutes = 0.0;
+                int teamIndex = 0;
+                
+                while (teamIndex < allTeams.Count)
+                {
+                    // For this heat, take every NumberOfLanes element and find the max EntryTime
+                    double maxEntryTimeForHeat = 0.0;
+                    int teamsInThisHeat = 0;
+                    
+                    for (int laneIndex = 0; laneIndex < numberOfLanes && (teamIndex + laneIndex) < allTeams.Count; laneIndex++)
+                    {
+                        var team = allTeams[teamIndex + laneIndex];
+                        double teamEntryTimeMinutes = team.EntryTime / 100.0 / 60.0; // Convert centiseconds to minutes
+                        
+                        if (teamEntryTimeMinutes > maxEntryTimeForHeat)
                         {
-                            var startingSlot = site.TimeSlots[i];
-                            var availableSlots = GetConsecutiveAvailableSlots(site, startingSlot, requiredSlots);
+                            maxEntryTimeForHeat = teamEntryTimeMinutes;
+                        }
+                        
+                        teamsInThisHeat++;
+                    }
+                    
+                    // Add the max entry time for this heat to the total duration
+                    totalHeatDurationMinutes += maxEntryTimeForHeat;
+                    
+                    // Move to the next group of teams
+                    teamIndex += numberOfLanes;
+                }
 
-                            if (availableSlots.Count == requiredSlots)
+                // Add base duration to the calculated heat duration
+                double totalDurationMinutes = totalHeatDurationMinutes + baseDurationMinutes;
+
+                _logger.LogDebug("Calculated slot duration for {RaceFormatDetail}: {Duration} minutes " +
+                    "(Heat durations: {HeatDuration}, Base: {BaseDuration}, Teams: {TeamCount})", 
+                    raceFormatDetail.Label, totalDurationMinutes, totalHeatDurationMinutes, baseDurationMinutes, allTeams.Count);
+
+                return Math.Max(totalDurationMinutes, 5.0); // Minimum 5 minutes
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating slot duration for RaceFormatDetail: {RaceFormatDetailId}", 
+                    raceFormatDetail?.Id);
+                // Fallback: use a default duration
+                return raceFormatDetail?.NumberOfRun * 5.0 ?? 60.0; // 5 minutes per run or 60 minutes fallback
+            }
+        }
+
+        private void UpdateMeetingEndHour(ProgramMeeting programMeeting)
+        {
+            if (programMeeting.ProgramSlots.Any())
+            {
+                var maxEndHour = programMeeting.ProgramSlots.Max(s => s.EndHour);
+                if (maxEndHour > programMeeting.EndHour)
+                {
+                    programMeeting.EndHour = maxEndHour;
+                    _logger.LogDebug("Updated meeting {MeetingName} end hour to {EndHour:HH:mm}",
+                        programMeeting.Name, programMeeting.EndHour);
+                }
+            }
+        }
+
+        private void RemoveRaceFormatFromAvailable(RaceFormatDetail raceFormatDetail)
+        {
+            var formatToRemove = AvailableRaceFormats.FirstOrDefault(f => f.Id == raceFormatDetail.Id);
+            if (formatToRemove != null)
+            {
+                AvailableRaceFormats.Remove(formatToRemove);
+                _logger.LogDebug("Removed race format from available list: {Label}", raceFormatDetail.Label);
+            }
+        }
+
+        private void RestoreRaceFormatToAvailable(RaceFormatDetail raceFormatDetail)
+        {
+            try
+            {
+                _logger.LogDebug("Attempting to restore race format: {Label} (ID: {Id})",
+                    raceFormatDetail.Label, raceFormatDetail.Id);
+
+                // Check if it's already in the available list
+                if (!AvailableRaceFormats.Any(f => f.Id == raceFormatDetail.Id))
+                {
+                    // Check if the discipline is still in use by other slots
+                    string? disciplineLabel = raceFormatDetail.RaceFormatConfiguration?.DisciplineLabel?.ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(disciplineLabel))
+                    {
+                        bool isDisciplineStillUsed = false;
+                        foreach (var site in AvailableSites)
+                        {
+                            foreach (var meeting in site.ProgramMeetings)
                             {
-                                MoveEventToTimeSlot(evt, startingSlot);
-                                plannedCount++;
-                                placed = true;
+                                foreach (var slot in meeting.ProgramSlots)
+                                {
+                                    if (slot.RaceFormatDetailId > 0 &&
+                                        slot.RaceFormatDetail != null &&
+                                        slot.RaceFormatDetail.Id != raceFormatDetail.Id &&  // Don't count the slot we just deleted
+                                        slot.RaceFormatDetail.RaceFormatConfiguration?.DisciplineLabel?.ToLowerInvariant() == disciplineLabel)
+                                    {
+                                        isDisciplineStillUsed = true;
+                                        break;
+                                    }
+                                }
+                                if (isDisciplineStillUsed)
+                                { break; }
+                            }
+                            if (isDisciplineStillUsed)
+                            { break; }
+                        }
+
+                        if (isDisciplineStillUsed)
+                        {
+                            _logger.LogDebug("Cannot restore race format {Label} - discipline {Discipline} is still in use by other slots",
+                                raceFormatDetail.Label, disciplineLabel);
+                            return;
+                        }
+                    }
+
+                    // Find the correct position to insert (maintain original order)
+                    RaceFormatDetail? originalFormat = _allRaceFormats.FirstOrDefault(f => f.Id == raceFormatDetail.Id);
+                    if (originalFormat != null)
+                    {
+                        int insertIndex = 0;
+                        for (int i = 0; i < _allRaceFormats.Count; i++)
+                        {
+                            if (_allRaceFormats[i].Id == raceFormatDetail.Id)
+                            {
+                                // Count how many formats before this one are still in AvailableRaceFormats
+                                insertIndex = _allRaceFormats.Take(i).Count(f => AvailableRaceFormats.Any(af => af.Id == f.Id));
                                 break;
                             }
                         }
+
+                        AvailableRaceFormats.Insert(insertIndex, originalFormat);
+                        _logger.LogInformation("Successfully restored race format to available list at index {Index}: {Label}",
+                            insertIndex, raceFormatDetail.Label);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Could not find original race format in _allRaceFormats: {Label} (ID: {Id})",
+                            raceFormatDetail.Label, raceFormatDetail.Id);
                     }
                 }
-
-                _dialogService.ShowMessage("Auto-planification", $"Planification automatique terminée! {plannedCount} épreuves planifiées.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during auto-planning");
-            }
-        }
-
-        private void OnAddSite()
-        {
-            try
-            {
-                SiteCreationDialog dialog = new SiteCreationDialog();
-                bool? result = dialog.ShowDialog();
-                
-                if (result == true && dialog.DataContext is SiteCreationDialogViewModel viewModel && viewModel.CreatedSite != null)
+                else
                 {
-                    // Add the new site to the XML collection
-                    var sites = _xmlService.GetSites().ToList();
-                    sites.Add(viewModel.CreatedSite);
-                    _xmlService.UpdateSites(sites);
-                    
-                    // Add the new site to all competition dates
-                    var competition = _xmlService.GetCompetition();
-                    if (competition != null)
-                    {
-                        int colorIndex = sites.Count - 1; // Use index for consistent coloring
-                        
-                        for (var date = competition.BeginDate.Date; date <= competition.EndDate.Date; date = date.AddDays(1))
-                        {
-                            if (!_sitesByDate.ContainsKey(date))
-                            {
-                                _sitesByDate[date] = new List<SiteViewModel>();
-                            }
-                            
-                            var newSiteViewModel = new SiteViewModel
-                            {
-                                Id = viewModel.CreatedSite.Id,
-                                Name = viewModel.CreatedSite.Name,
-                                Description = viewModel.CreatedSite.Description ?? string.Empty,
-                                Icon = viewModel.CreatedSite.Icon,
-                                Color = GetSiteColor(colorIndex),
-                                Date = date,
-                                TimeSlots = CreateTimeSlots(date, GetSiteColor(colorIndex))
-                            };
-                            
-                            _sitesByDate[date].Add(newSiteViewModel);
-                        }
-                    }
-                    
-                    // Update current day's sites in the UI
-                    UpdateSitesForCurrentDate();
-                    
-                    // Save changes
-                    _xmlService.Save();
-                    
-                    _logger.LogInformation($"New site created: {viewModel.CreatedSite.Name}");
+                    _logger.LogDebug("Race format already exists in available list: {Label} (ID: {Id})",
+                        raceFormatDetail.Label, raceFormatDetail.Id);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating new site");
-                _dialogService.ShowMessage("Erreur", "Erreur lors de la création du site");
+                _logger.LogError(ex, "Error restoring race format to available list: {Label}", raceFormatDetail?.Label);
             }
         }
 
-        private void OnRemoveSite(SiteViewModel? siteViewModel)
+        private void RefreshAvailableRaceFormats()
         {
-            if (siteViewModel == null)
-            {
-                return;
-            }
+            // Get all used race format IDs and disciplines from current program slots
+            var usedRaceFormatIds = new HashSet<int>();
+            var usedDisciplines = new HashSet<string>();
 
-            try
+            foreach (var site in AvailableSites)
             {
-                bool confirmed = _dialogService.ShowConfirmation("Supprimer le site", 
-                    $"Êtes-vous sûr de vouloir supprimer le site '{siteViewModel.Name}' de tous les jours de la compétition ?");
-
-                if (confirmed)
+                foreach (var meeting in site.ProgramMeetings)
                 {
-                    // Remove from XML service
-                    var sites = _xmlService.GetSites().ToList();
-                    var siteToRemove = sites.FirstOrDefault(s => s.Id == siteViewModel.Id);
-                    if (siteToRemove != null)
+                    foreach (var slot in meeting.ProgramSlots)
                     {
-                        sites.Remove(siteToRemove);
-                        _xmlService.UpdateSites(sites);
-                        _xmlService.Save();
-                    }
-
-                    // Remove from all dates in the dictionary
-                    var datesToUpdate = _sitesByDate.Keys.ToList();
-                    foreach (var date in datesToUpdate)
-                    {
-                        var dailySites = _sitesByDate[date];
-                        var siteToRemoveFromDay = dailySites.FirstOrDefault(s => s.Id == siteViewModel.Id);
-                        if (siteToRemoveFromDay != null)
+                        if (slot.RaceFormatDetailId > 0 && slot.RaceFormatDetail != null) // Exclude manual slots (-1)
                         {
-                            dailySites.Remove(siteToRemoveFromDay);
-                        }
-                    }
+                            usedRaceFormatIds.Add(slot.RaceFormatDetailId);
 
-                    // Update current day's sites in the UI
-                    UpdateSitesForCurrentDate();
-
-                    _logger.LogInformation($"Site removed: {siteViewModel.Name}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing site");
-                _dialogService.ShowMessage("Erreur", "Erreur lors de la suppression du site");
-            }
-        }
-
-        private void OnCreateManualTimeSlot()
-        {
-            try
-            {
-                var dialog = new ManualTimeSlotDialog();
-                var dialogViewModel = new ManualTimeSlotDialogViewModel(_xmlService, CurrentDate);
-                dialog.DataContext = dialogViewModel;
-
-                bool? result = dialog.ShowDialog();
-
-                if (result == true && dialogViewModel.CreatedEvent != null)
-                {
-                    var selectedSites = dialogViewModel.GetSelectedSites();
-                    var selectedDateTime = dialogViewModel.GetSelectedDateTime();
-
-                    foreach (var selectedSite in selectedSites)
-                    {
-                        // Find the corresponding site for the selected date
-                        var targetSite = Sites.FirstOrDefault(s => s.Id == selectedSite.Id && s.Date.Date == selectedDateTime.Date);
-                        if (targetSite != null)
-                        {
-                            // Find the appropriate timeslot
-                            var targetTimeSlot = targetSite.TimeSlots.FirstOrDefault(ts => 
-                                ts.DateTime.TimeOfDay <= selectedDateTime.TimeOfDay &&
-                                ts.DateTime.TimeOfDay.Add(TimeSpan.FromMinutes(10)) > selectedDateTime.TimeOfDay);
-
-                            if (targetTimeSlot != null)
+                            // Add discipline to used set
+                            string? disciplineLabel = slot.RaceFormatDetail.RaceFormatConfiguration?.DisciplineLabel?.ToLowerInvariant();
+                            if (!string.IsNullOrEmpty(disciplineLabel))
                             {
-                                // Create a copy of the event with the site's color
-                                var siteSpecificEvent = new PlannedEventViewModel
-                                {
-                                    Id = dialogViewModel.CreatedEvent.Id,
-                                    Title = dialogViewModel.CreatedEvent.Title,
-                                    Subtitle = dialogViewModel.CreatedEvent.Subtitle,
-                                    Color = targetSite.Color,
-                                    Duration = dialogViewModel.CreatedEvent.Duration,
-                                    ConfigurationLabel = dialogViewModel.CreatedEvent.ConfigurationLabel,
-                                    StatusColor = dialogViewModel.CreatedEvent.StatusColor,
-                                    ParticipantCount = dialogViewModel.CreatedEvent.ParticipantCount
-                                };
-                                
-                                targetTimeSlot.Events.Add(siteSpecificEvent);
+                                usedDisciplines.Add(disciplineLabel);
                             }
                         }
                     }
-
-                    UpdateStatistics();
-                    SavePlanningData();
-                    _logger.LogInformation($"Manual timeslot created: {dialogViewModel.CreatedEvent.Title}");
                 }
             }
-            catch (Exception ex)
+
+            // Rebuild AvailableRaceFormats excluding:
+            // 1. Already used race format IDs
+            // 2. Race formats with disciplines that are already used (like 'eau-plate')
+            AvailableRaceFormats.Clear();
+            foreach (var format in _allRaceFormats.Where(f =>
+                !usedRaceFormatIds.Contains(f.Id) &&
+                !usedDisciplines.Contains(f.RaceFormatConfiguration?.DisciplineLabel?.ToLowerInvariant() ?? "")))
             {
-                _logger.LogError(ex, "Error creating manual timeslot");
-                _dialogService.ShowMessage("Erreur", "Erreur lors de la création du créneau manuel");
+                AvailableRaceFormats.Add(format);
             }
+
+            _logger.LogDebug("Refreshed available race formats. Used disciplines: {UsedDisciplines}",
+                string.Join(", ", usedDisciplines));
         }
 
-        private void OnCreateProgramMeeting()
+        #endregion
+
+        #region Helper Methods
+
+        private bool CanGoToPreviousDay()
+        {
+            if (CurrentCompetition == null)
+            {
+                return true;
+            }
+            return SelectedDate.AddDays(-1) >= CurrentCompetition.BeginDate.Date;
+        }
+
+        private bool CanGoToNextDay()
+        {
+            if (CurrentCompetition == null)
+            {
+                return true;
+            }
+            return SelectedDate.AddDays(1) <= CurrentCompetition.EndDate.Date;
+        }
+
+        private bool CanGoToToday()
+        {
+            if (CurrentCompetition == null)
+            {
+                return true;
+            }
+            var today = DateTime.Today;
+            return today >= CurrentCompetition.BeginDate.Date && today <= CurrentCompetition.EndDate.Date;
+        }
+
+        private void RefreshCommandStates()
+        {
+            // Force command CanExecute evaluation by calling NotifyCanExecuteChanged
+            if (PreviousDayCommand is RelayCommand previousCmd)
+            { previousCmd.NotifyCanExecuteChanged(); }
+            if (NextDayCommand is RelayCommand nextCmd)
+            { nextCmd.NotifyCanExecuteChanged(); }
+            if (TodayCommand is RelayCommand todayCmd)
+            { todayCmd.NotifyCanExecuteChanged(); }
+        }
+
+        private void UpdateStatusIndicators()
+        {
+            if (CurrentProgram == null)
+            { return; }
+
+            StatusColor = CurrentProgram.Status switch
+            {
+                ScheduleStatus.Draft => Brushes.Blue,
+                ScheduleStatus.Published => Brushes.Green,
+                ScheduleStatus.Archived => Brushes.Gray,
+                _ => Brushes.Black
+            };
+        }
+
+        private void UpdateEventCount()
+        {
+            EventCount = ProgramMeetings.SelectMany(m => m.ProgramSlots).Count();
+        }
+
+        public string Duration => SelectedEvent != null
+            ? $"{(SelectedEvent.EndHour - SelectedEvent.BeginHour).TotalMinutes:F0} minutes"
+            : "N/A";
+
+        private void CreateSampleRaceFormats()
         {
             try
             {
-                var dialog = new ProgramMeetingCreationDialog(CurrentDate, Sites);
-                bool? result = dialog.ShowDialog();
-
-                if (result == true && dialog.DataContext is ProgramMeetingCreationDialogViewModel viewModel && viewModel.CreatedProgramMeeting != null)
+                // Create sample race format configurations for testing
+                var swimConfig = new RaceFormatConfiguration
                 {
-                    // Refresh the data to show the new ProgramMeeting
-                    LoadPlanningData();
-                    UpdateStatistics();
-                    
-                    // Update sites for current date to show changes immediately
-                    UpdateSitesForCurrentDate();
-                    
-                    _logger.LogInformation($"ProgramMeeting created: {viewModel.CreatedProgramMeeting.Name}");
+                    Id = 1,
+                    Label = "Swimming Events",
+                    FullLabel = "Pool Swimming Competitions",
+                    Gender = Gender.Men,
+                    Discipline = 1,
+                    DisciplineLabel = "Swimming",
+                    Categories = new List<Category>()
+                };
+
+                var beachConfig = new RaceFormatConfiguration
+                {
+                    Id = 2,
+                    Label = "Beach Events",
+                    FullLabel = "Beach Lifesaving Events",
+                    Gender = Gender.Woman,
+                    Discipline = 2,
+                    DisciplineLabel = "Beach",
+                    Categories = new List<Category>()
+                };
+
+                var mixedConfig = new RaceFormatConfiguration
+                {
+                    Id = 3,
+                    Label = "Mixed Events",
+                    FullLabel = "Mixed Gender Events",
+                    Gender = Gender.Mixte,
+                    Discipline = 3,
+                    DisciplineLabel = "Mixed",
+                    Categories = new List<Category>()
+                };
+
+                // Create sample race format details
+                var sampleFormats = new List<RaceFormatDetail>
+                {
+                    new RaceFormatDetail
+                    {
+                        Id = 1,
+                        Label = "50m Freestyle",
+                        FullLabel = "50 meter Freestyle Individual",
+                        LevelLabel = "Heat",
+                        Level = HeatLevel.Heat,
+                        Order = 1,
+                        NumberOfRun = 1,
+                        RaceFormatConfiguration = swimConfig
+                    },
+                    new RaceFormatDetail
+                    {
+                        Id = 2,
+                        Label = "100m Rescue Medley",
+                        FullLabel = "100 meter Individual Rescue Medley",
+                        LevelLabel = "Heat",
+                        Level = HeatLevel.Heat,
+                        Order = 2,
+                        NumberOfRun = 1,
+                        RaceFormatConfiguration = swimConfig
+                    },
+                    new RaceFormatDetail
+                    {
+                        Id = 3,
+                        Label = "Beach Sprint",
+                        FullLabel = "Beach Sprint 90m",
+                        LevelLabel = "Heat",
+                        Level = HeatLevel.Heat,
+                        Order = 1,
+                        NumberOfRun = 1,
+                        RaceFormatConfiguration = beachConfig
+                    },
+                    new RaceFormatDetail
+                    {
+                        Id = 4,
+                        Label = "Beach Flags",
+                        FullLabel = "Beach Flags Competition",
+                        LevelLabel = "Heat",
+                        Level = HeatLevel.Heat,
+                        Order = 2,
+                        NumberOfRun = 1,
+                        RaceFormatConfiguration = beachConfig
+                    },
+                    new RaceFormatDetail
+                    {
+                        Id = 5,
+                        Label = "Mixed Relay",
+                        FullLabel = "4x50m Mixed Rescue Relay",
+                        LevelLabel = "Final",
+                        Level = HeatLevel.Final,
+                        Order = 1,
+                        NumberOfRun = 1,
+                        RaceFormatConfiguration = mixedConfig
+                    }
+                };
+
+                var orderedSampleFormats = sampleFormats.OrderBy(f => f.RaceFormatConfiguration.Discipline).ThenBy(f => f.Order).ToList();
+                _allRaceFormats = orderedSampleFormats;
+                foreach (var format in orderedSampleFormats)
+                {
+                    AvailableRaceFormats.Add(format);
                 }
+
+                _logger.LogInformation("Created {Count} sample race formats for testing", sampleFormats.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating ProgramMeeting");
-                _dialogService.ShowMessage("Erreur", "Erreur lors de la création du groupe de programme");
+                _logger.LogError(ex, "Error creating sample race formats");
             }
         }
-    }
 
-    public class PlanningEventViewModel : ObservableObject
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string ConfigurationLabel { get; set; } = string.Empty;
-        public string ConfigurationColor { get; set; } = "#6B7280";
-        public string StatusColor { get; set; } = "#6B7280";
-        public int ParticipantCount { get; set; }
-        public int Duration { get; set; }
-        public bool IsPlanned { get; set; }
-    }
+        #endregion
 
-    public class SiteViewModel
-    {
-        public int Id { get; set; } = 0;
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Icon { get; set; } = string.Empty;
-        public string Color { get; set; } = "#6B7280";
-        public DateTime Date { get; set; }
-        public List<TimeSlotViewModel> TimeSlots { get; set; } = new();
-        public ObservableCollection<ProgramMeetingViewModel> ProgramMeetings { get; set; } = new();
-    }
+        #region Public Methods
 
-    public class ProgramMeetingViewModel : ObservableObject
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public DateTime BeginHour { get; set; }
-        public DateTime EndHour { get; set; }
-        public string TimeRange => $"{BeginHour:HH:mm} - {EndHour:HH:mm}";
-        public string SiteColor { get; set; } = "#6B7280";
-        public ObservableCollection<PlannedEventViewModel> Events { get; set; } = new();
-        public int StartSlotIndex { get; set; }
-        public int SlotCount => (int)Math.Ceiling((EndHour - BeginHour).TotalMinutes / 10.0);
-        
-        // Visual properties for grouping
-        public bool IsExpanded { get; set; } = true;
-        public string GroupColor => SiteColor;
-        public string BorderColor => SiteColor;
-    }
+        public async void RefreshData()
+        {
+            try
+            {
+                _logger.LogInformation("Refreshing PlanningProgram data");
 
-    public class TimeSlotViewModel
-    {
-        public string Time { get; set; } = string.Empty;
-        public DateTime DateTime { get; set; }
-        public string SiteColor { get; set; } = "#F9FAFB";
-        public ObservableCollection<PlannedEventViewModel> Events { get; set; } = new();
-        public ProgramMeetingViewModel? ProgramMeeting { get; set; }
-        public bool HasProgramMeeting => ProgramMeeting != null;
-        public bool IsFirstSlotOfMeeting { get; set; }
-        public bool IsLastSlotOfMeeting { get; set; }
-        public bool IsMiddleSlotOfMeeting { get; set; }
-        public bool IsPartOfMeeting => HasProgramMeeting || IsMiddleSlotOfMeeting;
-    }
+                await LoadCurrentCompetitionAsync();
+                await LoadCurrentProgramAsync();
+                await LoadAvailableRaceFormatsAsync();
+                await LoadAvailableSitesAsync();
+                await LoadProgramMeetingsAsync();
+                await ValidateScheduleAsync();
 
-    public class PlannedEventViewModel
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Subtitle { get; set; } = string.Empty;
-        public string Color { get; set; } = "#6B7280";
-        public int Duration { get; set; }
-        public string ConfigurationLabel { get; set; } = string.Empty;
-        public string StatusColor { get; set; } = "#6B7280";
-        public int ParticipantCount { get; set; }
+                _logger.LogInformation("PlanningProgram data refreshed successfully. Available race formats: {Count}", AvailableRaceFormats.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error refreshing PlanningProgram data");
+            }
+        }
+
+        #endregion
     }
 }

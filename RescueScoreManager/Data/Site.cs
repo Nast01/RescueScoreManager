@@ -17,6 +17,8 @@ public class Site
     public string Name { get; set; }
     public string? Description { get; set; }
     public string Icon { get; set; }
+    
+    public ICollection<ProgramMeeting> ProgramMeetings { get; set; } = new List<ProgramMeeting>();
 
     public Site(int id, string name, string? description, string icon   )
     {
@@ -33,6 +35,22 @@ public class Site
         Icon = xElement.Attribute(Properties.Resources.Icon_XMI)?.Value ?? "";
     }
 
+    public Site(XElement xElement, List<RaceFormatDetail> raceFormatDetails, List<Heat> heats)
+    {
+        Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI)?.Value ?? "0");
+        Name = xElement.Attribute(Properties.Resources.Name_XMI)?.Value ?? "Site 1";
+        Description = xElement.Attribute(Properties.Resources.Description_XMI)?.Value ?? "";
+        Icon = xElement.Attribute(Properties.Resources.Icon_XMI)?.Value ?? "";
+
+        // Load program meetings for this site
+        var meetingElements = xElement.Elements(Properties.Resources.ProgramMeeting_XMI);
+        foreach (var meetingElement in meetingElements)
+        {
+            var meeting = new ProgramMeeting(meetingElement, raceFormatDetails, heats);
+            ProgramMeetings.Add(meeting);
+        }
+    }
+
     #region Public Method
     public XElement WriteXml()
     {
@@ -42,6 +60,12 @@ public class Site
                             new XAttribute(Properties.Resources.Description_XMI, Description),
                             new XAttribute(Properties.Resources.Icon_XMI, Icon)
                             );
+
+        // Add program meetings for this site
+        foreach (var meeting in ProgramMeetings)
+        {
+            xElement.Add(meeting.WriteXml());
+        }
 
         return xElement;
     }

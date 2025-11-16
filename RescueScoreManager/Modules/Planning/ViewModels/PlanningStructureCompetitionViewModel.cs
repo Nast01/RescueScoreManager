@@ -118,6 +118,46 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             // Use the first race to determine common properties for the discipline
             Race firstRace = races.First();
             
+            // Update RaceFormatConfiguration objects with races list
+            foreach (var raceFormatConfig in raceFormatConfigurations.Where(config => 
+                config.Discipline == firstRace.Discipline || 
+                config.DisciplineLabel?.Equals(disciplineLabel, StringComparison.OrdinalIgnoreCase) == true))
+            {
+                // Clear existing races and add the ones that match this configuration
+                raceFormatConfig.Races.Clear();
+                var matchingRaces = races.Where(race => 
+                    race.Discipline == raceFormatConfig.Discipline && 
+                    race.Gender == raceFormatConfig.Gender &&
+                    race.Categories.Any(raceCat => raceFormatConfig.Categories.Any(configCat => configCat.Id == raceCat.Id))
+                ).ToList();
+                
+                foreach (var race in matchingRaces)
+                {
+                    raceFormatConfig.Races.Add(race);
+                }
+
+                // Update DisciplineLabel from races
+                raceFormatConfig.UpdateDisciplineLabel();
+
+                // Update RaceFormatDetail objects with races list
+                foreach (var raceFormatDetail in raceFormatConfig.RaceFormatDetails)
+                {
+                    if (raceFormatDetail.Level == EnumRSM.HeatLevel.Heat)
+                    {
+                        // For Heat level, inherit from parent
+                        raceFormatDetail.UpdateRacesFromParent();
+                    }
+                    else
+                    {
+                        // For other levels, use matching races
+                        raceFormatDetail.Races.Clear();
+                        foreach (var race in matchingRaces)
+                        {
+                            raceFormatDetail.Races.Add(race);
+                        }
+                    }
+                }
+            }
             
             // Determine icon and color based on speciality
             string icon = firstRace.Speciality switch
@@ -284,14 +324,35 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             try
             {
                 _logger.LogInformation("Saving events configuration");
-                // TODO: Implement save functionality
-                _dialogService.ShowMessage(
-                    _localizationService.GetString("Sauvegarder"),
-                    _localizationService.GetString("ConfigurationSauvegardee"));
+                
+                // Save the updated RaceFormatConfigurations with their races lists
+                var raceFormatConfigurations = _xmlService.GetRaceFormatConfigurations();
+                _xmlService.UpdateRaceFormatConfigurations(raceFormatConfigurations);
+                
+                // Save to XML file
+                bool saveResult = _xmlService.Save();
+                
+                if (saveResult)
+                {
+                    _logger.LogInformation("Successfully saved race format configurations with races lists");
+                    _dialogService.ShowMessage(
+                        _localizationService.GetString("Sauvegarder") ?? "Sauvegarder",
+                        _localizationService.GetString("ConfigurationSauvegardee") ?? "Configuration sauvegardée avec succès");
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to save race format configurations");
+                    _dialogService.ShowMessage(
+                        _localizationService.GetString("Erreur") ?? "Erreur",
+                        _localizationService.GetString("ErreurSauvegarde") ?? "Erreur lors de la sauvegarde");
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving configuration");
+                _dialogService.ShowMessage(
+                    _localizationService.GetString("Erreur") ?? "Erreur",
+                    $"Erreur lors de la sauvegarde: {ex.Message}");
             }
         }
 

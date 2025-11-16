@@ -168,6 +168,9 @@
   <data name="Discipline_XMI" xml:space="preserve">
     <value>Discipline</value>
   </data>
+  <data name="DisciplineLabel_XMI" xml:space="preserve">
+    <value>DisciplineLabel</value>
+  </data>
   <data name="Distance_XMI" xml:space="preserve">
     <value>Distance</value>
   </data>
@@ -257,6 +260,12 @@
   </data>
   <data name="Race_XMI" xml:space="preserve">
     <value>Race</value>
+  </data>
+  <data name="RaceFormatConfiguration_XMI" xml:space="preserve">
+    <value>RaceFormatConfiguration</value>
+  </data>
+  <data name="RaceFormatDetail_XMI" xml:space="preserve">
+    <value>RaceFormatDetail</value>
   </data>
   <data name="Referee_XMI" xml:space="preserve">
     <value>Referee</value>

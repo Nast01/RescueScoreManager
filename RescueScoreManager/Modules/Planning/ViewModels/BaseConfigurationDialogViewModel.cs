@@ -22,6 +22,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         protected readonly IApiService _apiService;
         protected readonly IAuthenticationService _authService;
         protected readonly IMessenger _messenger;
+        protected readonly List<Race> _races;
 
         [ObservableProperty]
         private int _selectedCategoryIndex;
@@ -43,6 +44,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            _races = races ?? new List<Race>();
 
             CategoryConfigurations = new ObservableCollection<CategoryConfigurationViewModel>();
             AddPhaseCommand = new RelayCommand<CategoryConfigurationViewModel>(OnAddPhase);
@@ -211,8 +213,12 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 Gender = race.Gender,
                 Discipline = race.Discipline,
                 Categories = new List<Category>(race.Categories),
+                Races = _races.ToList(),
                 RaceFormatDetails = new List<RaceFormatDetail>()
             };
+
+            // Update DisciplineLabel from races
+            raceFormatConfig.UpdateDisciplineLabel();
 
             // Convert phases to RaceFormatDetails
             foreach (PhaseViewModel phase in categoryConfig.Phases)
@@ -234,7 +240,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             string categoryNames = $"({string.Join(", ", parentConfig.Categories.OrderBy(c => c.AgeMin).Select(c => c.Name))})";
 
-            return new RaceFormatDetail
+            var raceFormatDetail = new RaceFormatDetail
             {
                 Id = 0, // Always 0 as specified
                 Order = phase.Order,
@@ -249,6 +255,11 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 QualifyingSpots = phase.QualifyingPlaces,
                 RaceFormatConfiguration = parentConfig
             };
+
+            // Update races from parent if this is a Heat level
+            raceFormatDetail.UpdateRacesFromParent();
+
+            return raceFormatDetail;
         }
     }
 }

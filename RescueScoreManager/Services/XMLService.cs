@@ -33,6 +33,7 @@ public class XMLService : IXMLService
     private readonly List<RaceFormatConfiguration> _raceFormatConfigurations = new();
     private readonly List<ProgramMeeting> _programMeetings = new();
     private readonly List<Site> _sites = new();
+    private readonly Program _program = new();
     private AppSetting _setting = new();
 
     public bool IsLoaded { get; private set; }
@@ -73,6 +74,7 @@ public class XMLService : IXMLService
     public IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations() => _raceFormatConfigurations.AsReadOnly();
     public IReadOnlyList<ProgramMeeting> GetProgramMeetings() => _programMeetings.AsReadOnly();
     public IReadOnlyList<Site> GetSites() => _sites.AsReadOnly();
+    public Program GetProgram() => _program;
     public AppSetting? GetSetting() => _setting;
     #endregion
 
@@ -219,6 +221,17 @@ public class XMLService : IXMLService
         _raceFormatConfigurations.Clear();
         _programMeetings.Clear();
         _sites.Clear();
+        
+        // Reset the program to default
+        var defaultProgram = Program.CreateDefault();
+        _program.Id = defaultProgram.Id;
+        _program.Version = defaultProgram.Version;
+        _program.Status = defaultProgram.Status;
+        _program.CreatedDate = defaultProgram.CreatedDate;
+        _program.PublishedDate = defaultProgram.PublishedDate;
+        _program.Description = defaultProgram.Description;
+        _program.Sites.Clear();
+        
         IsLoaded = false;
     }
 
@@ -319,16 +332,21 @@ public class XMLService : IXMLService
             LoadRaceFormatConfigurations(rootElement);
 
             // Load program
-            LoadProgram(rootElement);
+            LoadPrograms(rootElement);
 
-            // Load sites
-            LoadSites(rootElement);
+            //// Load sites
+            //LoadSites(rootElement);
+
+            //// Load programs (new structure)
+            //LoadPrograms(rootElement);
 
             // Load settings
             LoadSetting(rootElement);
 
             IsLoaded = true;
             _logger.LogInformation("XML loaded successfully from: {FilePath}", filePath);
+
+            Save();
         }
         catch (Exception ex)
         {
@@ -421,30 +439,35 @@ public class XMLService : IXMLService
             }
             rootElement.Add(racesFormatConfigurationElement);
 
-            // Save program information
-            var programElement = new XElement(Properties.Resources.Program_XMI);
-            foreach (var programMeeting in _programMeetings)
-            {
-                var programMeetingElement = programMeeting.WriteXml();
-                if (programMeetingElement != null)
-                {
-                    programElement.Add(programMeetingElement);
-                }
-            }
+            // Save program
+
+            var programElement = _program.WriteXml();
             rootElement.Add(programElement);
+
+            //// Save program information (legacy structure)
+            //var programElement = new XElement(Properties.Resources.Program_XMI);
+            //foreach (var programMeeting in _programMeetings)
+            //{
+            //    var programMeetingElement = programMeeting.WriteXml();
+            //    if (programMeetingElement != null)
+            //    {
+            //        programElement.Add(programMeetingElement);
+            //    }
+            //}
+            //rootElement.Add(programElement);
 
 
             // Save sites information
-            var sitesElement = new XElement(Properties.Resources.Sites_XMI);
-            foreach (var site in _sites)
-            {
-                var siteElement = site.WriteXml();
-                if (siteElement != null)
-                {
-                    sitesElement.Add(siteElement);
-                }
-            }
-            rootElement.Add(sitesElement);
+            //var sitesElement = new XElement(Properties.Resources.Sites_XMI);
+            //foreach (var site in _sites)
+            //{
+            //    var siteElement = site.WriteXml();
+            //    if (siteElement != null)
+            //    {
+            //        sitesElement.Add(siteElement);
+            //    }
+            //}
+            //rootElement.Add(sitesElement);
 
             xDoc.Add(rootElement);
 
@@ -645,14 +668,14 @@ public class XMLService : IXMLService
         {
             try
             {
-                var raceFormatConfiguration = new RaceFormatConfiguration(raceFormatConfigurationElement, _categories);
+                var raceFormatConfiguration = new RaceFormatConfiguration(raceFormatConfigurationElement, _categories, _races);
 
                 var raceFormatDetailElements = raceFormatConfigurationElement.Descendants(Properties.Resources.RaceFormatDetail_XMI);
 
                 raceFormatConfiguration.RaceFormatDetails.Clear();
                 foreach (var raceFormatDetailElement in raceFormatDetailElements)
                 {
-                    var raceFormatDetail = new RaceFormatDetail(raceFormatDetailElement);
+                    var raceFormatDetail = new RaceFormatDetail(raceFormatDetailElement, _races);
 
                     raceFormatDetail.RaceFormatConfiguration = raceFormatConfiguration;
                     raceFormatConfiguration.RaceFormatDetails.Add(raceFormatDetail);
@@ -670,28 +693,28 @@ public class XMLService : IXMLService
         _logger.LogDebug("Loaded {Count} race configuration", _raceFormatConfigurations.Count);
     }
 
-    private void LoadProgram(XElement rootElement)
-    {
-        List<RaceFormatDetail> raceFormatDetails = _raceFormatConfigurations.SelectMany(config => config.RaceFormatDetails).ToList();
+    //private void LoadProgram(XElement rootElement)
+    //{
+    //    List<RaceFormatDetail> raceFormatDetails = _raceFormatConfigurations.SelectMany(config => config.RaceFormatDetails).ToList();
 
-        IEnumerable<XElement> programMeetingElements = rootElement.Descendants(Properties.Resources.ProgramMeeting_XMI);
-        foreach (XElement programMeetingElement in programMeetingElements)
-        {
-            try
-            {
-                ProgramMeeting programMeeting = new ProgramMeeting(programMeetingElement, raceFormatDetails, new List<Heat>());
+    //    IEnumerable<XElement> programMeetingElements = rootElement.Descendants(Properties.Resources.ProgramMeeting_XMI);
+    //    foreach (XElement programMeetingElement in programMeetingElements)
+    //    {
+    //        try
+    //        {
+    //            ProgramMeeting programMeeting = new ProgramMeeting(programMeetingElement, raceFormatDetails, new List<Heat>());
 
-                _programMeetings.Add(programMeeting);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to load Prorgam from XML element");
-            }
-        }
+    //            _programMeetings.Add(programMeeting);
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _logger.LogWarning(ex, "Failed to load Prorgam from XML element");
+    //        }
+    //    }
 
 
-        _logger.LogDebug("Loaded {Count} program", _programMeetings.Count);
-    }
+    //    _logger.LogDebug("Loaded {Count} program", _programMeetings.Count);
+    //}
 
     private void LoadSites(XElement rootElement)
     {
@@ -716,6 +739,123 @@ public class XMLService : IXMLService
         _logger.LogDebug("Loaded {Count} site", _sites.Count);
     }
 
+    private void LoadPrograms(XElement rootElement)
+    {
+        var programElement = rootElement.Element("Program");
+        
+        if (programElement != null)
+        {
+            try
+            {
+                // Load the single program from XML
+                var program = new Program(programElement);
+
+                // Load sites directly from the program element (new structure)
+                var siteElements = programElement.Elements(Properties.Resources.Site_XMI);
+                foreach (var siteElement in siteElements)
+                {
+                    var site = new Site(siteElement, 
+                        _raceFormatConfigurations.SelectMany(config => config.RaceFormatDetails).ToList(),
+                        new List<Heat>());
+                    
+                    // Add site to program and sites collection
+                    program.Sites.Add(site);
+                    _sites.Add(site);
+                    
+                    // Add program meetings from the site to the meetings collection
+                    foreach (var meeting in site.ProgramMeetings)
+                    {
+                        meeting.ProgramId = program.Id;
+                        meeting.Program = _program;
+                        _programMeetings.Add(meeting);
+                    }
+                }
+                
+                // Also check for legacy sites structure for backward compatibility
+                var legacySitesElement = rootElement.Element(Properties.Resources.Sites_XMI);
+                if (legacySitesElement != null)
+                {
+                    var legacySiteElements = legacySitesElement.Elements(Properties.Resources.Site_XMI);
+                    foreach (var siteElement in legacySiteElements)
+                    {
+                        var site = new Site(siteElement, 
+                            _raceFormatConfigurations.SelectMany(config => config.RaceFormatDetails).ToList(),
+                            new List<Heat>());
+                        
+                        // Add site to program and sites collection (avoiding duplicates)
+                        if (!program.Sites.Any(s => s.Id == site.Id))
+                        {
+                            program.Sites.Add(site);
+                            _sites.Add(site);
+                            
+                            // Add program meetings from the site to the meetings collection
+                            foreach (var meeting in site.ProgramMeetings)
+                            {
+                                meeting.ProgramId = program.Id;
+                                meeting.Program = _program;
+                                if (!_programMeetings.Any(m => m.Id == meeting.Id))
+                                {
+                                    _programMeetings.Add(meeting);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Copy loaded program data to the singleton _program
+                _program.Id = program.Id;
+                _program.Version = program.Version;
+                _program.Status = program.Status;
+                _program.CreatedDate = program.CreatedDate;
+                _program.PublishedDate = program.PublishedDate;
+                _program.Description = program.Description;
+                _program.Sites.Clear();
+                foreach (var site in program.Sites)
+                {
+                    _program.Sites.Add(site);
+                }
+
+                _logger.LogDebug("Loaded program: {ProgramId} - {Description} with {SitesCount} sites and {MeetingsCount} meetings",
+                    _program.Id, _program.Description, _program.Sites.Count, _programMeetings.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load Program from XML element");
+                CreateDefaultProgram();
+            }
+        }
+        else
+        {
+            // No program found in XML, create default
+            CreateDefaultProgram();
+        }
+    }
+
+    private void CreateDefaultProgram()
+    {
+        _logger.LogInformation("No program found in XML, creating default program");
+        var defaultProgram = Program.CreateDefault();
+        
+        // Copy default program data to the singleton _program
+        _program.Id = defaultProgram.Id;
+        _program.Version = defaultProgram.Version;
+        _program.Status = defaultProgram.Status;
+        _program.CreatedDate = defaultProgram.CreatedDate;
+        _program.PublishedDate = defaultProgram.PublishedDate;
+        _program.Description = defaultProgram.Description;
+        _program.Sites.Clear();
+        
+        // Add default sites to both program and sites collection
+        foreach (var site in defaultProgram.Sites)
+        {
+            _program.Sites.Add(site);
+            _sites.Add(site);
+        }
+
+        _logger.LogDebug("Created default program: {ProgramId} - {Description} with {SitesCount} sites",
+            _program.Id, _program.Description, _program.Sites.Count);
+    }
+
     private void LoadSetting(XElement rootElement)
     {
         var settingElement = rootElement.Element(Properties.Resources.AppSetting_XMI);
@@ -729,18 +869,99 @@ public class XMLService : IXMLService
     #endregion
 
     #region Update Methods
+
     public void UpdateSites(IEnumerable<Site> sites)
     {
-        _sites.Clear();
-        _sites.AddRange(sites);
-        _logger.LogDebug("Updated {Count} sites", _sites.Count);
+        if (sites == null)
+        {
+            throw new ArgumentNullException(nameof(sites));
+        }
+
+        try
+        {
+            _sites.Clear();
+            _sites.AddRange(sites);
+            _program.Sites.Clear();
+            foreach (var site in sites)
+            {
+                _program.Sites.Add(site);
+            }
+            _logger.LogDebug("Updated {Count} sites", _sites.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating sites");
+            throw;
+        }
     }
 
     public void UpdateProgramMeetings(IEnumerable<ProgramMeeting> programMeetings)
     {
-        _programMeetings.Clear();
-        _programMeetings.AddRange(programMeetings);
-        _logger.LogDebug("Updated {Count} program meetings", _programMeetings.Count);
+        if (programMeetings == null)
+        {
+            throw new ArgumentNullException(nameof(programMeetings));
+        }
+
+        try
+        {
+            _programMeetings.Clear();
+            _programMeetings.AddRange(programMeetings);
+            _logger.LogDebug("Updated {Count} program meetings", _programMeetings.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating program meetings");
+            throw;
+        }
+    }
+
+
+    public void SetCurrentProgram(Program program)
+    {
+        if (program == null)
+        {
+            throw new ArgumentNullException(nameof(program));
+        }
+
+        try
+        {
+            // Copy program data to the singleton _program
+            _program.Id = program.Id;
+            _program.Version = program.Version;
+            _program.Status = program.Status;
+            _program.CreatedDate = program.CreatedDate;
+            _program.PublishedDate = program.PublishedDate;
+            _program.Description = program.Description;
+            _program.Sites.Clear();
+            
+            // Clear and update sites collections
+            _sites.Clear();
+            _programMeetings.Clear();
+            
+            foreach (var site in program.Sites)
+            {
+                _program.Sites.Add(site);
+                _sites.Add(site);
+                
+                // Add meetings from this site to the meetings collection
+                foreach (var meeting in site.ProgramMeetings)
+                {
+                    meeting.ProgramId = _program.Id;
+                    meeting.Program = _program;
+                    _programMeetings.Add(meeting);
+                }
+            }
+
+            _logger.LogDebug("Set current program: {ProgramId} - {Description} with {SitesCount} sites",
+                _program.Id,
+                _program.Description ?? "No description",
+                _program.Sites.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting current program: {ProgramId}", program?.Id);
+            throw;
+        }
     }
     #endregion
 }

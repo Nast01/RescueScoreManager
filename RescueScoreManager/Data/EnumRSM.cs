@@ -154,4 +154,14 @@ public class EnumRSM
         [Description("Terminé")]
         Finished = 3
     }
+
+    public enum ScheduleStatus
+    {
+        [Description("Brouillon")]
+        Draft = 0,
+        [Description("Publié")]
+        Published = 1,
+        [Description("Archivé")]
+        Archived = 2
+    }
 }

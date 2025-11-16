@@ -73,6 +73,8 @@ public partial class App : Application
             services.AddSingleton<IValidationService, ValidationService>();
             services.AddSingleton<IImageService, ImageService>();
             services.AddSingleton<INetworkConnectivityService, NetworkConnectivityService>();
+            services.AddSingleton<IProgramService, ProgramService>();
+            services.AddSingleton<IProgramValidationService, ProgramValidationService>();
 
             // Main Window (Singleton)
             services.AddSingleton<MainWindow>();

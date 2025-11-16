@@ -8,7 +8,9 @@
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(move:*)",
-      "Bash(ren:*)"
+      "Bash(ren:*)",
+      "Bash(dotnet run)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   }
