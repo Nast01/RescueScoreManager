@@ -294,13 +294,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                         format.Label, format.RaceFormatConfiguration.DisciplineLabel);
                 }
 
-                // If no race formats found, create some sample data for testing
-                if (raceFormats.Count == 0)
-                {
-                    _logger.LogWarning("No race format configurations found, creating sample data for testing");
-                    CreateSampleRaceFormats();
-                }
-
                 _logger.LogInformation("Loaded {Count} available race formats sorted by discipline", AvailableRaceFormats.Count);
             }
             catch (Exception ex)

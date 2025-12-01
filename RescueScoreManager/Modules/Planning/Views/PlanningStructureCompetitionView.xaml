@@ -13,7 +13,6 @@
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" 
                 CanContentScroll="False">
     <DockPanel LastChildFill="True" Margin="30">
-      <!-- Action Buttons -->
       <!--<StackPanel Orientation="Horizontal" Margin="0,0,0,30">
         <Button Background="#F59E0B" Foreground="White" BorderThickness="0" 
                       FontWeight="SemiBold"

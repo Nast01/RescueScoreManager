@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
 using RescueScoreManager.Data;
+using RescueScoreManager.Helpers;
 using RescueScoreManager.Messages;
 using RescueScoreManager.Services;
 
@@ -177,6 +178,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         {
             try
             {
+                // Initialize ID generator with existing configurations
+                IdGenerator.InitializeFrom(_xmlService.GetRaceFormatConfigurations());
+
                 List<RaceFormatConfiguration> raceFormatConfigurations = new List<RaceFormatConfiguration>();
 
                 foreach (CategoryConfigurationViewModel categoryConfig in CategoryConfigurations)
@@ -207,7 +211,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             // Create the RaceFormatConfiguration manually since it doesn't have a parameterless constructor
             RaceFormatConfiguration raceFormatConfig = new RaceFormatConfiguration
             {
-                Id = 0, // Always 0 as specified
+                Id = IdGenerator.GenerateRaceFormatConfigurationId(),
                 Label = $"{race.Name} - {race.Gender}",
                 FullLabel = $"{race.Name} - {race.Gender} - {categoryConfig.Name}",
                 Gender = race.Gender,
@@ -242,7 +246,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             var raceFormatDetail = new RaceFormatDetail
             {
-                Id = 0, // Always 0 as specified
+                Id = IdGenerator.GenerateRaceFormatDetailId(),
                 Order = phase.Order,
                 Label = $"{race.Name} - {race.Gender} - {levelDisplayName} {categoryNames}",
                 FullLabel = $"{race.Name} - {race.Gender} - {levelDisplayName} {categoryNames}",

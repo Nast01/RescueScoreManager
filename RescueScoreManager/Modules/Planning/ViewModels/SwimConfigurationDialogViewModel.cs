@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
 using RescueScoreManager.Data;
+using RescueScoreManager.Helpers;
 using RescueScoreManager.Modules.Login;
 using RescueScoreManager.Services;
 
@@ -81,34 +82,46 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             IReadOnlyList<RaceFormatConfiguration> existingConfigs = _xmlService.GetRaceFormatConfigurations();
             bool isDisciplineConfigured = false;
             
-            if (appSetting?.IsRankingByTime == true)
+            // Always check for existing configurations, regardless of IsRankingByTime setting
+            // Look for the most comprehensive match that covers all races for this discipline
+            if (races.Any())
             {
-                // Check if any existing configuration matches the current races
-                foreach (Race race in races)
-                {
-                    RaceFormatConfiguration? existingConfig = existingConfigs.FirstOrDefault(cfg => 
-                        cfg.Discipline == race.Discipline && 
-                        cfg.Gender == race.Gender &&
-                        cfg.Categories.Any(cat => race.Categories.Any(raceCat => raceCat.Id == cat.Id)));
-                        
-                    if (existingConfig != null)
-                    {
-                        isDisciplineConfigured = true;
-                        LoadExistingConfiguration(existingConfig);
-                        break;
-                    }
-                }
+                Race firstRace = races.First();
                 
-                // If no existing configuration found, create default series phase
-                if (!isDisciplineConfigured)
+                // Find configuration that matches discipline and gender, and has overlapping categories
+                RaceFormatConfiguration? existingConfig = existingConfigs.FirstOrDefault(cfg => 
+                    cfg.Discipline == firstRace.Discipline && 
+                    cfg.Gender == firstRace.Gender &&
+                    cfg.Categories.Any(cat => races.Any(race => race.Categories.Any(raceCat => raceCat.Id == cat.Id))));
+                    
+                if (existingConfig != null)
                 {
-                    CreateDefaultSeriesPhase(races, appSetting);
+                    isDisciplineConfigured = true;
+                    LoadExistingConfiguration(existingConfig);
                 }
+                else
+                {
+                    // Debug: Log that no existing configuration was found
+                    System.Diagnostics.Debug.WriteLine($"No existing configuration found for discipline {firstRace.Discipline}, gender {firstRace.Gender}");
+                }
+            }
+            
+            // If no existing configuration found and ranking by time is enabled, create default series phase
+            if (!isDisciplineConfigured && appSetting?.IsRankingByTime == true)
+            {
+                CreateDefaultSeriesPhase(races, appSetting);
             }
         }
 
         private void LoadExistingConfiguration(RaceFormatConfiguration existingConfig)
         {
+            // Clear existing phases before loading
+            SeriesPhases.Clear();
+            FinalsPhases.Clear();
+            
+            // Debug: Log configuration loading
+            System.Diagnostics.Debug.WriteLine($"Loading existing configuration with {existingConfig.RaceFormatDetails.Count} details");
+            
             // Load existing phases into appropriate collections
             foreach (RaceFormatDetail detail in existingConfig.RaceFormatDetails.OrderBy(d => d.Order))
             {
@@ -119,11 +132,17 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 {
                     phase.RemoveCommand = new RelayCommand<PhaseViewModel>(OnRemoveSeriesPhase);
                     SeriesPhases.Add(phase);
+                    System.Diagnostics.Debug.WriteLine($"Added Heat level phase '{detail.LevelLabel}' to SeriesPhases");
                 }
                 else if (detail.Level == EnumRSM.HeatLevel.Final || detail.Level == EnumRSM.HeatLevel.Semi || detail.Level == EnumRSM.HeatLevel.Quarter)
                 {
                     phase.RemoveCommand = new RelayCommand<PhaseViewModel>(OnRemoveFinalsPhase);
                     FinalsPhases.Add(phase);
+                    System.Diagnostics.Debug.WriteLine($"Added {detail.Level} level phase '{detail.LevelLabel}' to FinalsPhases");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"Unhandled level type: {detail.Level} for phase '{detail.LevelLabel}'");
                 }
             }
         }
@@ -317,6 +336,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 List<RaceFormatConfiguration> raceFormatConfigurations = new List<RaceFormatConfiguration>();
                 bool hasApiCalls = false;
 
+                // Initialize ID generator with existing configurations
+                IdGenerator.InitializeFrom(_xmlService.GetRaceFormatConfigurations());
+
                 // Create RaceFormatConfiguration combining series and finals phases
                 var allPhases = new List<PhaseViewModel>();
                 
@@ -333,7 +355,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
                     RaceFormatConfiguration raceFormatConfig = new RaceFormatConfiguration
                     {
-                        Id = 0,
+                        Id = IdGenerator.GenerateRaceFormatConfigurationId(),
                         Label = $"{firstRace.Name} {categoryNames}",
                         FullLabel = $"{firstRace.Name} {categoryNames}",
                         Gender = firstRace.Gender,
