@@ -22,6 +22,12 @@ public partial class ProgramSlot
     public int ProgramMeetingId { get; set; }
     public ProgramMeeting ProgramMeeting { get; set; } = null!;
 
+    /// <summary>
+    /// Duration in minutes (calculated property)
+    /// </summary>
+    [NotMapped]
+    public double Duration => (EndHour - BeginHour).TotalMinutes;
+
     public ProgramSlot()
     {
         // Parameterless constructor for manual creation

@@ -20,7 +20,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         private string _name = string.Empty;
 
         [ObservableProperty]
-        private SiteViewModel? _selectedSite;
+        private Site? _selectedSite;
 
         [ObservableProperty]
         private int _selectedHour = 8;
@@ -28,7 +28,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         [ObservableProperty]
         private int _selectedMinute = 0;
 
-        public ObservableCollection<SiteViewModel> AvailableSites { get; }
+        public ObservableCollection<Site> AvailableSites { get; }
         public ObservableCollection<int> AvailableHours { get; }
         public ObservableCollection<int> AvailableMinutes { get; }
 
@@ -42,13 +42,13 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             IXMLService xmlService,
             ILocalizationService localizationService,
             DateTime currentDate,
-            IEnumerable<SiteViewModel> availableSites)
+            IEnumerable<Site> availableSites)
         {
             _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
             _localizationService = localizationService ?? throw new ArgumentNullException(nameof(localizationService));
             _currentDate = currentDate;
 
-            AvailableSites = new ObservableCollection<SiteViewModel>(availableSites);
+            AvailableSites = new ObservableCollection<Site>(availableSites);
             AvailableHours = new ObservableCollection<int>();
             AvailableMinutes = new ObservableCollection<int>();
 
@@ -109,12 +109,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                     ProgramSlots = new List<ProgramSlot>()
                 };
 
-                // Save to XML
-                var allMeetings = existingMeetings.ToList();
-                allMeetings.Add(programMeeting);
-                _xmlService.UpdateProgramMeetings(allMeetings);
-                _xmlService.Save();
-
+                // Do not save to XML here - let the calling method handle the save
                 CreatedProgramMeeting = programMeeting;
                 ProgramMeetingCreated?.Invoke(this, EventArgs.Empty);
             }
@@ -130,7 +125,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             ((RelayCommand)CreateCommand).NotifyCanExecuteChanged();
         }
 
-        partial void OnSelectedSiteChanged(SiteViewModel? value)
+        partial void OnSelectedSiteChanged(Site? value)
         {
             ((RelayCommand)CreateCommand).NotifyCanExecuteChanged();
         }

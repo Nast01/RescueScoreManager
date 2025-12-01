@@ -115,6 +115,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Assets\Prompts\" />
     <Folder Include="Documents\" />
   </ItemGroup>
 </Project>

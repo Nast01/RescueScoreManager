@@ -24,6 +24,7 @@ public class RaceFormatDetail
     public int SpotsPerRace { get; set; }
     public int QualifyingSpots { get; set; }
     public RaceFormatConfiguration RaceFormatConfiguration { get; set; }
+    public List<Race> Races { get; set; } = new List<Race>();
 
     public RaceFormatDetail()
     {
@@ -47,7 +48,7 @@ public class RaceFormatDetail
         RaceFormatConfiguration = raceFormatConfiguration;
     }
 
-    public RaceFormatDetail(XElement xElement)
+    public RaceFormatDetail(XElement xElement, List<Race> races = null)
     {
         Id = int.Parse(xElement.Attribute(Properties.Resources.Id_XMI).Value);
         Order = int.Parse(xElement.Attribute(Properties.Resources.Order_XMI).Value);
@@ -61,11 +62,43 @@ public class RaceFormatDetail
         SpotsPerRace = int.Parse(xElement.Attribute(Properties.Resources.SpotsPerRace_XMI).Value);
         QualifyingSpots = int.Parse(xElement.Attribute(Properties.Resources.QualifyingSpots_XMI).Value);
 
+        // Load races if provided and XML has race data
+        if (races != null && xElement.Attribute(Properties.Resources.Races_XMI) != null)
+        {
+            string[] raceIds = xElement.Attribute(Properties.Resources.Races_XMI).Value.Split(" ");
+            foreach (string raceId in raceIds)
+            {
+                if (!string.IsNullOrEmpty(raceId))
+                {
+                    Race race = races.Find(r => r.Id == int.Parse(raceId));
+                    if (race != null)
+                    {
+                        Races.Add(race);
+                    }
+                }
+            }
+        }
     }
 
     #region Public Method
+    public void UpdateRacesFromParent()
+    {
+        if (Level == HeatLevel.Heat && RaceFormatConfiguration != null)
+        {
+            Races.Clear();
+            Races.AddRange(RaceFormatConfiguration.Races);
+        }
+    }
+    
     public XElement WriteXml()
     {
+        string raceIds = string.Empty;
+        foreach (Race race in Races)
+        {
+            raceIds += race.Id + " ";
+        }
+        raceIds = raceIds.Trim();
+
         XElement xElement = new XElement(Properties.Resources.RaceFormatDetail_XMI,
                             new XAttribute(Properties.Resources.Id_XMI, Id),
                             new XAttribute(Properties.Resources.Order_XMI, Order),
@@ -77,7 +110,8 @@ public class RaceFormatDetail
                             new XAttribute(Properties.Resources.QualificationMethod_XMI, QualificationMethod.ToString()),
                             new XAttribute(Properties.Resources.QualificationMethodLabel_XMI, QualificationMethodLabel),
                             new XAttribute(Properties.Resources.SpotsPerRace_XMI, SpotsPerRace),
-                            new XAttribute(Properties.Resources.QualifyingSpots_XMI, QualifyingSpots)
+                            new XAttribute(Properties.Resources.QualifyingSpots_XMI, QualifyingSpots),
+                            new XAttribute(Properties.Resources.Races_XMI, raceIds)
                             );
 
         return xElement;

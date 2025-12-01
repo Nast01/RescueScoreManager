@@ -736,6 +736,15 @@ namespace RescueScoreManager.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à DisciplineLabel.
+        /// </summary>
+        internal static string DisciplineLabel_XMI {
+            get {
+                return ResourceManager.GetString("DisciplineLabel_XMI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à DISCIPLINES TOTALES.
         /// </summary>
         internal static string DisciplinesTotals {

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using RescueScoreManager.Data;
 using RescueScoreManager.Modules.Planning.ViewModels;
 using RescueScoreManager.Services;
 
@@ -13,12 +15,12 @@ namespace RescueScoreManager.Modules.Planning.Views
             InitializeComponent();
         }
 
-        public ProgramMeetingCreationDialog(DateTime currentDate, IEnumerable<SiteViewModel> availableSites) : this()
+        public ProgramMeetingCreationDialog(DateTime currentDate, IEnumerable<Site> availableSites) : this()
         {
             InitializeViewModel(currentDate, availableSites);
         }
 
-        private void InitializeViewModel(DateTime currentDate, IEnumerable<SiteViewModel> availableSites)
+        private void InitializeViewModel(DateTime currentDate, IEnumerable<Site> availableSites)
         {
             try
             {

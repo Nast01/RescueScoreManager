@@ -24,19 +24,18 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         [ObservableProperty]
         private TimeSlotOption? _selectedBeginTimeSlot;
 
-        public ObservableCollection<SiteSelectionViewModel> AvailableSites { get; }
         public ObservableCollection<DateOption> AvailableDates { get; }
         public ObservableCollection<TimeSlotOption> AvailableTimeSlots { get; }
 
         public DateTime CurrentDate { get; private set; }
-        public PlannedEventViewModel? CreatedEvent { get; private set; }
+        // TODO: Replace with appropriate event model when implementing the feature
+        public object? CreatedEvent { get; private set; }
 
         public ManualTimeSlotDialogViewModel(IXMLService xmlService, DateTime currentDate)
         {
             _xmlService = xmlService ?? throw new ArgumentNullException(nameof(xmlService));
             CurrentDate = currentDate;
 
-            AvailableSites = new ObservableCollection<SiteSelectionViewModel>();
             AvailableDates = new ObservableCollection<DateOption>();
             AvailableTimeSlots = new ObservableCollection<TimeSlotOption>();
 
@@ -45,7 +44,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
         private void Initialize()
         {
-            LoadAvailableSites();
             LoadAvailableDates();
             LoadAvailableTimeSlots();
 
@@ -53,21 +51,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             SelectedDate = AvailableDates.FirstOrDefault(d => d.Date.Date == CurrentDate.Date);
         }
 
-        private void LoadAvailableSites()
-        {
-            AvailableSites.Clear();
-            var sites = _xmlService.GetSites();
-
-            foreach (var site in sites)
-            {
-                AvailableSites.Add(new SiteSelectionViewModel
-                {
-                    Id = site.Id,
-                    Name = site.Name,
-                    IsSelected = false
-                });
-            }
-        }
 
         private void LoadAvailableDates()
         {
@@ -165,14 +148,8 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 return false;
             }
 
-            var selectedSites = AvailableSites.Where(s => s.IsSelected).ToList();
-            if (!selectedSites.Any())
-            {
-                return false;
-            }
-
-            // Create the planned event
-            CreatedEvent = new PlannedEventViewModel
+            // TODO: Create the planned event when PlannedEventViewModel is implemented
+            CreatedEvent = new 
             {
                 Id = GetNextEventId(),
                 Title = Name,
@@ -203,10 +180,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             return nextId;
         }
 
-        public List<SiteSelectionViewModel> GetSelectedSites()
-        {
-            return AvailableSites.Where(s => s.IsSelected).ToList();
-        }
 
         public DateTime GetSelectedDateTime()
         {
@@ -218,14 +191,6 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         }
     }
 
-    public partial class SiteSelectionViewModel : ObservableObject
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-
-        [ObservableProperty]
-        private bool _isSelected;
-    }
 
     public class DateOption
     {

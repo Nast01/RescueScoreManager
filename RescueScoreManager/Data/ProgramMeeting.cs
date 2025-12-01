@@ -16,7 +16,17 @@ public partial class ProgramMeeting
     public DateTime BeginHour { get; set; }
     public DateTime EndHour { get; set; }
 
+    // Foreign key relationship to Program
+    public int? ProgramId { get; set; }
+    public Program? Program { get; set; }
+
     public ICollection<ProgramSlot> ProgramSlots { get; set; } = new List<ProgramSlot>();
+
+    /// <summary>
+    /// Gets the ProgramSlots ordered by BeginHour
+    /// </summary>
+    [NotMapped]
+    public IEnumerable<ProgramSlot> OrderedProgramSlots => ProgramSlots.OrderBy(slot => slot.BeginHour);
 
     public ProgramMeeting()
     {

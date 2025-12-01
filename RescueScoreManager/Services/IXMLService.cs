@@ -33,10 +33,12 @@ public interface IXMLService
     IReadOnlyList<RaceFormatConfiguration> GetRaceFormatConfigurations();
     IReadOnlyList<ProgramMeeting> GetProgramMeetings();
     IReadOnlyList<Site> GetSites();
+    Program GetProgram();
     AppSetting? GetSetting();
 
     // Update methods
     void UpdateRaceFormatConfigurations(IEnumerable<RaceFormatConfiguration> raceFormatConfigurations);
     void UpdateSites(IEnumerable<Site> sites);
     void UpdateProgramMeetings(IEnumerable<ProgramMeeting> programMeetings);
+    void SetCurrentProgram(Program program);
 }

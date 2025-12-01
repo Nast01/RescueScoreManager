@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
 using RescueScoreManager.Data;
+using RescueScoreManager.Helpers;
 using RescueScoreManager.Messages;
 using RescueScoreManager.Services;
 
@@ -22,6 +23,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         protected readonly IApiService _apiService;
         protected readonly IAuthenticationService _authService;
         protected readonly IMessenger _messenger;
+        protected readonly List<Race> _races;
 
         [ObservableProperty]
         private int _selectedCategoryIndex;
@@ -43,6 +45,7 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            _races = races ?? new List<Race>();
 
             CategoryConfigurations = new ObservableCollection<CategoryConfigurationViewModel>();
             AddPhaseCommand = new RelayCommand<CategoryConfigurationViewModel>(OnAddPhase);
@@ -175,6 +178,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
         {
             try
             {
+                // Initialize ID generator with existing configurations
+                IdGenerator.InitializeFrom(_xmlService.GetRaceFormatConfigurations());
+
                 List<RaceFormatConfiguration> raceFormatConfigurations = new List<RaceFormatConfiguration>();
 
                 foreach (CategoryConfigurationViewModel categoryConfig in CategoryConfigurations)
@@ -205,14 +211,18 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
             // Create the RaceFormatConfiguration manually since it doesn't have a parameterless constructor
             RaceFormatConfiguration raceFormatConfig = new RaceFormatConfiguration
             {
-                Id = 0, // Always 0 as specified
+                Id = IdGenerator.GenerateRaceFormatConfigurationId(),
                 Label = $"{race.Name} - {race.Gender}",
                 FullLabel = $"{race.Name} - {race.Gender} - {categoryConfig.Name}",
                 Gender = race.Gender,
                 Discipline = race.Discipline,
                 Categories = new List<Category>(race.Categories),
+                Races = _races.ToList(),
                 RaceFormatDetails = new List<RaceFormatDetail>()
             };
+
+            // Update DisciplineLabel from races
+            raceFormatConfig.UpdateDisciplineLabel();
 
             // Convert phases to RaceFormatDetails
             foreach (PhaseViewModel phase in categoryConfig.Phases)
@@ -234,9 +244,9 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
 
             string categoryNames = $"({string.Join(", ", parentConfig.Categories.OrderBy(c => c.AgeMin).Select(c => c.Name))})";
 
-            return new RaceFormatDetail
+            var raceFormatDetail = new RaceFormatDetail
             {
-                Id = 0, // Always 0 as specified
+                Id = IdGenerator.GenerateRaceFormatDetailId(),
                 Order = phase.Order,
                 Label = $"{race.Name} - {race.Gender} - {levelDisplayName} {categoryNames}",
                 FullLabel = $"{race.Name} - {race.Gender} - {levelDisplayName} {categoryNames}",
@@ -249,6 +259,11 @@ namespace RescueScoreManager.Modules.Planning.ViewModels
                 QualifyingSpots = phase.QualifyingPlaces,
                 RaceFormatConfiguration = parentConfig
             };
+
+            // Update races from parent if this is a Heat level
+            raceFormatDetail.UpdateRacesFromParent();
+
+            return raceFormatDetail;
         }
     }
 }
